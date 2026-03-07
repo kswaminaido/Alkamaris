@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Enums\UserRole;
+use App\Models\Config;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 final class RegisterRequest extends FormRequest
 {
@@ -17,9 +20,20 @@ final class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
+        $allowedUserTypes = array_values(
+            array_intersect(
+                Config::optionsByType('roles'),
+                UserRole::registrableValues(),
+            ),
+        );
+
         return [
             'name' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'address' => ['required', 'string', 'max:1000'],
+            'user_type' => ['required', 'string', Rule::in($allowedUserTypes)],
+            'registration_number' => ['required', 'string', 'max:100', 'unique:users,registration_number'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\UserRole;
+use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -10,11 +12,25 @@ final class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::query()->updateOrCreate(
+            ['type' => 'roles'],
+            ['data' => UserRole::values()],
+        );
+    }
+
     public function test_user_can_register(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Test User',
+            'phone_number' => '9876543210',
             'email' => 'test@example.com',
+            'address' => 'Test address',
+            'user_type' => UserRole::Sales->value,
+            'registration_number' => 'REG-1001',
             'password' => 'Password@123',
             'password_confirmation' => 'Password@123',
         ]);
@@ -25,12 +41,13 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'email'],
+                    'user' => ['id', 'name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
+            'role' => UserRole::Sales->value,
         ]);
     }
 
@@ -52,7 +69,7 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'email'],
+                    'user' => ['id', 'name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
     }
