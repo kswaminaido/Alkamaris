@@ -518,3 +518,234 @@ select:focus {
     white-space: nowrap;
   }
 }
+:root {
+  --dash-bg-start: #eef2f9;
+  --dash-bg-end: #f8fafc;
+  --dash-panel: #ffffff;
+  --dash-stroke: #d8e0ef;
+  --dash-text: #0f172a;
+  --dash-muted: #5b6476;
+  --dash-accent: #0094d8;
+  --dash-accent-soft: #d8f4ff;
+  --dash-ink: #1f2430;
+}
+
+.modern-dashboard {
+  min-height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  border: 1px solid var(--dash-stroke);
+  background: radial-gradient(1200px 500px at 10% -5%, #d9e8ff 0%, transparent 55%),
+    linear-gradient(180deg, var(--dash-bg-start) 0%, var(--dash-bg-end) 45%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.08);
+}
+
+.modern-top-nav {
+  background: var(--brand-purple);
+  padding: 0.35rem 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.modern-dashboard-main {
+  padding: 1.1rem 1.2rem 1.35rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.modern-dashboard-logo {
+  width: 95px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.modern-primary-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.modern-nav-item {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #eff5ff;
+  text-align: left;
+  min-height: 54px;
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.modern-nav-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(83, 202, 255, 0.65);
+  background: linear-gradient(135deg, rgba(0, 148, 216, 0.35), rgba(0, 105, 154, 0.35));
+}
+
+.modern-nav-item span {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.modern-nav-item small {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.8rem;
+  color: #bdd8ef;
+}
+
+.modern-logout-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modern-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.modern-logout-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modern-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.module-card {
+  background: var(--dash-panel);
+  border-radius: 0;
+  border: 1px solid #dfe6f3;
+  overflow: hidden;
+}
+
+.module-card-head {
+  min-height: 104px;
+  display: flex;
+  align-items: end;
+  padding: 0.85rem;
+}
+
+.module-card-head.transaction {
+  background: linear-gradient(115deg, #ffcc43 0%, #f59e0b 40%, #7c4d00 100%);
+}
+
+.module-card-head.reports {
+  background: linear-gradient(115deg, #dbeafe 0%, #93c5fd 40%, #1e3a8a 100%);
+}
+
+.module-card-head h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.2rem;
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+.module-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.module-link {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #1f2937;
+  text-align: left;
+  min-height: 38px;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.45rem;
+  cursor: pointer;
+}
+
+.module-link:hover {
+  background: var(--dash-accent-soft);
+  color: #0b4a6b;
+}
+
+.dashboard-footnote {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 0.9rem;
+}
+
+.dashboard-placeholder-note {
+  margin: 0;
+  border: 1px solid #c7e8f8;
+  border-radius: 0;
+  background: #edf9ff;
+  color: #0b4a6b;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+}
+
+@media (max-width: 1080px) {
+  .modern-primary-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .modern-top-nav {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .modern-primary-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modern-report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .modern-dashboard {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .modern-top-nav {
+    padding: 0.45rem 0.55rem;
+  }
+
+  .modern-dashboard-logo {
+    width: 90px;
+    height: 40px;
+  }
+
+  .modern-primary-nav {
+    grid-template-columns: 1fr;
+  }
+}
