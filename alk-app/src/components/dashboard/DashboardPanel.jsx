@@ -1,19 +1,22 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import AdminTopNav from '../layout/AdminTopNav'
 
 function DashboardPanel({ currentUser, onLogout }) {
+  const navigate = useNavigate()
   const [placeholderMessage, setPlaceholderMessage] = useState('')
 
-  function handlePlaceholderClick(itemName) {
-    setPlaceholderMessage(`${itemName} is a placeholder for now.`)
+  function handleNavAction(action) {
+    if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
+      navigate(`/transactions/new?mode=${action.mode}`)
+      return
+    }
+    if (action.key === 'all_transactions') {
+      navigate('/transactions')
+      return
+    }
+    setPlaceholderMessage(`${action.title} is a placeholder for now.`)
   }
-
-  const topActions = [
-    { title: 'New Booking', subtitle: 'Trade & Commission' },
-    { title: 'New Booking', subtitle: 'QC Services' },
-    { title: 'All Transactions', subtitle: 'Track and verify' },
-    { title: 'Follow Up', subtitle: 'Shipments' },
-    { title: 'Master List', subtitle: 'TycMail' },
-  ]
 
   const transactionLinks = [
     'All Transactions',
@@ -34,38 +37,7 @@ function DashboardPanel({ currentUser, onLogout }) {
 
   return (
     <section className="modern-dashboard">
-      <header className="modern-top-nav" aria-label="Admin navigation">
-        <img
-          className="modern-dashboard-logo"
-          src="https://www.alkamaris.com/images/header/header-logo.png"
-          alt="Alkamaris"
-        />
-        <nav className="modern-primary-nav">
-          {topActions.map((action) => (
-            <button
-              type="button"
-              key={`${action.title}-${action.subtitle}`}
-              className="modern-nav-item"
-              onClick={() => handlePlaceholderClick(action.title)}
-            >
-              <span>{action.title}</span>
-              <small>{action.subtitle}</small>
-            </button>
-          ))}
-        </nav>
-        <button
-          type="button"
-          className="modern-logout-btn"
-          aria-label="Logout"
-          title="Logout"
-          onClick={onLogout}
-        >
-          <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-            <path d="M10 17v-2h6V9h-6V7h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-6Z" />
-            <path d="M13 12H4m0 0 3-3m-3 3 3 3" />
-          </svg>
-        </button>
-      </header>
+      <AdminTopNav activeKey="" onAction={handleNavAction} onLogout={onLogout} />
 
       <div className="modern-dashboard-main">
         <section className="modern-report-grid">
@@ -79,7 +51,11 @@ function DashboardPanel({ currentUser, onLogout }) {
                   <button
                     type="button"
                     className="module-link"
-                    onClick={() => handlePlaceholderClick(item)}
+                    onClick={() =>
+                      item === 'All Transactions'
+                        ? navigate('/transactions')
+                        : setPlaceholderMessage(`${item} is a placeholder for now.`)
+                    }
                   >
                     {item}
                   </button>
@@ -98,7 +74,7 @@ function DashboardPanel({ currentUser, onLogout }) {
                   <button
                     type="button"
                     className="module-link"
-                    onClick={() => handlePlaceholderClick(item)}
+                    onClick={() => setPlaceholderMessage(`${item} is a placeholder for now.`)}
                   >
                     {item}
                   </button>

@@ -8,6 +8,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) ?? '')
   const [currentUser, setCurrentUser] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
   const [userTypeOptions, setUserTypeOptions] = useState(['admin', 'sales', 'customer'])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -20,8 +21,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!token) {
       setCurrentUser(null)
+      setAuthReady(true)
       return
     }
+    setAuthReady(false)
     fetchMe(token)
   }, [token])
 
@@ -60,9 +63,11 @@ export function AuthProvider({ children }) {
       }
 
       const payload = await response.json()
-      setCurrentUser(payload?.data ?? null)
+      setCurrentUser(normalizeUser(payload?.data ?? null))
     } catch {
       clearSession()
+    } finally {
+      setAuthReady(true)
     }
   }
 
@@ -87,7 +92,7 @@ export function AuthProvider({ children }) {
       }
 
       const accessToken = payload?.data?.access_token ?? ''
-      const user = payload?.data?.user ?? null
+      const user = normalizeUser(payload?.data?.user ?? null)
       if (!accessToken || !user) {
         setError('Login response is incomplete.')
         return false
@@ -128,7 +133,7 @@ export function AuthProvider({ children }) {
       }
 
       const accessToken = body?.data?.access_token ?? ''
-      const user = body?.data?.user ?? null
+      const user = normalizeUser(body?.data?.user ?? null)
       if (!accessToken || !user) {
         setError('Registration response is incomplete.')
         return false
@@ -186,6 +191,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(TOKEN_KEY)
     setToken('')
     setCurrentUser(null)
+    setAuthReady(true)
   }
 
   function clearFeedback() {
@@ -193,8 +199,15 @@ export function AuthProvider({ children }) {
     setError('')
   }
 
+  function normalizeUser(user) {
+    if (!user) return null
+    const normalizedRole = typeof user.role === 'string' ? user.role.trim().toLowerCase() : user.role
+    return { ...user, role: normalizedRole }
+  }
+
   const value = {
     currentUser,
+    authReady,
     userTypeOptions,
     dashboardTitle,
     loading,

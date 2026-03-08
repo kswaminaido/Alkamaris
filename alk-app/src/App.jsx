@@ -5,6 +5,8 @@ import { AuthProvider } from './context/AuthContext'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import TransactionCreatePage from './pages/TransactionCreatePage'
+import TransactionsPage from './pages/TransactionsPage'
 
 function App() {
   return (
@@ -18,6 +20,22 @@ function App() {
             element={
               <RequireAuth>
                 <DashboardPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/transactions/new"
+            element={
+              <RequireAuth>
+                <TransactionCreatePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <RequireAuth>
+                <TransactionsPage />
               </RequireAuth>
             }
           />

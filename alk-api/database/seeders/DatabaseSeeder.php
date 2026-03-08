@@ -30,5 +30,9 @@ class DatabaseSeeder extends Seeder
             'address' => 'Default seeded admin address',
             'registration_number' => 'REG-ADMIN-0001',
         ]);
+
+        $this->call([
+            TransactionSeeder::class,
+        ]);
     }
 }
