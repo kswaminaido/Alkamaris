@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminTopNav from '../components/layout/AdminTopNav'
+import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
+
+const PAGE_SIZE = 10
+const MAX_VISIBLE_PAGES = 5
 
 function TransactionsPage() {
   const navigate = useNavigate()
@@ -10,8 +14,9 @@ function TransactionsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: 20, total: 0 })
+  const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [keyword, setKeyword] = useState('')
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
 
   useEffect(() => {
     if (!currentUser) return
@@ -27,14 +32,14 @@ function TransactionsPage() {
     setLoading(true)
     setError('')
     try {
-      const response = await authFetch(`/transactions?page=${targetPage}&per_page=20`)
+      const response = await authFetch(`/transactions?page=${targetPage}&per_page=${PAGE_SIZE}`)
       const payload = await response.json()
       if (!response.ok) {
         setError(payload?.message ?? 'Unable to load transactions.')
         return
       }
       setTransactions(payload?.data ?? [])
-      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: 20, total: 0 })
+      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
       setPage(targetPage)
     } catch {
       setError('Unable to load transactions.')
@@ -62,7 +67,7 @@ function TransactionsPage() {
         if (index === -1) return [duplicated, ...previous]
         const next = [...previous]
         next.splice(index + 1, 0, duplicated)
-        return next.slice(0, pagination.per_page)
+        return next.slice(0, PAGE_SIZE)
       })
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
     } catch {
@@ -94,7 +99,74 @@ function TransactionsPage() {
       transaction.destination,
     ].filter(Boolean).join(' ').toLowerCase()
     return searchable.includes(text)
-  })
+  }).slice(0, PAGE_SIZE)
+  const totalRecords = pagination.total ?? 0
+  const currentPage = pagination.current_page ?? page
+  const lastPage = Math.max(1, pagination.last_page ?? 1)
+  const canGoPrevious = currentPage > 1
+  const canGoNext = currentPage < lastPage
+
+  function getVisiblePageNumbers() {
+    if (lastPage <= MAX_VISIBLE_PAGES) {
+      return Array.from({ length: lastPage }, (_, index) => index + 1)
+    }
+
+    const halfWindow = Math.floor(MAX_VISIBLE_PAGES / 2)
+    let start = currentPage - halfWindow
+    let end = currentPage + halfWindow
+
+    if (start < 1) {
+      start = 1
+      end = MAX_VISIBLE_PAGES
+    }
+    if (end > lastPage) {
+      end = lastPage
+      start = lastPage - MAX_VISIBLE_PAGES + 1
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
+  }
+
+  function renderPagination() {
+    const pageNumbers = getVisiblePageNumbers()
+
+    return (
+      <div className="transactions-pagination transactions-pagination-bottom">
+        <div className="transactions-pagination-actions">
+          <button
+            type="button"
+            className="page-chip nav"
+            onClick={() => loadTransactions(Math.max(1, currentPage - 1))}
+            disabled={!canGoPrevious}
+            aria-label="Previous page"
+          >
+            {'<'}
+          </button>
+          {pageNumbers.map((pageNumber) => (
+            <button
+              key={pageNumber}
+              type="button"
+              className={`page-chip${pageNumber === currentPage ? ' active' : ''}`}
+              onClick={() => loadTransactions(pageNumber)}
+              aria-label={`Page ${pageNumber}`}
+              aria-current={pageNumber === currentPage ? 'page' : undefined}
+            >
+              {pageNumber}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="page-chip nav"
+            onClick={() => loadTransactions(Math.min(lastPage, currentPage + 1))}
+            disabled={!canGoNext}
+            aria-label="Next page"
+          >
+            {'>'}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (!currentUser || currentUser.role !== 'admin') return null
 
@@ -106,18 +178,6 @@ function TransactionsPage() {
         <div className="transactions-toolbar">
           <h3>Transaction &gt; All Transaction</h3>
           <input placeholder="Keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
-        </div>
-
-        <div className="transactions-pagination">
-          <span>
-            Page {pagination.current_page} of {pagination.last_page} ({pagination.total} Records)
-          </span>
-          <div className="transactions-pagination-actions">
-            <button type="button" onClick={() => loadTransactions(1)} disabled={page <= 1}>|&lt;&lt;</button>
-            <button type="button" onClick={() => loadTransactions(Math.max(1, page - 1))} disabled={page <= 1}>&lt;</button>
-            <button type="button" onClick={() => loadTransactions(Math.min(pagination.last_page, page + 1))} disabled={page >= pagination.last_page}>&gt;</button>
-            <button type="button" onClick={() => loadTransactions(pagination.last_page)} disabled={page >= pagination.last_page}>&gt;&gt;|</button>
-          </div>
         </div>
 
         {error && <p className="message error">{error}</p>}
@@ -149,7 +209,7 @@ function TransactionsPage() {
                 <tr><td colSpan={16}>No transactions found.</td></tr>
               )}
               {visibleRows.map((transaction) => (
-                <tr key={transaction.id}>
+                <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
                   <td>{transaction.booking_no}</td>
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
@@ -171,7 +231,10 @@ function TransactionsPage() {
                       className="icon-btn duplicate"
                       title="Duplicate"
                       aria-label={`Duplicate ${transaction.booking_no}`}
-                      onClick={() => duplicateTransaction(transaction.id)}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        duplicateTransaction(transaction.id)
+                      }}
                     >
                       <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M9 9h10v10H9zM5 5h10v2H7v8H5z" />
@@ -183,7 +246,16 @@ function TransactionsPage() {
             </tbody>
           </table>
         </div>
+
+        {totalRecords > 0 && renderPagination()}
       </div>
+
+      {selectedTransaction && (
+        <TransactionEditModal
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+        />
+      )}
     </section>
   )
 }

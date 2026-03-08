@@ -929,29 +929,47 @@ select:focus {
 .transactions-pagination {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  color: #1f2937;
-  font-size: 0.95rem;
+  justify-content: center;
+  margin-top: 0.9rem;
 }
 
 .transactions-pagination-actions {
   display: flex;
-  gap: 0.3rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.transactions-pagination-actions button {
-  min-width: 34px;
-  min-height: 30px;
-  border: 1px solid #9cb7dd;
-  background: #f1f6ff;
-  color: #0f172a;
+.page-chip {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 2px solid #d1d5db;
+  background: transparent;
+  color: #7b7b7b;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-radius: 0;
+  transition: all 160ms ease;
 }
 
-.transactions-pagination-actions button:disabled {
-  opacity: 0.5;
+.page-chip.active {
+  background: #4d9bf5;
+  border-color: #4d9bf5;
+  color: #ffffff;
+}
+
+.page-chip.nav {
+  font-size: 2rem;
+  padding-bottom: 2px;
+}
+
+.page-chip:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -1008,6 +1026,250 @@ select:focus {
   background: #f6f8fc;
 }
 
+.transactions-row-clickable {
+  cursor: pointer;
+}
+
+.transactions-row-clickable:hover {
+  background: #e9f2ff;
+}
+
+.txn-edit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+  z-index: 90;
+  padding: 14px;
+}
+
+.txn-edit-modal {
+  width: 100%;
+  height: calc(100vh - 28px);
+  background: #f0f1f3;
+  border: 1px solid #b8bec8;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.txn-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, #e9eaed, #d8dbe2);
+  border-bottom: 1px solid #b8bec8;
+}
+
+.txn-edit-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.txn-edit-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #c4c9d4;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.txn-edit-body {
+  display: grid;
+  grid-template-columns: 1fr 56px;
+  gap: 10px;
+  min-height: 0;
+  padding: 10px;
+}
+
+.txn-edit-main {
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.txn-edit-side-icons {
+  display: grid;
+  align-content: start;
+  border: 1px solid #c8ced9;
+  background: #f5f6f8;
+}
+
+.txe-side-btn {
+  height: 62px;
+  border: 0;
+  border-bottom: 1px solid #d2d7e0;
+  background: transparent;
+  color: #1a74d9;
+  cursor: pointer;
+}
+
+.txe-side-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.txe-side-btn.active {
+  background: #e3efff;
+}
+
+.txe-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.txe-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.txe-card {
+  border: 1px solid #cfd5df;
+  background: #f5f6f9;
+}
+
+.txe-card-head {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #cfd5df;
+}
+
+.txe-card-head h4 {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.txe-card-body {
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.txe-blue .txe-card-head,
+.txe-cyan .txe-card-head {
+  background: #9dc1e7;
+}
+
+.txe-green .txe-card-head {
+  background: #b8dbc3;
+}
+
+.txe-gold .txe-card-head {
+  background: #f1e2b8;
+}
+
+.txe-pink .txe-card-head {
+  background: #e8bcc5;
+}
+
+.txe-gray .txe-card-head {
+  background: #babec4;
+}
+
+.txe-header-card {
+  background: #e4e5e7;
+}
+
+.txe-grid-4 {
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+.txe-label-field,
+.txe-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.txe-label-field span,
+.txe-row label {
+  color: #2556a3;
+  font-size: 0.82rem;
+}
+
+.txe-inline {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.txe-inline > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #223045;
+}
+
+.txe-card input,
+.txe-card select,
+.txe-card textarea {
+  min-height: 24px;
+  border: 1px solid #9db0c8;
+  border-radius: 0;
+  background: #c9daef;
+  padding: 2px 5px;
+  font-size: 0.8rem;
+}
+
+.txe-card textarea {
+  min-height: 46px;
+}
+
+.txe-checkline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #c32626;
+}
+
+.txe-checkline label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.txe-bottom-actions {
+  margin-top: 6px;
+  padding: 8px 0;
+  border-top: 1px solid #c8ced9;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.txe-bottom-tabs,
+.txe-bottom-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.txe-bottom-actions button {
+  min-height: 34px;
+  min-width: 130px;
+  border: 1px solid #8a919e;
+  background: #e8e9ec;
+  color: #222f43;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 @media (max-width: 1080px) {
   .modern-primary-nav {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1048,7 +1310,17 @@ select:focus {
 
   .transactions-pagination {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .page-chip {
+    width: 44px;
+    height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .page-chip.nav {
+    font-size: 1.65rem;
   }
 }
 
