@@ -53,13 +53,14 @@ function TransactionsPage() {
       const response = await authFetch(`/transactions/${transactionId}/duplicate`, { method: 'POST' })
       const payload = await response.json()
       if (!response.ok) {
-        setError(payload?.message ?? 'Unable to duplicate transaction.')
-        return
+        const message = payload?.message ?? 'Unable to duplicate transaction.'
+        setError(message)
+        return { ok: false, error: message }
       }
       const duplicated = payload?.data
       if (!duplicated) {
         await loadTransactions(page)
-        return
+        return { ok: true }
       }
 
       setTransactions((previous) => {
@@ -70,8 +71,35 @@ function TransactionsPage() {
         return next.slice(0, PAGE_SIZE)
       })
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
+      return { ok: true, data: duplicated }
     } catch {
-      setError('Unable to duplicate transaction.')
+      const message = 'Unable to duplicate transaction.'
+      setError(message)
+      return { ok: false, error: message }
+    }
+  }
+
+  async function saveTransaction(transactionId, payload) {
+    try {
+      const response = await authFetch(`/transactions/${transactionId}`, { method: 'PUT', body: JSON.stringify(payload) })
+      const body = await response.json()
+      if (!response.ok) {
+        const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
+        const message = firstValidationMessage ?? body?.message ?? 'Unable to save transaction.'
+        setError(message)
+        return { ok: false, error: message }
+      }
+
+      const updated = body?.data
+      if (updated) {
+        setTransactions((previous) => previous.map((item) => (item.id === updated.id ? updated : item)))
+        setSelectedTransaction(updated)
+      }
+      return { ok: true, data: updated }
+    } catch {
+      const message = 'Unable to save transaction.'
+      setError(message)
+      return { ok: false, error: message }
     }
   }
 
@@ -254,6 +282,8 @@ function TransactionsPage() {
         <TransactionEditModal
           transaction={selectedTransaction}
           onClose={() => setSelectedTransaction(null)}
+          onSave={saveTransaction}
+          onDuplicate={duplicateTransaction}
         />
       )}
     </section>

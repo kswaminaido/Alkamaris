@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
@@ -84,5 +85,20 @@ class Transaction extends Model
     public function note(): HasOne
     {
         return $this->hasOne(TransactionNote::class);
+    }
+
+    public function logistics(): HasOne
+    {
+        return $this->hasOne(TransactionLogistics::class);
+    }
+
+    public function expenseLines(): HasMany
+    {
+        return $this->hasMany(TransactionExpenseLine::class)->orderBy('sort_order');
+    }
+
+    public function noteEntries(): HasMany
+    {
+        return $this->hasMany(TransactionNoteEntry::class)->orderBy('sort_order');
     }
 }

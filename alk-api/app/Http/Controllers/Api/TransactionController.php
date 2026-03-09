@@ -12,7 +12,10 @@ use App\Models\RevenuePacker;
 use App\Models\ShippingDetailsCustomer;
 use App\Models\ShippingDetailsPacker;
 use App\Models\Transaction;
+use App\Models\TransactionExpenseLine;
+use App\Models\TransactionLogistics;
 use App\Models\TransactionNote;
+use App\Models\TransactionNoteEntry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,16 +30,7 @@ class TransactionController extends Controller
         $perPage = max(5, min($perPage, 100));
 
         $paginator = Transaction::query()
-            ->with([
-                'salesPerson:id,name,email',
-                'createdBy:id,name,email',
-                'generalInfoCustomer',
-                'generalInfoPacker',
-                'revenueCustomer',
-                'revenuePacker',
-                'shippingDetailsCustomer',
-                'shippingDetailsPacker',
-            ])
+            ->with($this->relations())
             ->orderByDesc('id')
             ->paginate($perPage);
 
@@ -68,55 +62,49 @@ class TransactionController extends Controller
                 'created_by_user_id' => $request->user()->id,
             ]);
 
-            GeneralInfoCustomer::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['general_info_customer'] ?? []),
-            ]);
-
-            GeneralInfoPacker::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['general_info_packer'] ?? []),
-            ]);
-
-            RevenueCustomer::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['revenue_customer'] ?? []),
-            ]);
-
-            RevenuePacker::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['revenue_packer'] ?? []),
-            ]);
-
-            CashFlowCustomer::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['cash_flow_customer'] ?? []),
-            ]);
-
-            CashFlowPacker::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['cash_flow_packer'] ?? []),
-            ]);
-
-            ShippingDetailsCustomer::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['shipping_details_customer'] ?? []),
-            ]);
-
-            ShippingDetailsPacker::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['shipping_details_packer'] ?? []),
-            ]);
-
-            TransactionNote::query()->create([
-                'transaction_id' => $transaction->id,
-                ...($validated['notes'] ?? []),
-            ]);
+            $this->upsertOneToOne($transaction->id, GeneralInfoCustomer::class, $validated['general_info_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, GeneralInfoPacker::class, $validated['general_info_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, RevenueCustomer::class, $validated['revenue_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, RevenuePacker::class, $validated['revenue_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, CashFlowCustomer::class, $validated['cash_flow_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, CashFlowPacker::class, $validated['cash_flow_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, ShippingDetailsCustomer::class, $validated['shipping_details_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, ShippingDetailsPacker::class, $validated['shipping_details_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, TransactionNote::class, $validated['notes'] ?? []);
+            $this->upsertOneToOne($transaction->id, TransactionLogistics::class, $validated['logistics'] ?? []);
+            $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
+            $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
 
             return $transaction->load($this->relations());
         });
 
         return response()->json(['data' => $transaction], Response::HTTP_CREATED);
+    }
+
+    public function update(Request $request, Transaction $transaction): JsonResponse
+    {
+        $validated = $this->validatePayload($request, $transaction);
+
+        $updated = DB::transaction(function () use ($validated, $transaction): Transaction {
+            $transaction->update($validated['transaction']);
+
+            $this->upsertOneToOne($transaction->id, GeneralInfoCustomer::class, $validated['general_info_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, GeneralInfoPacker::class, $validated['general_info_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, RevenueCustomer::class, $validated['revenue_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, RevenuePacker::class, $validated['revenue_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, CashFlowCustomer::class, $validated['cash_flow_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, CashFlowPacker::class, $validated['cash_flow_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, ShippingDetailsCustomer::class, $validated['shipping_details_customer'] ?? []);
+            $this->upsertOneToOne($transaction->id, ShippingDetailsPacker::class, $validated['shipping_details_packer'] ?? []);
+            $this->upsertOneToOne($transaction->id, TransactionNote::class, $validated['notes'] ?? []);
+            $this->upsertOneToOne($transaction->id, TransactionLogistics::class, $validated['logistics'] ?? []);
+            $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
+            $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
+
+            return $transaction->load($this->relations());
+        });
+
+        return response()->json(['data' => $updated]);
     }
 
     public function duplicate(Request $request, Transaction $transaction): JsonResponse
@@ -152,6 +140,9 @@ class TransactionController extends Controller
             $this->cloneOneToOne($transaction->shippingDetailsCustomer, ShippingDetailsCustomer::class, $newTransaction->id);
             $this->cloneOneToOne($transaction->shippingDetailsPacker, ShippingDetailsPacker::class, $newTransaction->id);
             $this->cloneOneToOne($transaction->note, TransactionNote::class, $newTransaction->id);
+            $this->cloneOneToOne($transaction->logistics, TransactionLogistics::class, $newTransaction->id);
+            $this->cloneMany($transaction->expenseLines, TransactionExpenseLine::class, $newTransaction->id);
+            $this->cloneMany($transaction->noteEntries, TransactionNoteEntry::class, $newTransaction->id);
 
             return $newTransaction->load($this->relations());
         });
@@ -165,11 +156,16 @@ class TransactionController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validatePayload(Request $request): array
+    private function validatePayload(Request $request, ?Transaction $transaction = null): array
     {
+        $bookingNoRule = Rule::unique('transactions', 'booking_no');
+        if ($transaction) {
+            $bookingNoRule = $bookingNoRule->ignore($transaction->id);
+        }
+
         return $request->validate([
             'transaction' => ['required', 'array'],
-            'transaction.booking_no' => ['required', 'string', 'max:100', 'unique:transactions,booking_no'],
+            'transaction.booking_no' => ['required', 'string', 'max:100', $bookingNoRule],
             'transaction.booking_mode' => ['required', 'string', Rule::in(['trade_commission', 'qc_services'])],
             'transaction.issue_date' => ['nullable', 'date'],
             'transaction.sales_person_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -266,6 +262,49 @@ class TransactionController extends Controller
 
             'notes' => ['nullable', 'array'],
             'notes.by_sales' => ['nullable', 'string'],
+
+            'logistics' => ['nullable', 'array'],
+            'logistics.plan_etd' => ['nullable', 'date'],
+            'logistics.plan_eta' => ['nullable', 'date'],
+            'logistics.packaging_date_inner' => ['nullable', 'date'],
+            'logistics.packaging_date_outer' => ['nullable', 'date'],
+            'logistics.feeder_vessel' => ['nullable', 'string', 'max:255'],
+            'logistics.mother_vessel' => ['nullable', 'string', 'max:255'],
+            'logistics.container_no' => ['nullable', 'string', 'max:255'],
+            'logistics.seal_no' => ['nullable', 'string', 'max:255'],
+            'logistics.lc_no' => ['nullable', 'string', 'max:255'],
+            'logistics.temperature_recorder_no' => ['nullable', 'string', 'max:255'],
+            'logistics.etd_date' => ['nullable', 'date'],
+            'logistics.eta_date' => ['nullable', 'date'],
+            'logistics.qc_inspection_date' => ['nullable', 'date'],
+            'logistics.discharge_at' => ['nullable', 'string', 'max:255'],
+            'logistics.service_type' => ['nullable', 'string', 'max:255'],
+            'logistics.bl_date' => ['nullable', 'date'],
+            'logistics.bl_no' => ['nullable', 'string', 'max:255'],
+            'logistics.port' => ['nullable', 'string', 'max:255'],
+            'logistics.destination' => ['nullable', 'string', 'max:255'],
+            'logistics.shipping_line_agent' => ['nullable', 'string', 'max:255'],
+            'logistics.packer_inv_date' => ['nullable', 'date'],
+            'logistics.packer_inv' => ['nullable', 'string', 'max:255'],
+            'logistics.cancel_claim' => ['nullable', 'boolean'],
+            'logistics.cancel_reject' => ['nullable', 'boolean'],
+            'logistics.cancel_move' => ['nullable', 'boolean'],
+
+            'expense_lines' => ['nullable', 'array'],
+            'expense_lines.*.section' => ['required_with:expense_lines', 'string', 'max:50'],
+            'expense_lines.*.group_name' => ['nullable', 'string', 'max:100'],
+            'expense_lines.*.line_key' => ['required_with:expense_lines', 'string', 'max:100'],
+            'expense_lines.*.line_label' => ['nullable', 'string', 'max:120'],
+            'expense_lines.*.amount' => ['nullable', 'numeric'],
+            'expense_lines.*.currency' => ['nullable', 'string', 'max:50'],
+            'expense_lines.*.description' => ['nullable', 'string', 'max:255'],
+            'expense_lines.*.sort_order' => ['nullable', 'integer', 'min:0'],
+
+            'note_entries' => ['nullable', 'array'],
+            'note_entries.*.section' => ['nullable', 'string', 'max:50'],
+            'note_entries.*.note_key' => ['required_with:note_entries', 'string', 'max:100'],
+            'note_entries.*.note_value' => ['nullable', 'string'],
+            'note_entries.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
     }
 
@@ -286,6 +325,9 @@ class TransactionController extends Controller
             'shippingDetailsCustomer',
             'shippingDetailsPacker',
             'note',
+            'logistics',
+            'expenseLines',
+            'noteEntries',
         ];
     }
 
@@ -314,5 +356,69 @@ class TransactionController extends Controller
         unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
         $payload['transaction_id'] = $newTransactionId;
         $modelClass::query()->create($payload);
+    }
+
+    private function cloneMany(mixed $records, string $modelClass, int $newTransactionId): void
+    {
+        foreach ($records ?? [] as $record) {
+            $payload = $record->toArray();
+            unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
+            $payload['transaction_id'] = $newTransactionId;
+            $modelClass::query()->create($payload);
+        }
+    }
+
+    private function upsertOneToOne(int $transactionId, string $modelClass, array $payload): void
+    {
+        $modelClass::query()->updateOrCreate(
+            ['transaction_id' => $transactionId],
+            $payload,
+        );
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $lines
+     */
+    private function replaceExpenseLines(int $transactionId, array $lines): void
+    {
+        TransactionExpenseLine::query()->where('transaction_id', $transactionId)->delete();
+        if ($lines === []) {
+            return;
+        }
+
+        foreach ($lines as $index => $line) {
+            TransactionExpenseLine::query()->create([
+                'transaction_id' => $transactionId,
+                'section' => (string) ($line['section'] ?? ''),
+                'group_name' => $line['group_name'] ?? null,
+                'line_key' => (string) ($line['line_key'] ?? ''),
+                'line_label' => $line['line_label'] ?? null,
+                'amount' => $line['amount'] ?? null,
+                'currency' => $line['currency'] ?? null,
+                'description' => $line['description'] ?? null,
+                'sort_order' => (int) ($line['sort_order'] ?? $index),
+            ]);
+        }
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $entries
+     */
+    private function replaceNoteEntries(int $transactionId, array $entries): void
+    {
+        TransactionNoteEntry::query()->where('transaction_id', $transactionId)->delete();
+        if ($entries === []) {
+            return;
+        }
+
+        foreach ($entries as $index => $entry) {
+            TransactionNoteEntry::query()->create([
+                'transaction_id' => $transactionId,
+                'section' => $entry['section'] ?? null,
+                'note_key' => (string) ($entry['note_key'] ?? ''),
+                'note_value' => $entry['note_value'] ?? null,
+                'sort_order' => (int) ($entry['sort_order'] ?? $index),
+            ]);
+        }
     }
 }
