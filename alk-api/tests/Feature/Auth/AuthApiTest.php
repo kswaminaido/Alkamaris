@@ -18,18 +18,18 @@ final class AuthApiTest extends TestCase
 
         Config::query()->updateOrCreate(
             ['type' => 'roles'],
-            ['data' => UserRole::values()],
+            ['data' => UserRole::registrableValues()],
         );
     }
 
-    public function test_user_can_register(): void
+    public function test_vendor_can_register(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Test User',
             'phone_number' => '9876543210',
             'email' => 'test@example.com',
             'address' => 'Test address',
-            'user_type' => UserRole::Sales->value,
+            'user_type' => UserRole::Vendor->value,
             'registration_number' => 'REG-1001',
             'password' => 'Password@123',
             'password_confirmation' => 'Password@123',
@@ -47,8 +47,49 @@ final class AuthApiTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
-            'role' => UserRole::Sales->value,
+            'role' => UserRole::Vendor->value,
+            'registration_number' => 'REG-1001',
         ]);
+    }
+
+    public function test_customer_can_register_with_firm_number(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'Customer User',
+            'phone_number' => '9998887776',
+            'email' => 'customer@example.com',
+            'address' => 'Customer address',
+            'user_type' => UserRole::Customer->value,
+            'firm_number' => 'FIRM-2002',
+            'password' => 'Password@123',
+            'password_confirmation' => 'Password@123',
+        ]);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'customer@example.com',
+            'role' => UserRole::Customer->value,
+            'registration_number' => 'FIRM-2002',
+        ]);
+    }
+
+    public function test_sales_cannot_register(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'Sales User',
+            'phone_number' => '9998887775',
+            'email' => 'sales@example.com',
+            'address' => 'Sales address',
+            'user_type' => UserRole::Sales->value,
+            'factory_approval_number' => 'FACT-3003',
+            'password' => 'Password@123',
+            'password_confirmation' => 'Password@123',
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user_type']);
     }
 
     public function test_user_can_login_with_valid_credentials(): void

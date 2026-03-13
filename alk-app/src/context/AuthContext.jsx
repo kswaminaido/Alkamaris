@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) ?? '')
   const [currentUser, setCurrentUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
-  const [userTypeOptions, setUserTypeOptions] = useState(['admin', 'sales', 'customer'])
+  const [userTypeOptions, setUserTypeOptions] = useState(['vendor', 'customer'])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
     if (!currentUser?.role) return 'User Dashboard'
     if (currentUser.role === 'admin') return 'Admin Dashboard'
     if (currentUser.role === 'sales') return 'Sales Dashboard'
+    if (currentUser.role === 'vendor') return 'Vendor Dashboard'
     return 'Customer Dashboard'
   }, [currentUser])
 
@@ -44,7 +45,7 @@ export function AuthProvider({ children }) {
         setUserTypeOptions(options)
       }
     } catch {
-      setUserTypeOptions(['admin', 'sales', 'customer'])
+      setUserTypeOptions(['vendor', 'customer'])
     }
   }
 

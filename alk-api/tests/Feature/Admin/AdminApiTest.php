@@ -18,7 +18,7 @@ final class AdminApiTest extends TestCase
 
         Config::query()->updateOrCreate(
             ['type' => 'roles'],
-            ['data' => UserRole::values()],
+            ['data' => UserRole::registrableValues()],
         );
     }
 

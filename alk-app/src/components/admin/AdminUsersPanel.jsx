@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { getUserIdentifierLabel, getVisibleUserTypeOptions } from '../../utils/userType'
 
 function EditIcon() {
   return (
@@ -46,6 +47,8 @@ function AdminUsersPanel({
 }) {
   const [activeSection, setActiveSection] = useState('users')
   const menuItems = useMemo(() => [{ id: 'users', label: 'Users' }], [])
+  const visibleUserTypeOptions = getVisibleUserTypeOptions(userTypeOptions, form.user_type)
+  const identifierLabel = getUserIdentifierLabel(form.user_type)
 
   return (
     <section className="admin-shell">
@@ -102,7 +105,7 @@ function AdminUsersPanel({
                       <th>Email</th>
                       <th>Phone</th>
                       <th>Role</th>
-                      <th>Reg. No.</th>
+                      <th>Identifier</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -205,7 +208,7 @@ function AdminUsersPanel({
               </div>
 
               <div className="register-field">
-                <label htmlFor="admin-registration">Registration Number</label>
+                <label htmlFor="admin-registration">{identifierLabel}</label>
                 <input
                   id="admin-registration"
                   type="text"
@@ -223,7 +226,7 @@ function AdminUsersPanel({
                   onChange={(event) => onFieldChange('user_type', event.target.value)}
                   required
                 >
-                  {userTypeOptions.map((option) => (
+                  {visibleUserTypeOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>

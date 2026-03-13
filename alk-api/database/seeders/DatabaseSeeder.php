@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         Config::query()->updateOrCreate(
             ['type' => 'roles'],
-            ['data' => UserRole::values()],
+            ['data' => UserRole::registrableValues()],
         );
 
         User::factory()->create([

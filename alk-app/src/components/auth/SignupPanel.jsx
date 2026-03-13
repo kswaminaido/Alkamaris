@@ -1,3 +1,5 @@
+import { getUserIdentifierLabel } from '../../utils/userType'
+
 function SignupPanel({
   registerForm,
   userTypeOptions,
@@ -7,6 +9,8 @@ function SignupPanel({
   message,
   error,
 }) {
+  const identifierLabel = getUserIdentifierLabel(registerForm.user_type)
+
   return (
     <section className="signup-wrap">
       <article className="signup-card">
@@ -73,7 +77,7 @@ function SignupPanel({
           </div>
 
           <div className="register-field">
-            <label htmlFor="registration_number">Registration Number</label>
+            <label htmlFor="registration_number">{identifierLabel}</label>
             <input
               id="registration_number"
               type="text"

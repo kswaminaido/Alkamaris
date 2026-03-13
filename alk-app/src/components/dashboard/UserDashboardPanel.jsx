@@ -16,6 +16,14 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
             </section>
           )}
 
+          {currentUser.role === 'vendor' && (
+            <section className="dash-card">
+              <h3>Vendor Workspace</h3>
+              <p>Track your profile, registration details, and account information.</p>
+              <code>GET /api/auth/me</code>
+            </section>
+          )}
+
           {currentUser.role === 'customer' && (
             <section className="dash-card">
               <h3>Customer Workspace</h3>

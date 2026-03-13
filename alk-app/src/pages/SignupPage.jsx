@@ -20,7 +20,7 @@ function SignupPage() {
     phone_number: '',
     email: '',
     address: '',
-    user_type: userTypeOptions[0] ?? 'sales',
+    user_type: userTypeOptions[0] ?? 'vendor',
     registration_number: '',
     password: '',
     password_confirmation: '',
@@ -40,7 +40,7 @@ function SignupPage() {
   useEffect(() => {
     setForm((previous) => ({
       ...previous,
-      user_type: previous.user_type || userTypeOptions[0] || 'sales',
+      user_type: previous.user_type || userTypeOptions[0] || 'vendor',
     }))
   }, [userTypeOptions])
 
