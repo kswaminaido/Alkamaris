@@ -281,6 +281,7 @@ function TransactionsPage() {
       {selectedTransaction && (
         <TransactionEditModal
           transaction={selectedTransaction}
+          authFetch={authFetch}
           onClose={() => setSelectedTransaction(null)}
           onSave={saveTransaction}
           onDuplicate={duplicateTransaction}

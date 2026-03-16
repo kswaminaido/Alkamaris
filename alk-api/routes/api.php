@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\TransactionDocumentController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,4 +24,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::apiResource('users', UserController::class)->except(['create', 'edit']);
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'show', 'store', 'update']);
     Route::post('transactions/{transaction}/duplicate', [TransactionController::class, 'duplicate']);
+    Route::post('transactions/{transaction}/documents/render', [TransactionDocumentController::class, 'render']);
 });

@@ -1270,6 +1270,287 @@ select:focus {
   cursor: pointer;
 }
 
+.txe-side-btn:disabled,
+.txe-bottom-actions button:disabled,
+.txe-print-actions button:disabled,
+.txe-print-preview-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.txe-print-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 120;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.txe-print-modal {
+  width: min(1450px, 100%);
+  height: min(92vh, 980px);
+  background: #f4f5f7;
+  border: 1px solid #bcc6d8;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.txe-print-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #eeeff3, #dde1e8);
+  border-bottom: 1px solid #c1c8d4;
+}
+
+.txe-print-header h3,
+.txe-print-header span {
+  margin: 0;
+  display: block;
+}
+
+.txe-print-header span {
+  margin-top: 4px;
+  font-size: 0.88rem;
+  color: #235aa6;
+}
+
+.txe-print-content {
+  padding: 14px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.txe-print-form,
+.txe-print-preview-panel {
+  border: 1px solid #c7cfdd;
+  background: #fbfcfe;
+  min-height: 0;
+}
+
+.txe-print-form {
+  padding: 14px;
+  overflow: auto;
+}
+
+.txe-print-topgrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.txe-print-topgrid div {
+  border: 1px solid #bcc9de;
+  background: #eef4ff;
+  padding: 10px;
+}
+
+.txe-print-topgrid span {
+  display: block;
+  font-size: 0.8rem;
+  color: #355389;
+  margin-bottom: 4px;
+}
+
+.txe-print-topgrid strong {
+  font-size: 0.95rem;
+}
+
+.txe-print-two,
+.txe-print-bottomgrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.95fr) 1.05fr;
+  gap: 18px;
+}
+
+.txe-print-section-label {
+  margin: 0 0 10px;
+  color: #1d4ed8;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.txe-print-doc-list,
+.txe-print-attachments {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.txe-print-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: #172554;
+}
+
+.txe-print-check input {
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+}
+
+.txe-print-articles {
+  display: grid;
+  gap: 10px;
+}
+
+.txe-print-article-sheet {
+  display: grid;
+  gap: 10px;
+}
+
+.txe-print-article-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.txe-print-article-lower-main,
+.txe-print-article-side {
+  display: grid;
+  gap: 10px;
+}
+
+.txe-print-article-side {
+  justify-items: stretch;
+}
+
+.txe-print-article {
+  display: grid;
+  gap: 5px;
+}
+
+.txe-print-article span,
+.txe-print-settings span {
+  font-size: 0.86rem;
+  color: #355389;
+}
+
+.txe-print-article textarea {
+  min-height: 76px;
+  background: #dceafb;
+  border-color: #aac0e1;
+}
+
+.txe-print-settings {
+  display: grid;
+  gap: 10px;
+  justify-self: end;
+  width: 100%;
+  max-width: 320px;
+}
+
+.txe-print-settings label {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.txe-print-settings input,
+.txe-print-settings select {
+  min-height: 34px;
+  background: #eef4ff;
+}
+
+.txe-print-actions,
+.txe-print-preview-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.txe-print-actions {
+  margin-top: 16px;
+}
+
+.txe-print-actions button,
+.txe-print-preview-actions button {
+  min-height: 36px;
+  border: 1px solid #8ea4c9;
+  background: linear-gradient(180deg, #eef5ff, #d5e4fb);
+  color: #16396b;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.txe-print-preview-actions {
+  margin-bottom: 12px;
+}
+
+.txe-print-link {
+  min-height: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1d4ed8 !important;
+  padding: 0 !important;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.txe-print-preview-panel {
+  margin-top: 18px;
+  min-height: 0;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.txe-print-preview-frame {
+  width: 100%;
+  min-height: 620px;
+  border: 1px solid #bfd0eb;
+  background: #eef3fb;
+}
+
+.txe-print-placeholder {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #51627f;
+  font-size: 0.95rem;
+  background: linear-gradient(180deg, #f8fbff, #edf3fc);
+}
+
+.txe-print-preview-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.txe-print-preview-block {
+  display: grid;
+  gap: 8px;
+}
+
+.txe-print-preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.txe-print-preview-inline-links {
+  display: flex;
+  gap: 10px;
+}
+
+.txe-print-preview-title {
+  color: #dc2626;
+  font-size: 0.95rem;
+  font-style: italic;
+  font-weight: 700;
+}
+
 @media (max-width: 1080px) {
   .modern-primary-nav {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1311,6 +1592,35 @@ select:focus {
   .transactions-pagination {
     flex-direction: column;
     align-items: center;
+  }
+
+  .txe-two,
+  .txe-grid-4,
+  .txe-print-two,
+  .txe-print-bottomgrid,
+  .txe-print-topgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .txe-print-overlay {
+    padding: 12px;
+  }
+
+  .txe-print-modal {
+    height: 95vh;
+  }
+
+  .txe-print-doc-list,
+  .txe-print-attachments {
+    grid-template-columns: 1fr;
+  }
+
+  .txe-print-settings label {
+    grid-template-columns: 1fr;
+  }
+
+  .txe-print-article-lower {
+    grid-template-columns: 1fr;
   }
 
   .page-chip {

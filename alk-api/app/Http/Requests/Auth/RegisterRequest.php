@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\UserRole;
 use App\Models\Config;
+use App\Support\Users\UserRegistrationNumberResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
@@ -48,50 +49,17 @@ final class RegisterRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($this->resolveRegistrationNumber() !== null) {
+                if (UserRegistrationNumberResolver::resolve($this->all()) !== null) {
                     return;
                 }
 
+                $userType = (string) $this->input('user_type');
+
                 $validator->errors()->add(
-                    $this->identifierField(),
-                    sprintf('%s is required.', $this->identifierLabel()),
+                    UserRegistrationNumberResolver::identifierField($userType),
+                    sprintf('%s is required.', UserRegistrationNumberResolver::identifierLabel($userType)),
                 );
             },
         ];
-    }
-
-    private function resolveRegistrationNumber(): ?string
-    {
-        $registrationNumber = $this->filled('registration_number')
-            ? trim((string) $this->input('registration_number'))
-            : null;
-
-        return match ($this->input('user_type')) {
-            UserRole::Customer->value => $this->filled('firm_number')
-                ? trim((string) $this->input('firm_number'))
-                : $registrationNumber,
-            UserRole::Sales->value => $this->filled('factory_approval_number')
-                ? trim((string) $this->input('factory_approval_number'))
-                : $registrationNumber,
-            default => $registrationNumber,
-        };
-    }
-
-    private function identifierField(): string
-    {
-        return match ($this->input('user_type')) {
-            UserRole::Customer->value => 'firm_number',
-            UserRole::Sales->value => 'factory_approval_number',
-            default => 'registration_number',
-        };
-    }
-
-    private function identifierLabel(): string
-    {
-        return match ($this->input('user_type')) {
-            UserRole::Customer->value => 'Firm Number',
-            UserRole::Sales->value => 'Factory Approval Number',
-            default => 'Registration Number',
-        };
     }
 }

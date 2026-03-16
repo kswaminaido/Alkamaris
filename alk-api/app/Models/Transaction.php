@@ -32,6 +32,29 @@ class Transaction extends Model
         'net_margin' => 'decimal:2',
     ];
 
+    /**
+     * @return array<int, string>
+     */
+    public static function detailRelations(): array
+    {
+        return [
+            'salesPerson:id,name,email',
+            'createdBy:id,name,email',
+            'generalInfoCustomer',
+            'generalInfoPacker',
+            'revenueCustomer',
+            'revenuePacker',
+            'cashFlowCustomer',
+            'cashFlowPacker',
+            'shippingDetailsCustomer',
+            'shippingDetailsPacker',
+            'note',
+            'logistics',
+            'expenseLines',
+            'noteEntries',
+        ];
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');

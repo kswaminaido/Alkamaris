@@ -36,13 +36,42 @@ const EXPENSE_FIELDS = [
   { key: 'others', label: 'Others', group: 'rebate_claim' },
 ]
 
-function TransactionEditModal({ transaction, onClose, onSave, onDuplicate }) {
+const PRINT_DOCUMENTS = [
+  { type: 'all', label: 'Print All' },
+  { type: 'bcb_lqd', label: 'Print BCB /Lqd.' },
+  { type: 'bcv_lqd', label: 'Print BCV /Lqd.' },
+  { type: 'sales_contract_packer', label: 'Print Sales Contract Packer' },
+  { type: 'appendix_packer', label: 'Print Appendix Packer' },
+  { type: 'proforma_invoice', label: 'Print Proforma Inv' },
+  { type: 'specs', label: 'Print Specs' },
+  { type: 's_a', label: 'Print S/A' },
+  { type: 'lc_terms_vendor', label: 'Print L/C Terms(Vendor)' },
+  { type: 'lc_terms', label: 'Print L/C Terms' },
+  { type: 'delivery_order', label: 'Print Delivery Order' },
+]
+
+const ATTACHMENT_OPTIONS = [
+  'Health Certificate',
+  'Commercial Invoice',
+  'Packing List',
+  'Master Bill of Lading',
+  'Certificate of Origin',
+  'Beneficiary Certificate',
+  'Other Document',
+]
+
+function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDuplicate }) {
   const [tab, setTab] = useState('home')
   const [saving, setSaving] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [toast, setToast] = useState(null)
+  const [printDialogOpen, setPrintDialogOpen] = useState(false)
+  const [printing, setPrinting] = useState(false)
+  const [documentPreviews, setDocumentPreviews] = useState([])
+  const [printSelections, setPrintSelections] = useState(() => buildInitialPrintSelections())
+  const [printOptions, setPrintOptions] = useState(() => buildInitialPrintOptions(transaction))
   const formRef = useRef(null)
 
   if (!transaction) return null
@@ -56,6 +85,13 @@ function TransactionEditModal({ transaction, onClose, onSave, onDuplicate }) {
   function showToast(text, tone = 'success') {
     setToast({ text, tone })
   }
+
+  useEffect(() => {
+    setPrintSelections(buildInitialPrintSelections())
+    setPrintOptions(buildInitialPrintOptions(transaction))
+    setDocumentPreviews([])
+    setPrintDialogOpen(false)
+  }, [transaction])
 
   async function handleSave(closeAfterSave) {
     if (!onSave || !formRef.current) return
@@ -103,8 +139,121 @@ function TransactionEditModal({ transaction, onClose, onSave, onDuplicate }) {
   }
 
   function handlePrint() {
+    setPrintDialogOpen(true)
     showToast('Print dialog opened')
-    window.print()
+  }
+
+  async function handleRenderDocuments() {
+    const documentTypes = Object.entries(printSelections)
+      .filter(([, checked]) => checked)
+      .map(([type]) => type)
+
+    if (documentTypes.length === 0) {
+      const printError = 'Select at least one document type.'
+      setError(printError)
+      showToast(printError, 'error')
+      return
+    }
+
+    if (!authFetch) {
+      const printError = 'Print service is unavailable.'
+      setError(printError)
+      showToast(printError, 'error')
+      return
+    }
+
+    setPrinting(true)
+    setError('')
+    try {
+      const response = await authFetch(`/transactions/${transaction.id}/documents/render`, {
+        method: 'POST',
+        body: JSON.stringify({
+          document_types: documentTypes,
+          options: printOptions,
+        }),
+      })
+      const body = await response.json()
+      if (!response.ok) {
+        const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
+        const printError = firstValidationMessage ?? body?.message ?? 'Unable to render documents.'
+        setError(printError)
+        showToast(printError, 'error')
+        return
+      }
+
+      const docs = body?.data ?? []
+      setDocumentPreviews(docs)
+      showToast('Document preview ready')
+    } catch {
+      const printError = 'Unable to render documents.'
+      setError(printError)
+      showToast(printError, 'error')
+    } finally {
+      setPrinting(false)
+    }
+  }
+
+  function handlePrintSelectionChange(type) {
+    setPrintSelections((current) => {
+      if (type === 'all') {
+        const nextValue = !current.all
+        const next = {}
+        PRINT_DOCUMENTS.forEach((document) => {
+          next[document.type] = nextValue
+        })
+        return next
+      }
+
+      const next = { ...current, [type]: !current[type] }
+      const specificTypes = PRINT_DOCUMENTS.filter((item) => item.type !== 'all').map((item) => item.type)
+      next.all = specificTypes.every((item) => next[item])
+      return next
+    })
+  }
+
+  function handlePrintOptionChange(key, value) {
+    setPrintOptions((current) => ({ ...current, [key]: value }))
+  }
+
+  function handleArticleChange(index, value) {
+    setPrintOptions((current) => {
+      const articles = [...current.articles]
+      articles[index] = value
+      return { ...current, articles }
+    })
+  }
+
+  function handleAttachmentChange(label) {
+    setPrintOptions((current) => {
+      const exists = current.attachments.includes(label)
+      return {
+        ...current,
+        attachments: exists
+          ? current.attachments.filter((item) => item !== label)
+          : [...current.attachments, label],
+      }
+    })
+  }
+
+  function handleDownloadSpecificDocument(documentType, format) {
+    const targetDocument = documentPreviews.find((item) => item.type === documentType)
+    if (!targetDocument) return
+    triggerDocumentDownload(targetDocument, format)
+  }
+
+  function handlePrintDocument() {
+    if (documentPreviews.length === 0) return
+    const printWindow = window.open('', '_blank', 'width=1100,height=800')
+    if (!printWindow) {
+      showToast('Allow pop-ups to print the document.', 'error')
+      return
+    }
+    const combinedPreview = buildPrintableHtml(documentPreviews)
+    printWindow.document.open()
+    printWindow.document.write(combinedPreview)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => printWindow.print(), 200)
   }
 
   return (
@@ -137,9 +286,29 @@ function TransactionEditModal({ transaction, onClose, onSave, onDuplicate }) {
             <SideIconButton active={tab === 'home'} label="Home" onClick={() => setTab('home')} icon={<HomeIcon />} />
             <SideIconButton active={tab === 'dollar'} label="Dollar" onClick={() => setTab('dollar')} icon={<DollarIcon />} />
             <SideIconButton active={tab === 'ship'} label="Ship" onClick={() => setTab('ship')} icon={<ShipIcon />} />
+            <SideIconButton label="List" onClick={onClose} icon={<ListIcon />} />
+            <SideIconButton label="Print" onClick={handlePrint} icon={<PrintIcon />} />
+            <SideIconButton label="Save" onClick={() => handleSave(false)} icon={<SaveIcon />} disabled={saving || duplicating} />
           </div>
         </div>
       </form>
+      {printDialogOpen ? (
+        <PrintDialog
+          transaction={transaction}
+          selections={printSelections}
+          options={printOptions}
+          documents={documentPreviews}
+          printing={printing}
+          onClose={() => setPrintDialogOpen(false)}
+          onToggleSelection={handlePrintSelectionChange}
+          onOptionChange={handlePrintOptionChange}
+          onArticleChange={handleArticleChange}
+          onAttachmentChange={handleAttachmentChange}
+          onSubmit={handleRenderDocuments}
+          onDownloadSpecificDocument={handleDownloadSpecificDocument}
+          onPrintDocument={handlePrintDocument}
+        />
+      ) : null}
       {toast ? <Toast text={toast.text} tone={toast.tone} /> : null}
     </div>
   )
@@ -420,6 +589,166 @@ function BottomActions({ saving, duplicating, onDuplicate, onPrint, onSave, onSa
   )
 }
 
+function PrintDialog({
+  transaction,
+  selections,
+  options,
+  documents,
+  printing,
+  onClose,
+  onToggleSelection,
+  onOptionChange,
+  onArticleChange,
+  onAttachmentChange,
+  onSubmit,
+  onDownloadSpecificDocument,
+  onPrintDocument,
+}) {
+  return (
+    <div className="txe-print-overlay" role="dialog" aria-modal="true" aria-label="Print documents">
+      <div className="txe-print-modal">
+        <div className="txe-print-header">
+          <div>
+            <h3>Transaction# {transaction.booking_no || 'SIN2605802'}</h3>
+            <span>Print &gt; Menu</span>
+          </div>
+          <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
+        </div>
+
+        <div className="txe-print-content">
+          <div className="txe-print-form">
+            <div className="txe-print-topgrid">
+              <div><span>Transaction ID</span><strong>{transaction.booking_no || 'SIN2605802'}</strong></div>
+              <div><span>Transaction Date</span><strong>{formatDate(transaction.issue_date) || '24/01/2026'}</strong></div>
+              <div><span>Status</span><strong>{transaction.transaction_status ?? 'I'}</strong></div>
+            </div>
+
+            <div className="txe-print-two">
+              <div>
+                <p className="txe-print-section-label">Document Type (Preview Report)</p>
+                <div className="txe-print-doc-list">
+                  {PRINT_DOCUMENTS.filter((documentType) => documentType.type !== 'all').map((documentType) => (
+                    <label key={documentType.type} className="txe-print-check">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(selections[documentType.type])}
+                        onChange={() => onToggleSelection(documentType.type)}
+                      />
+                      <span>{documentType.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="txe-print-article-sheet">
+                {options.articles.slice(0, 4).map((article, index) => (
+                  <label key={`article-${index}`} className="txe-print-article">
+                    <span>Article {index + 1}</span>
+                    <textarea value={article} onChange={(event) => onArticleChange(index, event.target.value)} />
+                  </label>
+                ))}
+
+                <div className="txe-print-article-lower">
+                  <div className="txe-print-article-lower-main">
+                    {[4, 5].map((index) => (
+                      <label key={`article-${index}`} className="txe-print-article">
+                        <span>Article {index + 1}</span>
+                        <textarea value={options.articles[index]} onChange={(event) => onArticleChange(index, event.target.value)} />
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="txe-print-article-side">
+                    <div className="txe-print-attachments">
+                      {ATTACHMENT_OPTIONS.map((attachment) => (
+                        <label key={attachment} className="txe-print-check">
+                          <input
+                            type="checkbox"
+                            checked={options.attachments.includes(attachment)}
+                            onChange={() => onAttachmentChange(attachment)}
+                          />
+                          <span>{attachment}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="txe-print-settings">
+                      <label>
+                        <span>Print Revised</span>
+                        <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
+                          {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Print Liquidation</span>
+                        <select value={options.print_liquidation} onChange={(event) => onOptionChange('print_liquidation', event.target.value)}>
+                          {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Show Glazing</span>
+                        <select value={options.show_glazing} onChange={(event) => onOptionChange('show_glazing', event.target.value)}>
+                          {['Size', 'No', 'Yes'].map((option) => <option key={option}>{option}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Templates</span>
+                        <select value={options.template} onChange={(event) => onOptionChange('template', event.target.value)}>
+                          {['India', 'Thailand', 'UAE'].map((option) => <option key={option}>{option}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Approve Code</span>
+                        <input value={options.approve_code} onChange={(event) => onOptionChange('approve_code', event.target.value)} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="txe-print-actions">
+              <button type="button" onClick={onSubmit} disabled={printing}>{printing ? 'Loading...' : 'OK'}</button>
+              <button type="button" onClick={onClose}>Cancel</button>
+            </div>
+            <div className="txe-print-preview-panel">
+              {documents.length > 0 ? (
+                <>
+                  <div className="txe-print-preview-actions">
+                    <button type="button" className="txe-print-link" onClick={onPrintDocument}>Print Document</button>
+                  </div>
+                  <div className="txe-print-preview-stack">
+                    {documents.map((document) => (
+                      <section key={document.type} className="txe-print-preview-block">
+                        <div className="txe-print-preview-row">
+                          <div className="txe-print-preview-title">{document.label}</div>
+                          <div className="txe-print-preview-inline-links">
+                            <button type="button" className="txe-print-link" onClick={() => onDownloadSpecificDocument(document.type, 'pdf')}>Download as PDF</button>
+                            <button type="button" className="txe-print-link" onClick={() => onDownloadSpecificDocument(document.type, 'word')}>Download as Word</button>
+                          </div>
+                        </div>
+                        <iframe
+                          className="txe-print-preview-frame"
+                          title={document.label}
+                          srcDoc={document.preview_html}
+                        />
+                      </section>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="txe-print-placeholder">
+                  Select a document type and click OK to load the preview below.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SectionCard({ title, side, tone = 'blue', children }) {
   return (
     <section className={`txe-card txe-${tone}`}>
@@ -450,9 +779,9 @@ function Row({ label, children }) {
   )
 }
 
-function SideIconButton({ active, label, onClick, icon }) {
+function SideIconButton({ active, label, onClick, icon, disabled = false }) {
   return (
-    <button type="button" className={`txe-side-btn${active ? ' active' : ''}`} onClick={onClick} title={label}>
+    <button type="button" className={`txe-side-btn${active ? ' active' : ''}`} onClick={onClick} title={label} disabled={disabled}>
       {icon}
     </button>
   )
@@ -491,7 +820,89 @@ function ShipIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18c1.2 1.3 2.4 2 3.6 2s2.4-.7 3.6-2c1.2 1.3 2.4 2 3.6 2s2.4-.7 3.6-2c1.2 1.3 2.4 2 3.6 2M5 14h14l-1.5-5h-11Z" /></svg>
 }
 
+function ListIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+}
+
+function PrintIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M6 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-1M7 14h10v7H7z" /></svg>
+}
+
+function SaveIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21h14V7.8L16.2 5H5zM9 21v-7h6v7M8 5v5h7" /></svg>
+}
+
 export default TransactionEditModal
+
+function buildInitialPrintSelections() {
+  return {
+    all: false,
+    bcb_lqd: false,
+    bcv_lqd: false,
+    sales_contract_packer: false,
+    appendix_packer: false,
+    proforma_invoice: false,
+    specs: false,
+    s_a: false,
+    lc_terms_vendor: false,
+    lc_terms: false,
+    delivery_order: false,
+  }
+}
+
+function buildInitialPrintOptions(transaction) {
+  return {
+    print_revised: 'No',
+    print_liquidation: 'No',
+    show_glazing: 'Size',
+    template: 'India',
+    approve_code: transaction?.booking_no ? `${transaction.booking_no}-APR` : '',
+    payment_advance: '',
+    articles: Array.from({ length: 6 }, () => ''),
+    attachments: [],
+  }
+}
+
+function triggerDocumentDownload(documentFile, format) {
+  const target = documentFile?.[format]
+  if (!target?.content_base64) return
+
+  const bytes = window.atob(target.content_base64)
+  const buffer = new Uint8Array(bytes.length)
+  for (let index = 0; index < bytes.length; index += 1) {
+    buffer[index] = bytes.charCodeAt(index)
+  }
+
+  const blob = new Blob([buffer], { type: target.mime_type || 'application/octet-stream' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = target.filename || `document.${format}`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function buildPrintableHtml(documents) {
+  if (!Array.isArray(documents) || documents.length === 0) {
+    return '<!doctype html><html><body></body></html>'
+  }
+
+  const parser = new window.DOMParser()
+  const parsedDocuments = documents
+    .map((item) => parser.parseFromString(item.preview_html ?? '', 'text/html'))
+    .filter((doc) => doc?.documentElement)
+
+  const firstDocument = parsedDocuments[0]
+  const headMarkup = firstDocument?.head?.innerHTML ?? ''
+  const bodyMarkup = parsedDocuments
+    .map((doc) => doc.body?.innerHTML ?? '')
+    .filter(Boolean)
+    .join('<div style="page-break-after: always;"></div>')
+
+  return `<!doctype html><html lang="en"><head>${headMarkup}</head><body>${bodyMarkup}</body></html>`
+}
 
 function withCurrent(list, current) {
   if (!current) return list
