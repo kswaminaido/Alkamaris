@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AdminTopNav from '../components/layout/AdminTopNav'
+import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 
@@ -103,15 +103,6 @@ function TransactionsPage() {
     }
   }
 
-  function onAction(action) {
-    if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
-      navigate(`/transactions/new?mode=${action.mode}`)
-      return
-    }
-    if (action.key === 'all_transactions') return
-    navigate('/dashboard')
-  }
-
   async function onLogout() {
     await logout()
     navigate('/', { replace: true })
@@ -199,9 +190,7 @@ function TransactionsPage() {
   if (!currentUser || currentUser.role !== 'admin') return null
 
   return (
-    <section className="modern-dashboard">
-      <AdminTopNav activeKey="all_transactions" onAction={onAction} onLogout={onLogout} />
-
+    <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <h3>Transaction &gt; All Transaction</h3>
@@ -287,7 +276,7 @@ function TransactionsPage() {
           onDuplicate={duplicateTransaction}
         />
       )}
-    </section>
+    </AdminSidebarLayout>
   )
 }
 

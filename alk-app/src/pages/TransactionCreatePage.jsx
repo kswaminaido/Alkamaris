@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import AdminTopNav from '../components/layout/AdminTopNav'
+import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
 const DUMMY = {
@@ -68,8 +68,8 @@ function TransactionCreatePage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const navActiveKey = useMemo(() => (
-    form.transaction.booking_mode === 'qc_services' ? 'new_booking_qc' : 'new_booking_trade'
+  const pageTitle = useMemo(() => (
+    form.transaction.booking_mode === 'qc_services' ? 'QC Services Booking' : 'New Booking'
   ), [form.transaction.booking_mode])
 
   useEffect(() => {
@@ -96,18 +96,6 @@ function TransactionCreatePage() {
 
   function setValue(section, field, value) {
     setForm((p) => ({ ...p, [section]: { ...p[section], [field]: value } }))
-  }
-
-  function handleNav(action) {
-    if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
-      setValue('transaction', 'booking_mode', action.mode)
-      return
-    }
-    if (action.key === 'all_transactions') {
-      navigate('/transactions')
-      return
-    }
-    navigate('/dashboard')
   }
 
   async function onLogout() {
@@ -143,8 +131,12 @@ function TransactionCreatePage() {
   if (!currentUser || currentUser.role !== 'admin') return null
 
   return (
-    <section className="modern-dashboard">
-      <AdminTopNav activeKey={navActiveKey} onAction={handleNav} onLogout={onLogout} />
+    <AdminSidebarLayout
+      currentUser={currentUser}
+      title={pageTitle}
+      activeKey={form.transaction.booking_mode === 'qc_services' ? 'new_booking_qc' : 'new_booking_trade'}
+      onLogout={onLogout}
+    >
       <form className="transaction-page" onSubmit={onSubmit}>
         <section className="txn-panel txn-top"><h3>TRANSACTION DETAILS</h3><TxHeader form={form} setValue={setValue} salesPeople={salesPeople} /></section>
         <section className="txn-double-grid">
@@ -166,7 +158,7 @@ function TransactionCreatePage() {
         {message && <p className="message success">{message}</p>}
         {error && <p className="message error">{error}</p>}
       </form>
-    </section>
+    </AdminSidebarLayout>
   )
 }
 
