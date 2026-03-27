@@ -9,7 +9,7 @@ const navActions = [
   },
   {
     key: 'new_booking_qc',
-    title: 'New Booking',
+    title: 'QC Services',
     subtitle: 'QC Services',
     mode: 'qc_services',
   },
