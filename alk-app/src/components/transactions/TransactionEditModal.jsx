@@ -260,8 +260,12 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
     <div className="txn-edit-overlay" role="dialog" aria-modal="true" aria-label="Edit Transaction">
       <form ref={formRef} className="txn-edit-modal" onSubmit={(event) => event.preventDefault()}>
         <div className="txn-edit-header">
-          <h2>Transaction# {transaction.booking_no || 'SIN2605802'}</h2>
-          <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
+          <div className="txn-edit-header-copy">
+            <span className="txn-edit-eyebrow">Transaction Details</span>
+            <h2>Transaction# {transaction.booking_no || 'SIN2605802'}</h2>
+            <p>Review commercial details, shipping information, and print-ready documents in one workspace.</p>
+          </div>
+          <button type="button" className="txn-edit-close" onClick={onClose} aria-label="Close transaction details">x</button>
         </div>
 
         <div className="txn-edit-body">
@@ -783,6 +787,7 @@ function SideIconButton({ active, label, onClick, icon, disabled = false }) {
   return (
     <button type="button" className={`txe-side-btn${active ? ' active' : ''}`} onClick={onClick} title={label} disabled={disabled}>
       {icon}
+      <span>{label}</span>
     </button>
   )
 }
