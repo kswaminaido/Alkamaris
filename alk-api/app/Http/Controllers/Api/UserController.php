@@ -18,8 +18,39 @@ class UserController extends Controller
 
     public function index(): JsonResponse
     {
+        $perPage = (int) request()->integer('per_page', 20);
+        $perPage = max(5, min($perPage, 100));
+
+        $query = User::query();
+
+        if ($name = request('name')) {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        if ($role = request('role')) {
+            $query->where('role', $role);
+        }
+
+        if ($fromDate = request('from_date')) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+
+        if ($toDate = request('to_date')) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        $paginator = $query
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
         return response()->json([
-            'data' => User::query()->orderByDesc('id')->get(),
+            'data' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
         ]);
     }
 

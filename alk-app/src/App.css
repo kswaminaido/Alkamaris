@@ -143,7 +143,7 @@ select:focus {
 
 .signup-card,
 .dashboard-panel {
-  border-radius: 16px;
+  border-radius: 4px;
   border: 1px solid rgba(16, 24, 40, 0.08);
   background: #ffffff;
   padding: 1.25rem;
@@ -403,6 +403,35 @@ select:focus {
   border-color: #f87171;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #eff6ff;
+  color: #0369a1;
+  border-color: #bfdbfe;
+}
+
+.edit-btn:hover {
+  background: #dbeafe;
+  border-color: #7dd3fc;
+}
+
+.edit-btn:active {
+  background: #bfdbfe;
+  border-color: #38bdf8;
+}
+
 .icon-btn {
   width: 32px;
   height: 32px;
@@ -557,8 +586,7 @@ select:focus {
 }
 
 .dashboard-sidebar-brand {
-  padding: 1.2rem 1rem 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #FFF;
 }
 
 .dashboard-sidebar-logo {
@@ -1285,22 +1313,82 @@ select:focus {
 
 .transactions-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   border-radius: 0;
   background: linear-gradient(180deg, #ffffff 0%, #f7f7f8 100%);
   box-shadow: 0 14px 30px rgba(16, 24, 40, 0.05);
+  padding: 0.6rem 0.75rem;
+}
+
+.transactions-toolbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 .transactions-toolbar h5 {
   margin: 0;
   color: #111111;
-  padding: 0.6rem 0.75rem;
+  padding: 0;
+}
+
+.primary-btn {
+  padding: 0.6rem 1.2rem;
+  background: var(--brand-purple);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+  margin-top: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+  background-color: #3a2660;
+}
+
+.primary-btn:active {
+  background-color: #2d1f4a;
+}
+
+.search-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.filter-group input,
+.filter-group select {
+  min-width: 150px;
+  padding: 0.5rem;
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
 }
 
 .transactions-toolbar input {
   max-width: 320px;
-  min-height: 44px;
   border-radius: 0;
   border: 1px solid #d0d5dd;
   background: #ffffff;
@@ -1318,6 +1406,12 @@ select:focus {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+.loading-row {
+  text-align: center;
+  font-style: italic;
+  color: var(--text-main);
 }
 
 .page-chip {
@@ -1363,7 +1457,6 @@ select:focus {
 .transactions-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1320px;
 }
 
 .transactions-table th {
@@ -2192,4 +2285,113 @@ select:focus {
     align-self: flex-end;
     padding-left: 0.75rem;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e4e7ec;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #111111;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.modal-content form {
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #111111;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e4e7ec;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.modal-actions button[type="submit"] {
+  background: var(--brand-purple);
+  color: #ffffff;
+  border-color: var(--brand-purple);
+}
+
+.modal-actions button[type="submit"]:hover:not(:disabled) {
+  background: #3a2660;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
