@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import RequireAuth from './components/routing/RequireAuth'
 import { AuthProvider } from './context/AuthContext'
+import MasterData from './pages/master/index'
 import DashboardPage from './pages/DashboardPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -9,6 +10,7 @@ import TransactionCreatePage from './pages/TransactionCreatePage'
 import TransactionsPage from './pages/TransactionsPage'
 
 function App() {
+  console.log('App rendered')
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -36,6 +38,14 @@ function App() {
             element={
               <RequireAuth>
                 <TransactionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/master"
+            element={
+              <RequireAuth>
+                <MasterData />
               </RequireAuth>
             }
           />

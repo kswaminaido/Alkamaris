@@ -31,17 +31,35 @@ final class UserService
      */
     private function payload(array $validated, bool $withPassword): array
     {
-        $payload = [
-            'name' => $validated['name'],
-            'phone_number' => $validated['phone_number'],
-            'email' => $validated['email'],
-            'address' => $validated['address'],
-            'registration_number' => $validated['resolved_registration_number'],
-            'role' => $validated['user_type'],
-        ];
+        $payload = [];
 
-        if ($withPassword || ! empty($validated['password'])) {
+        if (isset($validated['name'])) {
+            $payload['name'] = $validated['name'];
+        }
+        if (isset($validated['phone_number'])) {
+            $payload['phone_number'] = $validated['phone_number'];
+        }
+        if (isset($validated['email'])) {
+            $payload['email'] = $validated['email'];
+        }
+        if (isset($validated['address'])) {
+            $payload['address'] = $validated['address'];
+        }
+        if (isset($validated['resolved_registration_number'])) {
+            $payload['registration_number'] = $validated['resolved_registration_number'];
+        }
+        if (isset($validated['user_type'])) {
+            $payload['role'] = $validated['user_type'];
+        }
+
+        if ($withPassword && isset($validated['password']) && ! empty($validated['password'])) {
             $payload['password'] = Hash::make((string) $validated['password']);
+        } elseif (! $withPassword && isset($validated['password']) && ! empty($validated['password'])) {
+            $payload['password'] = Hash::make((string) $validated['password']);
+        }
+
+        if (isset($validated['is_active'])) {
+            $payload['is_active'] = $validated['is_active'];
         }
 
         return $payload;

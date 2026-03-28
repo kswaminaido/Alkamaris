@@ -23,17 +23,19 @@ abstract class UserUpsertRequest extends FormRequest
     public function rules(): array
     {
         $user = $this->route('user');
+        $isUpdate = $user instanceof User;
 
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'max:20'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
-            'address' => ['required', 'string', 'max:1000'],
+            'name' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:255'],
+            'phone_number' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:20'],
+            'email' => [$isUpdate ? 'nullable' : 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
+            'address' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:1000'],
             'registration_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
             'firm_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
             'factory_approval_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
-            'user_type' => ['required', 'string', Rule::in($this->allowedRoles($user))],
-            'password' => [$user instanceof User ? 'nullable' : 'required', 'string', 'min:8'],
+            'user_type' => [$isUpdate ? 'nullable' : 'required', 'string', Rule::in($this->allowedRoles($user))],
+            'password' => [$isUpdate ? 'nullable' : 'required', 'string', 'min:8'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 
@@ -44,6 +46,11 @@ abstract class UserUpsertRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                // Only validate registration number if user_type is being updated
+                if (!$this->has('user_type')) {
+                    return;
+                }
+
                 $resolved = UserRegistrationNumberResolver::resolve($this->all());
 
                 if ($resolved !== null) {
@@ -66,7 +73,9 @@ abstract class UserUpsertRequest extends FormRequest
     public function validatedWithRegistrationNumber(): array
     {
         $validated = $this->validated();
-        $validated['resolved_registration_number'] = UserRegistrationNumberResolver::resolve($validated);
+        if ($this->has('user_type')) {
+            $validated['resolved_registration_number'] = UserRegistrationNumberResolver::resolve($validated);
+        }
 
         return $validated;
     }

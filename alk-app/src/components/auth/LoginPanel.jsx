@@ -31,7 +31,7 @@ function LoginPanel({ loginForm, onFieldChange, onSubmit, loading, message, erro
             required
           />
 
-          <button type="submit" className="primary-btn login-btn" disabled={loading}>
+          <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? 'Signing in...' : 'Log in'}
           </button>
         </form>

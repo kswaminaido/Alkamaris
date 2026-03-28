@@ -193,7 +193,7 @@ function TransactionsPage() {
     <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
-          <h3>Transaction &gt; All Transaction</h3>
+          <h5>Transaction &gt; All Transaction</h5>
           <input placeholder="Keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
         </div>
 

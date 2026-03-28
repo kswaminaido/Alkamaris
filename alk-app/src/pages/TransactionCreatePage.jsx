@@ -138,7 +138,7 @@ function TransactionCreatePage() {
       onLogout={onLogout}
     >
       <form className="transaction-page" onSubmit={onSubmit}>
-        <section className="txn-panel txn-top"><h3>TRANSACTION DETAILS</h3><TxHeader form={form} setValue={setValue} salesPeople={salesPeople} /></section>
+        <section className="txn-panel txn-top"><h5>TRANSACTION DETAILS</h5><TxHeader form={form} setValue={setValue} salesPeople={salesPeople} /></section>
         <section className="txn-double-grid">
           <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} /></TxnColumn>
           <TxnColumn title="GENERAL INFO" side="PACKER"><GeneralPacker form={form} setValue={setValue} /></TxnColumn>
@@ -188,7 +188,7 @@ function CashFlow({ section, form, setValue }) { const data = form[section]; ret
 function Shipping({ section, form, setValue }) { const data = form[section]; return (<div className="txn-panel"><Row label="LSD Min"><input type="date" value={data.lsd_min} onChange={(e) => setValue(section, 'lsd_min', e.target.value)} /><span className="row-text">LSD Max</span><input type="date" value={data.lsd_max} onChange={(e) => setValue(section, 'lsd_max', e.target.value)} /></Row><Row label="Presentation"><input type="number" value={data.presentation_days} onChange={(e) => setValue(section, 'presentation_days', e.target.value)} /><span className="row-text">days</span><span className="row-text">L/C Exp.</span><input type="date" value={data.lc_expiry} onChange={(e) => setValue(section, 'lc_expiry', e.target.value)} /></Row><Row label="REQ ETA"><input type="date" value={data.req_eta} onChange={(e) => setValue(section, 'req_eta', e.target.value)} /></Row></div>) }
 
 function TxnColumn({ title, side, children }) { return (<div className="txn-col"><SectionHeader title={title} side={side} />{children}</div>) }
-function SectionHeader({ title, side }) { return (<div className="txn-section-title"><h3>{title}</h3>{side && <span>{side}</span>}</div>) }
+function SectionHeader({ title, side }) { return (<div className="txn-section-title"><h5>{title}</h5>{side && <span>{side}</span>}</div>) }
 function Field({ label, children }) { return (<label><span>{label}</span>{children}</label>) }
 function Row({ label, children }) { return (<div className="txn-row"><label className="txn-label">{label}</label><div className="txn-controls">{children}</div></div>) }
 function Select({ value, list, onChange }) { return (<select value={value} onChange={(e) => onChange(e.target.value)}><option value="">Select</option>{list.map((o) => <option key={o} value={o}>{o}</option>)}</select>) }

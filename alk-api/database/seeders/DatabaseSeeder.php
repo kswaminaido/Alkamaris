@@ -24,11 +24,12 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'email' => 'test2@example.com',
             'role' => UserRole::Admin->value,
             'phone_number' => '9999999999',
             'address' => 'Default seeded admin address',
-            'registration_number' => 'REG-ADMIN-0001',
+            'registration_number' => 'REG-ADMIN-00011',
+            'password' => bcrypt('Password@123'),
         ]);
 
         $this->call([

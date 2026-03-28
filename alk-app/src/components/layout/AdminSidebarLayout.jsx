@@ -86,6 +86,10 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
       navigate('/transactions')
       return
     }
+    if (action.key === 'master_list') {
+        navigate('/master')
+      return
+    }
     navigate('/dashboard')
   }
 
