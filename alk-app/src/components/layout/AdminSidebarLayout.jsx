@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 
 const SIDEBAR_STATE_KEY = 'alk-dashboard-sidebar-open'
 const navActions = [
@@ -22,6 +22,7 @@ const navActions = [
 
 function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLogout }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
     const savedValue = window.localStorage.getItem(SIDEBAR_STATE_KEY)
@@ -29,6 +30,8 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
+  const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
 
   useEffect(() => {
@@ -113,7 +116,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
           </Link>
         </div>
 
-        <nav className="dashboard-sidebar-nav">
+        <nav className="dashboard-sidebar-nav position-relative">
           <NavLink
             to="/dashboard"
             end
@@ -125,21 +128,154 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             <span className="sidebar-link-end" />
           </NavLink>
 
-          <NavLink
-            to="/transactions"
-            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <SidebarIcon icon="transactions" />
-            <span className="sidebar-link-text">Transaction Data</span>
-            <ChevronIcon className="sidebar-chevron" />
-          </NavLink>
+          <div className="position-relative">
+            <button
+              type="button"
+              className={`sidebar-link w-100 ${transactionSubmenuOpen ? 'active' : ''}`}
+              onClick={() => {
+                setTransactionSubmenuOpen((open) => !open)
+                setReportSubmenuOpen(false)
+              }}
+              aria-expanded={transactionSubmenuOpen}
+            >
+              <SidebarIcon icon="transactions" />
+              <span className="sidebar-link-text">Transactions</span>
+              <span className="sidebar-link-end">
+                <ChevronIcon className={`sidebar-chevron transition-rotate ${transactionSubmenuOpen ? 'rotate-90' : ''}`} />
+              </span>
+            </button>
 
-          <button type="button" className="sidebar-link sidebar-link-button" disabled>
-            <SidebarIcon icon="reports" />
-            <span className="sidebar-link-text">Report</span>
-            <ChevronIcon className="sidebar-chevron" />
-          </button>
+            {transactionSubmenuOpen && (
+              <div className="submenu-panel shadow rounded border">
+                <nav className="list-group list-group-flush">
+                  <NavLink
+                    to="/transactions"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive && location.pathname === '/transactions' ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    All Transactions
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/specs"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    Specs
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/special-notes"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    Special Notes
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/qc-inspection"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    QC Inspection Date
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/payment-request"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    Payment Request
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/payment-request-list"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    Payment Request List
+                  </NavLink>
+                  <NavLink
+                    to="/transactions/overdue-invoice"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setTransactionSubmenuOpen(false)
+                    }}
+                  >
+                    Overdue Invoice
+                  </NavLink>
+                </nav>
+              </div>
+            )}
+          </div>
+
+          <div className="position-relative">
+            <button
+              type="button"
+              className={`sidebar-link w-100 ${reportSubmenuOpen ? 'active' : ''}`}
+              onClick={() => {
+                setReportSubmenuOpen((open) => !open)
+                setTransactionSubmenuOpen(false)
+              }}
+              aria-expanded={reportSubmenuOpen}
+            >
+              <SidebarIcon icon="reports" />
+              <span className="sidebar-link-text">Report</span>
+              <span className="sidebar-link-end">
+                <ChevronIcon className={`sidebar-chevron transition-rotate ${reportSubmenuOpen ? 'rotate-90' : ''}`} />
+              </span>
+            </button>
+            {reportSubmenuOpen && (
+              <div className="submenu-panel shadow rounded border">
+                <nav className="list-group list-group-flush">
+                  <NavLink
+                    to="/reports/summary"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setReportSubmenuOpen(false)
+                    }}
+                  >
+                    Summary Report
+                  </NavLink>
+                  <NavLink
+                    to="/reports/vendor-sales"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setReportSubmenuOpen(false)
+                    }}
+                  >
+                    Vendor Sales
+                  </NavLink>
+                  <NavLink
+                    to="/reports/payment-status"
+                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                    onClick={() => {
+                      closeMobileMenu()
+                      setReportSubmenuOpen(false)
+                    }}
+                  >
+                    Payment Status
+                  </NavLink>
+                </nav>
+              </div>
+            )}
+          </div>
 
           <button type="button" className="sidebar-link sidebar-link-button sidebar-link-spaced" disabled>
             <SidebarIcon icon="help" />

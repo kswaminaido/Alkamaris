@@ -20,3 +20,53 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* Submenu chevron rotation animation */
+.sidebar-chevron {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-chevron.transition-rotate {
+  transition: transform 0.2s ease;
+}
+
+.sidebar-chevron.transition-rotate.rotate-90 {
+  transform: rotate(90deg);
+}
+
+/* Submenu list styling */
+.list-group-item {
+  font-size: 0.95rem;
+  padding-left: 1rem !important;
+}
+
+.list-group-item.active {
+  background-color: #2c5282;
+  border-color: #2c5282;
+}
+
+.list-group-item:hover:not(.active) {
+  background-color: #f8f9fa;
+  color: #2c5282;
+}
+
+.sidebar-submenu-panel {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 1000;
+  min-width: 220px;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-sidebar-nav {
+  position: relative;
+}

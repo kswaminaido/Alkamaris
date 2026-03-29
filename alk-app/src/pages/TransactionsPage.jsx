@@ -17,7 +17,11 @@ function TransactionsPage() {
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
+    vendor: '',
+    customer: '',
+    status: '',
     fromDate: '',
+    toDate: '',
   })
   const [selectedTransaction, setSelectedTransaction] = useState(null)
 
@@ -43,7 +47,11 @@ function TransactionsPage() {
       params.append('page', targetPage)
       params.append('per_page', PAGE_SIZE)
       if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
+      if (filters.vendor) params.append('vendor', filters.vendor)
+      if (filters.customer) params.append('customer', filters.customer)
+      if (filters.status) params.append('status', filters.status)
       if (filters.fromDate) params.append('from_date', filters.fromDate)
+      if (filters.toDate) params.append('to_date', filters.toDate)
 
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
@@ -69,7 +77,11 @@ function TransactionsPage() {
   function clearFilters() {
     setSearchFilters({
       bookingNo: '',
+      vendor: '',
+      customer: '',
+      status: '',
       fromDate: '',
+      toDate: '',
     })
     setPage(1)
   }
@@ -220,22 +232,71 @@ function TransactionsPage() {
                   value={searchFilters.bookingNo}
                   onChange={(e) => handleFilterChange('bookingNo', e.target.value)}
                   placeholder="Search by code"
+                  disabled={loading}
                 />
               </div>
 
               <div className="filter-group">
-                <label htmlFor="modified-from-filter">Date Modified</label>
+                <label htmlFor="vendor-filter">Vendor</label>
                 <input
-                  id="modified-from-filter"
+                  id="vendor-filter"
+                  type="text"
+                  value={searchFilters.vendor}
+                  onChange={(e) => handleFilterChange('vendor', e.target.value)}
+                  placeholder="Search by vendor"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="customer-filter">Customer</label>
+                <input
+                  id="customer-filter"
+                  type="text"
+                  value={searchFilters.customer}
+                  onChange={(e) => handleFilterChange('customer', e.target.value)}
+                  placeholder="Search by customer"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="status-filter">Status</label>
+                <input
+                  id="status-filter"
+                  type="text"
+                  value={searchFilters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  placeholder="Search by status"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="from-date-filter">From date</label>
+                <input
+                  id="from-date-filter"
                   type="date"
                   value={searchFilters.fromDate}
                   onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="to-date-filter">To date</label>
+                <input
+                  id="to-date-filter"
+                  type="date"
+                  value={searchFilters.toDate}
+                  onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                  disabled={loading}
                 />
               </div>
 
               <div className="filter-group" style={{ marginLeft: 'auto' }}>
                 <label>&nbsp;</label>
-                <button type="button" className="secondary-btn" onClick={clearFilters}>
+                <button type="button" className="secondary-btn" onClick={clearFilters} disabled={loading}>
                   Clear
                 </button>
               </div>
@@ -268,10 +329,17 @@ function TransactionsPage() {
               </tr>
             </thead>
             <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={16} style={{ textAlign: 'center' }}>
+                    Loading transactions, please wait...
+                  </td>
+                </tr>
+              )}
               {!loading && visibleRows.length === 0 && (
                 <tr><td colSpan={16}>No transactions found.</td></tr>
               )}
-              {visibleRows.map((transaction) => (
+              {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
                   <td>{transaction.booking_no}</td>
                   <td>{displayDate(transaction.issue_date)}</td>

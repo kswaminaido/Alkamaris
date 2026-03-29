@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +24,7 @@ class Transaction extends Model
         'container_secondary',
         'certified',
         'net_margin',
+        'status',
         'created_by_user_id',
     ];
 
@@ -30,6 +32,7 @@ class Transaction extends Model
         'issue_date' => 'date',
         'certified' => 'boolean',
         'net_margin' => 'decimal:2',
+        'status' => TransactionStatus::class,
     ];
 
     /**

@@ -825,8 +825,11 @@ select:focus {
   align-items: center;
   justify-content: flex-start;
   gap: 0;
+  font-size: 14px;
 }
-
+.list-group-item{
+  font-size: 14px;
+}
 .dashboard-topbar-nav-item:hover {
   background: transparent;
   color: #ffffff;
@@ -1472,7 +1475,7 @@ select:focus {
 
 .transactions-table td {
   border-bottom: 1px solid #eaecf0;
-  padding: 0.5rem 0.6rem;
+  padding: 0px 4px;
   font-size: 0.8rem;
 }
 
@@ -1537,7 +1540,9 @@ select:focus {
   background: linear-gradient(180deg, #1e1e1e 0%, #111111 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-
+h5{
+  font-size: 14px;
+}
 .txn-edit-header-copy {
   display: grid;
   gap: 0.3rem;
@@ -1704,6 +1709,7 @@ select:focus {
   grid-template-columns: 128px minmax(0, 1fr);
   gap: 0.55rem;
   align-items: center;
+  padding: 4px;
 }
 
 .txe-label-field span,
