@@ -628,7 +628,7 @@ function PrintDialog({
             </div>
 
             <div className="txe-print-two">
-              <div>
+              <div className="txe-print-leftstack">
                 <p className="txe-print-section-label">Document Type (Preview Report)</p>
                 <div className="txe-print-doc-list">
                   {PRINT_DOCUMENTS.filter((documentType) => documentType.type !== 'all').map((documentType) => (
@@ -641,6 +641,37 @@ function PrintDialog({
                       <span>{documentType.label}</span>
                     </label>
                   ))}
+                </div>
+
+                <div className="txe-print-settings">
+                  <label>
+                    <span>Print Revised</span>
+                    <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
+                      {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Print Liquidation</span>
+                    <select value={options.print_liquidation} onChange={(event) => onOptionChange('print_liquidation', event.target.value)}>
+                      {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Show Glazing</span>
+                    <select value={options.show_glazing} onChange={(event) => onOptionChange('show_glazing', event.target.value)}>
+                      {['Size', 'No', 'Yes'].map((option) => <option key={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Templates</span>
+                    <select value={options.template} onChange={(event) => onOptionChange('template', event.target.value)}>
+                      {['India', 'Thailand', 'UAE'].map((option) => <option key={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Approve Code</span>
+                    <input value={options.approve_code} onChange={(event) => onOptionChange('approve_code', event.target.value)} />
+                  </label>
                 </div>
               </div>
 
@@ -674,37 +705,6 @@ function PrintDialog({
                           <span>{attachment}</span>
                         </label>
                       ))}
-                    </div>
-
-                    <div className="txe-print-settings">
-                      <label>
-                        <span>Print Revised</span>
-                        <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
-                          {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Print Liquidation</span>
-                        <select value={options.print_liquidation} onChange={(event) => onOptionChange('print_liquidation', event.target.value)}>
-                          {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Show Glazing</span>
-                        <select value={options.show_glazing} onChange={(event) => onOptionChange('show_glazing', event.target.value)}>
-                          {['Size', 'No', 'Yes'].map((option) => <option key={option}>{option}</option>)}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Templates</span>
-                        <select value={options.template} onChange={(event) => onOptionChange('template', event.target.value)}>
-                          {['India', 'Thailand', 'UAE'].map((option) => <option key={option}>{option}</option>)}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Approve Code</span>
-                        <input value={options.approve_code} onChange={(event) => onOptionChange('approve_code', event.target.value)} />
-                      </label>
                     </div>
                   </div>
                 </div>

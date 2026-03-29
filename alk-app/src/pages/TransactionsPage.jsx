@@ -15,24 +15,37 @@ function TransactionsPage() {
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
-  const [keyword, setKeyword] = useState('')
+  const [searchFilters, setSearchFilters] = useState({
+    bookingNo: '',
+    fromDate: '',
+  })
   const [selectedTransaction, setSelectedTransaction] = useState(null)
 
   useEffect(() => {
     if (!currentUser) return
     if (currentUser.role !== 'admin') {
       navigate('/dashboard', { replace: true })
-      return
     }
-    loadTransactions(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser])
 
-  async function loadTransactions(targetPage = page) {
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin') return
+    loadTransactions(searchFilters, page)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFilters, page])
+
+  async function loadTransactions(filters = searchFilters, targetPage = page) {
     setLoading(true)
     setError('')
     try {
-      const response = await authFetch(`/transactions?page=${targetPage}&per_page=${PAGE_SIZE}`)
+      const params = new URLSearchParams()
+      params.append('page', targetPage)
+      params.append('per_page', PAGE_SIZE)
+      if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
+      if (filters.fromDate) params.append('from_date', filters.fromDate)
+
+      const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
         setError(payload?.message ?? 'Unable to load transactions.')
@@ -48,6 +61,19 @@ function TransactionsPage() {
     }
   }
 
+  function handleFilterChange(key, value) {
+    setSearchFilters((previous) => ({ ...previous, [key]: value }))
+    setPage(1)
+  }
+
+  function clearFilters() {
+    setSearchFilters({
+      bookingNo: '',
+      fromDate: '',
+    })
+    setPage(1)
+  }
+
   async function duplicateTransaction(transactionId) {
     try {
       const response = await authFetch(`/transactions/${transactionId}/duplicate`, { method: 'POST' })
@@ -59,7 +85,7 @@ function TransactionsPage() {
       }
       const duplicated = payload?.data
       if (!duplicated) {
-        await loadTransactions(page)
+        await loadTransactions(searchFilters, page)
         return { ok: true }
       }
 
@@ -108,17 +134,7 @@ function TransactionsPage() {
     navigate('/', { replace: true })
   }
 
-  const visibleRows = transactions.filter((transaction) => {
-    const text = keyword.trim().toLowerCase()
-    if (!text) return true
-    const searchable = [
-      transaction.booking_no,
-      transaction.general_info_packer?.vendor,
-      transaction.general_info_customer?.customer,
-      transaction.destination,
-    ].filter(Boolean).join(' ').toLowerCase()
-    return searchable.includes(text)
-  }).slice(0, PAGE_SIZE)
+  const visibleRows = transactions
   const totalRecords = pagination.total ?? 0
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
@@ -155,7 +171,7 @@ function TransactionsPage() {
           <button
             type="button"
             className="page-chip nav"
-            onClick={() => loadTransactions(Math.max(1, currentPage - 1))}
+            onClick={() => setPage(Math.max(1, currentPage - 1))}
             disabled={!canGoPrevious}
             aria-label="Previous page"
           >
@@ -166,7 +182,7 @@ function TransactionsPage() {
               key={pageNumber}
               type="button"
               className={`page-chip${pageNumber === currentPage ? ' active' : ''}`}
-              onClick={() => loadTransactions(pageNumber)}
+              onClick={() => setPage(pageNumber)}
               aria-label={`Page ${pageNumber}`}
               aria-current={pageNumber === currentPage ? 'page' : undefined}
             >
@@ -176,7 +192,7 @@ function TransactionsPage() {
           <button
             type="button"
             className="page-chip nav"
-            onClick={() => loadTransactions(Math.min(lastPage, currentPage + 1))}
+            onClick={() => setPage(Math.min(lastPage, currentPage + 1))}
             disabled={!canGoNext}
             aria-label="Next page"
           >
@@ -193,8 +209,38 @@ function TransactionsPage() {
     <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
-          <h5>Transaction &gt; All Transaction</h5>
-          <input placeholder="Keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+          <div>
+            <h5>Transaction &gt; All Transaction</h5>
+            <div className="search-filters">
+              <div className="filter-group">
+                <label htmlFor="booking-no-filter">Transaction Id / Code:</label>
+                <input
+                  id="booking-no-filter"
+                  type="text"
+                  value={searchFilters.bookingNo}
+                  onChange={(e) => handleFilterChange('bookingNo', e.target.value)}
+                  placeholder="Search by code"
+                />
+              </div>
+
+              <div className="filter-group">
+                <label htmlFor="modified-from-filter">Date Modified</label>
+                <input
+                  id="modified-from-filter"
+                  type="date"
+                  value={searchFilters.fromDate}
+                  onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                />
+              </div>
+
+              <div className="filter-group" style={{ marginLeft: 'auto' }}>
+                <label>&nbsp;</label>
+                <button type="button" className="secondary-btn" onClick={clearFilters}>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && <p className="message error">{error}</p>}

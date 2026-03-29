@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 const API_BASE = 'http://localhost:8000/api'
 const TOKEN_KEY = 'alkamaris_access_token'
+const DEFAULT_USER_TYPES = ['vendor', 'customer']
 
 const AuthContext = createContext(null)
 
@@ -9,7 +10,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) ?? '')
   const [currentUser, setCurrentUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
-  const [userTypeOptions, setUserTypeOptions] = useState(['vendor', 'customer'])
+  const [userTypeOptions, setUserTypeOptions] = useState(DEFAULT_USER_TYPES)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -42,10 +43,10 @@ export function AuthProvider({ children }) {
       const payload = await response.json()
       const options = payload?.data?.options ?? []
       if (options.length > 0) {
-        setUserTypeOptions(options)
+        setUserTypeOptions(mergeUserTypeOptions(options))
       }
     } catch {
-      setUserTypeOptions(['vendor', 'customer'])
+      setUserTypeOptions(DEFAULT_USER_TYPES)
     }
   }
 
@@ -204,6 +205,15 @@ export function AuthProvider({ children }) {
     if (!user) return null
     const normalizedRole = typeof user.role === 'string' ? user.role.trim().toLowerCase() : user.role
     return { ...user, role: normalizedRole }
+  }
+
+  function mergeUserTypeOptions(options) {
+    const normalized = options
+      .filter((option) => typeof option === 'string')
+      .map((option) => option.trim().toLowerCase())
+      .filter(Boolean)
+
+    return [...new Set([...DEFAULT_USER_TYPES, ...normalized])]
   }
 
   const value = {

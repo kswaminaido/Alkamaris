@@ -1900,10 +1900,16 @@ select:focus {
   gap: 18px;
 }
 
+.txe-print-leftstack {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
 .txe-print-section-label {
   margin: 0 0 10px;
   color: #111111;
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
@@ -1918,7 +1924,7 @@ select:focus {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   color: #111111;
 }
 
@@ -1962,7 +1968,7 @@ select:focus {
 
 .txe-print-article span,
 .txe-print-settings span {
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   color: #111111;
   font-weight: 600;
 }
@@ -1974,9 +1980,8 @@ select:focus {
 .txe-print-settings {
   display: grid;
   gap: 10px;
-  justify-self: end;
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
 }
 
 .txe-print-settings label {
@@ -1994,6 +1999,7 @@ select:focus {
   border: 1px solid #d0d5dd;
   border-radius: 0;
   color: #111111;
+  font-size: 0.78rem;
 }
 
 .txe-print-settings input,

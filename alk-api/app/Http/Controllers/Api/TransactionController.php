@@ -24,8 +24,22 @@ class TransactionController extends Controller
         $perPage = (int) request()->integer('per_page', 20);
         $perPage = max(5, min($perPage, 100));
 
-        $paginator = Transaction::query()
-            ->with(Transaction::detailRelations())
+        $query = Transaction::query()
+            ->with(Transaction::detailRelations());
+
+        if ($bookingNo = request('booking_no')) {
+            $query->where('booking_no', 'like', "%{$bookingNo}%");
+        }
+
+        if ($fromDate = request('from_date')) {
+            $query->whereDate('updated_at', '>=', $fromDate);
+        }
+
+        if ($toDate = request('to_date')) {
+            $query->whereDate('updated_at', '<=', $toDate);
+        }
+
+        $paginator = $query
             ->orderByDesc('id')
             ->paginate($perPage);
 
