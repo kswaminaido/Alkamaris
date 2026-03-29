@@ -7,6 +7,7 @@ use App\Models\Config;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class ConfigController extends Controller
@@ -72,5 +73,45 @@ class ConfigController extends Controller
                 'options' => Config::optionsByType($type),
             ],
         ]);
+    }
+
+    public function countries(): JsonResponse
+    {
+        $fallback = ['India', 'Singapore', 'United Arab Emirates', 'Jordan', 'Netherlands', 'Vietnam'];
+
+        try {
+            $response = Http::timeout(10)->acceptJson()->get((string) config('services.countries.url'));
+
+            if (! $response->successful()) {
+                return response()->json([
+                    'data' => [
+                        'options' => $fallback,
+                        'source' => 'fallback',
+                    ],
+                ]);
+            }
+
+            $options = collect($response->json())
+                ->map(fn (mixed $entry): string => is_array($entry) ? trim((string) data_get($entry, 'name.common', '')) : '')
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+
+            return response()->json([
+                'data' => [
+                    'options' => $options !== [] ? $options : $fallback,
+                    'source' => $options !== [] ? 'remote' : 'fallback',
+                ],
+            ]);
+        } catch (\Throwable) {
+            return response()->json([
+                'data' => [
+                    'options' => $fallback,
+                    'source' => 'fallback',
+                ],
+            ]);
+        }
     }
 }

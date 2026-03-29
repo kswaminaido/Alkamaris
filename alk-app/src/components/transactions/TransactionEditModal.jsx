@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../../utils/countries'
 
 const OPTIONS = {
   salesPeople: ['Chaipat', 'Keerthana Gubbala', 'Nina', 'Sahil'],
-  origin: ['INDIA', 'UAE', 'VIETNAM'],
-  destination: ['Jordan', 'AQABA, JORDAN', 'SINGAPORE'],
   type: ['Trade', 'Service'],
   yesNo: ['Yes', 'No'],
   container: ['20 ft', '40 ft'],
@@ -72,6 +71,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   const [documentPreviews, setDocumentPreviews] = useState([])
   const [printSelections, setPrintSelections] = useState(() => buildInitialPrintSelections())
   const [printOptions, setPrintOptions] = useState(() => buildInitialPrintOptions(transaction))
+  const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRIES)
   const formRef = useRef(null)
 
   if (!transaction) return null
@@ -92,6 +92,23 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
     setDocumentPreviews([])
     setPrintDialogOpen(false)
   }, [transaction])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadCountries() {
+      const options = await fetchCountryOptions()
+      if (active) {
+        setCountryOptions(options)
+      }
+    }
+
+    loadCountries()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   async function handleSave(closeAfterSave) {
     if (!onSave || !formRef.current) return
@@ -270,10 +287,10 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
 
         <div className="txn-edit-body">
           <div className="txn-edit-main">
-            <HeaderCard transaction={transaction} />
+            <HeaderCard transaction={transaction} countryOptions={countryOptions} />
             {tab === 'home' && <HomeTab transaction={transaction} />}
             {tab === 'dollar' && <DollarTab />}
-            {tab === 'ship' && <ShipTab transaction={transaction} />}
+            {tab === 'ship' && <ShipTab transaction={transaction} countryOptions={countryOptions} />}
             <BottomActions
               saving={saving}
               duplicating={duplicating}
@@ -301,6 +318,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           transaction={transaction}
           selections={printSelections}
           options={printOptions}
+          countryOptions={countryOptions}
           documents={documentPreviews}
           printing={printing}
           onClose={() => setPrintDialogOpen(false)}
@@ -318,15 +336,19 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   )
 }
 
-function HeaderCard({ transaction }) {
+function HeaderCard({ transaction, countryOptions }) {
   const salesPersonName = transaction.sales_person?.name ?? ''
   const issueDate = formatDate(transaction.issue_date)
   const updatedAt = formatDate(transaction.updated_at)
   const origin = transaction.product_origin ?? ''
   const type = transaction.type ?? ''
+  const country = transaction.country ?? ''
   const destination = transaction.destination ?? ''
   const container = transaction.container_primary ?? ''
   const certified = transaction.certified ? 'Yes' : 'No'
+  const originOptions = mergeCountryOptions(countryOptions, 'India (Singapore)', origin || 'INDIA')
+  const countrySelectOptions = mergeCountryOptions(countryOptions, country)
+  const destinationOptions = mergeCountryOptions(countryOptions, destination || 'Jordan')
 
   return (
     <div className="txe-card txe-header-card">
@@ -337,11 +359,12 @@ function HeaderCard({ transaction }) {
         <LabelField label="Last Modified By"><input defaultValue={salesPersonName || 'Keerthana Gubbala'} /></LabelField>
 
         <LabelField label="Sales Person"><select defaultValue={salesPersonName || 'Chaipat'}>{withCurrent(OPTIONS.salesPeople, salesPersonName || 'Chaipat').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
-        <LabelField label="Product Origin"><select name="transaction.product_origin" defaultValue={origin || 'INDIA'}>{withCurrent(OPTIONS.origin, origin || 'INDIA').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Product Origin"><select name="transaction.product_origin" defaultValue={origin || 'India (Singapore)'}>{originOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Type"><select name="transaction.type" defaultValue={type || 'Trade'}>{withCurrent(OPTIONS.type, type || 'Trade').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Container"><div className="txe-inline"><select name="transaction.container_primary" defaultValue={container || '40 ft'}>{withCurrent(OPTIONS.container, container || '40 ft').map((o) => <option key={o}>{o}</option>)}</select><select name="transaction.container_secondary" defaultValue="Full Load">{OPTIONS.load.map((o) => <option key={o}>{o}</option>)}</select></div></LabelField>
 
-        <LabelField label="Destination"><select name="transaction.destination" defaultValue={destination || 'Jordan'}>{withCurrent(OPTIONS.destination, destination || 'Jordan').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Country"><select name="transaction.country" defaultValue={country || ''}><option value="">Select</option>{countrySelectOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Destination"><select name="transaction.destination" defaultValue={destination || 'Jordan'}>{destinationOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Certified"><select name="transaction.certified" defaultValue={certified}>{OPTIONS.yesNo.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Net Margin"><input name="transaction.net_margin" defaultValue={transaction.net_margin ?? ''} /></LabelField>
         <LabelField label="Last Modified On"><input defaultValue={updatedAt} /></LabelField>
@@ -514,8 +537,13 @@ function DollarTab() {
   )
 }
 
-function ShipTab({ transaction }) {
+function ShipTab({ transaction, countryOptions }) {
   const notes = transaction.notes ?? transaction.note ?? {}
+  const logisticsDestinationOptions = mergeCountryOptions(
+    countryOptions,
+    transaction.logistics?.destination,
+    transaction.destination,
+  )
 
   return (
     <div className="txe-stack">
@@ -541,7 +569,7 @@ function ShipTab({ transaction }) {
             <Row label="B/L Date"><input name="logistics.bl_date" defaultValue="20/02/2026" /></Row>
             <Row label="B/L No."><input name="logistics.bl_no" defaultValue="EGLV1046000036" /></Row>
             <Row label="Port"><input name="logistics.port" defaultValue="KOLKATA, INDIA" /></Row>
-            <Row label="Destination"><input name="logistics.destination" defaultValue="AQABA, JORDAN" /></Row>
+            <Row label="Destination"><select name="logistics.destination" defaultValue={transaction.logistics?.destination ?? transaction.destination ?? ''}><option value="">Select</option>{logisticsDestinationOptions.map((option) => <option key={option}>{option}</option>)}</select></Row>
             <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue="EVERGREEN LINE" /></Row>
             <Row label="Packer Inv Date"><input name="logistics.packer_inv_date" defaultValue="16/02/2026" /></Row>
             <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue="CMFE/S/074/25-2" /></Row>
@@ -597,6 +625,7 @@ function PrintDialog({
   transaction,
   selections,
   options,
+  countryOptions,
   documents,
   printing,
   onClose,
@@ -665,7 +694,7 @@ function PrintDialog({
                   <label>
                     <span>Templates</span>
                     <select value={options.template} onChange={(event) => onOptionChange('template', event.target.value)}>
-                      {['India', 'Thailand', 'UAE'].map((option) => <option key={option}>{option}</option>)}
+                      {mergeCountryOptions(countryOptions, options.template).map((option) => <option key={option}>{option}</option>)}
                     </select>
                   </label>
                   <label>
@@ -860,7 +889,7 @@ function buildInitialPrintOptions(transaction) {
     print_revised: 'No',
     print_liquidation: 'No',
     show_glazing: 'Size',
-    template: 'India',
+    template: transaction?.country || transaction?.destination || 'India',
     approve_code: transaction?.booking_no ? `${transaction.booking_no}-APR` : '',
     payment_advance: '',
     articles: Array.from({ length: 6 }, () => ''),
@@ -1028,7 +1057,7 @@ function buildPayload(formElement, transaction) {
       destination: getField(formData, 'transaction.destination') ?? transaction.destination ?? null,
       category: transaction.category ?? null,
       type: getField(formData, 'transaction.type') ?? transaction.type ?? null,
-      country: transaction.country ?? null,
+      country: getField(formData, 'transaction.country') ?? transaction.country ?? null,
       container_primary: getField(formData, 'transaction.container_primary') ?? transaction.container_primary ?? null,
       container_secondary: getField(formData, 'transaction.container_secondary') ?? transaction.container_secondary ?? null,
       certified: (getField(formData, 'transaction.certified') ?? 'No') === 'Yes',

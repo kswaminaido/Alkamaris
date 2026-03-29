@@ -38,7 +38,7 @@ abstract class TransactionPayloadRequest extends FormRequest
     {
         return [
             'transaction' => ['required', 'array'],
-            'transaction.booking_no' => ['required', 'string', 'max:100', $this->bookingNoRule()],
+            'transaction.booking_no' => $this->bookingNoRules(),
             'transaction.booking_mode' => ['required', 'string', Rule::in(['trade_commission', 'qc_services'])],
             'transaction.issue_date' => ['nullable', 'date'],
             'transaction.sales_person_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -54,7 +54,15 @@ abstract class TransactionPayloadRequest extends FormRequest
         ];
     }
 
-    private function bookingNoRule()
+    /**
+     * @return array<int, mixed>
+     */
+    protected function bookingNoRules(): array
+    {
+        return ['required', 'string', 'max:100', $this->bookingNoRule()];
+    }
+
+    protected function bookingNoRule()
     {
         $transaction = $this->route('transaction');
         $rule = Rule::unique('transactions', 'booking_no');

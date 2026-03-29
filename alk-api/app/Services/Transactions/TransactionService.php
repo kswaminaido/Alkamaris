@@ -16,6 +16,7 @@ use App\Models\TransactionLogistics;
 use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class TransactionService
@@ -61,7 +62,7 @@ final class TransactionService
     {
         return DB::transaction(function () use ($validated, $actor): Transaction {
             $transaction = Transaction::query()->create([
-                ...$validated['transaction'],
+                ...$this->prepareCreateTransactionPayload($validated['transaction'] ?? [], $actor),
                 'created_by_user_id' => $actor->id,
             ]);
 
@@ -180,6 +181,51 @@ final class TransactionService
             $exists = Transaction::query()->where('booking_no', $candidate)->exists();
             $suffix++;
         } while ($exists);
+
+        return $candidate;
+    }
+
+    /**
+     * @param  array<string, mixed>  $transactionData
+     * @return array<string, mixed>
+     */
+    private function prepareCreateTransactionPayload(array $transactionData, User $actor): array
+    {
+        $issueDate = CarbonImmutable::now()->toDateString();
+        $requestedBookingNo = trim((string) ($transactionData['booking_no'] ?? ''));
+        $productOrigin = trim((string) ($transactionData['product_origin'] ?? ''));
+        $bookingNo = $this->resolveCreateBookingNo($requestedBookingNo, $issueDate);
+
+        return [
+            ...$transactionData,
+            'booking_no' => $bookingNo,
+            'issue_date' => $issueDate,
+            'sales_person_id' => $actor->id,
+            'product_origin' => $productOrigin !== '' ? $productOrigin : 'India (Singapore)',
+        ];
+    }
+
+    private function resolveCreateBookingNo(string $requestedBookingNo, string $issueDate): string
+    {
+        if ($requestedBookingNo !== '' && preg_match('/^ALK\d{4}\d{6}$/', $requestedBookingNo) === 1) {
+            $exists = Transaction::query()->where('booking_no', $requestedBookingNo)->exists();
+
+            if (! $exists) {
+                return $requestedBookingNo;
+            }
+        }
+
+        return $this->generateBookingNo($issueDate);
+    }
+
+    private function generateBookingNo(string $issueDate): string
+    {
+        $prefix = 'ALK'.CarbonImmutable::parse($issueDate)->format('my');
+
+        do {
+            $suffix = str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+            $candidate = $prefix.$suffix;
+        } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
         return $candidate;
     }

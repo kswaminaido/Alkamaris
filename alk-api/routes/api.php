@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('configs/{type}/options', [ConfigController::class, 'options']);
+Route::get('countries/options', [ConfigController::class, 'countries']);
 
 Route::prefix('auth')->group(function (): void {
     Route::post('register', [AuthController::class, 'register']);

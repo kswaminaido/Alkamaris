@@ -2,15 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
+import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../utils/countries'
 
 const DUMMY = {
-  productOrigin: ['India (Singapore)', 'India (UAE)', 'Vietnam'],
-  destination: ['Singapore', 'UAE', 'Rotterdam'],
   category: ['Food Grade', 'Feed Grade', 'Industrial'],
   type: ['Trade', 'Service', 'Commission'],
   yesNo: ['Yes', 'No'],
-  country: ['India', 'Singapore', 'UAE'],
-  container: ['20 FT', '40 FT', 'Bulk'],
   attn: ['Accounts', 'Purchase', 'Logistics'],
   shipto: ['Main Warehouse', 'Port Facility', 'Client Yard'],
   buyers: ['Buyer A', 'Buyer B', 'Buyer C'],
@@ -25,43 +22,73 @@ const DUMMY = {
   currency: ['USD', 'INR', 'SGD', 'EUR'],
 }
 
-const INITIAL = {
-  transaction: {
-    booking_no: '', issue_date: '', sales_person_id: '', product_origin: '', destination: '', category: '',
-    type: '', certified: 'No', country: '', container_primary: '', net_margin: '', booking_mode: 'trade_commission',
-  },
-  general_info_customer: {
-    customer: '', attention: '', ship_to: '', buyer: '', buyer_number: '', end_customer: '', prices_customer_type: '',
-    prices_customer_rate: '', payment_customer_type: '', payment_customer_term: '', payment_customer_advance_percent: '',
-    description: '', tolerance: '', marketing_fee: false,
-  },
-  general_info_packer: {
-    vendor: '', packer_name: '', packer_number: '', packed_by: '', prices_packer_type: '', prices_packer_rate: '',
-    payment_packer_type: '', payment_packer_term: '', payment_packer_advance_percent: '', description: '',
-    tolerance: '', total_lqd_price: '', consignee: '',
-  },
-  revenue_customer: {
-    total_selling_value: '', total_selling_currency: 'USD', commission_enabled: false, commission_percent: '', amount: '',
-    amount_currency: 'USD', description: '', rebate_memo_amount: '', rebate_memo_description: '', overcharge_sc_amount: '',
-    overcharge_sc_description: '',
-  },
-  revenue_packer: {
-    total_buying_value: '', total_buying_currency: 'USD', commission_enabled: false, commission_percent: '', amount: '',
-    amount_currency: 'USD', description: '', overcharge_sc_amount: '', overcharge_sc_description: '',
-  },
-  cash_flow_customer: { date_advance: '', amount_advance: '', date_balance: '', amount_balance: '' },
-  cash_flow_packer: { date_advance: '', amount_advance: '', date_balance: '', amount_balance: '' },
-  shipping_details_customer: { lsd_min: '', lsd_max: '', presentation_days: '', lc_expiry: '', req_eta: '' },
-  shipping_details_packer: { lsd_min: '', lsd_max: '', presentation_days: '', lc_expiry: '', req_eta: '' },
-  notes: { by_sales: '' },
+function getTodayInputValue() {
+  const now = new Date()
+  const local = new Date(now.getTime() - (now.getTimezoneOffset() * 60 * 1000))
+  return local.toISOString().slice(0, 10)
+}
+
+function generateBookingNo(dateValue = getTodayInputValue()) {
+  const date = new Date(`${dateValue}T00:00:00`)
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date
+  const month = String(safeDate.getMonth() + 1).padStart(2, '0')
+  const year = String(safeDate.getFullYear()).slice(-2)
+  const suffix = String(Math.floor(Math.random() * 1000000)).padStart(6, '0')
+  return `ALK${month}${year}${suffix}`
+}
+
+function buildInitialForm() {
+  const issueDate = getTodayInputValue()
+
+  return {
+    transaction: {
+      booking_no: generateBookingNo(issueDate),
+      issue_date: issueDate,
+      sales_person_id: '',
+      product_origin: 'India (Singapore)',
+      destination: '',
+      category: '',
+      type: '',
+      certified: 'No',
+      country: '',
+      container_primary: '',
+      container_secondary: '',
+      net_margin: '',
+      booking_mode: 'trade_commission',
+    },
+    general_info_customer: {
+      customer: '', attention: '', ship_to: '', buyer: '', buyer_number: '', end_customer: '', prices_customer_type: '',
+      prices_customer_rate: '', payment_customer_type: '', payment_customer_term: '', payment_customer_advance_percent: '',
+      description: '', tolerance: '', marketing_fee: false,
+    },
+    general_info_packer: {
+      vendor: '', packer_name: '', packer_number: '', packed_by: '', prices_packer_type: '', prices_packer_rate: '',
+      payment_packer_type: '', payment_packer_term: '', payment_packer_advance_percent: '', description: '',
+      tolerance: '', total_lqd_price: '', consignee: '',
+    },
+    revenue_customer: {
+      total_selling_value: '', total_selling_currency: 'USD', commission_enabled: false, commission_percent: '', amount: '',
+      amount_currency: 'USD', description: '', rebate_memo_amount: '', rebate_memo_description: '', overcharge_sc_amount: '',
+      overcharge_sc_description: '',
+    },
+    revenue_packer: {
+      total_buying_value: '', total_buying_currency: 'USD', commission_enabled: false, commission_percent: '', amount: '',
+      amount_currency: 'USD', description: '', overcharge_sc_amount: '', overcharge_sc_description: '',
+    },
+    cash_flow_customer: { date_advance: '', amount_advance: '', date_balance: '', amount_balance: '' },
+    cash_flow_packer: { date_advance: '', amount_advance: '', date_balance: '', amount_balance: '' },
+    shipping_details_customer: { lsd_min: '', lsd_max: '', presentation_days: '', lc_expiry: '', req_eta: '' },
+    shipping_details_packer: { lsd_min: '', lsd_max: '', presentation_days: '', lc_expiry: '', req_eta: '' },
+    notes: { by_sales: '' },
+  }
 }
 
 function TransactionCreatePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { currentUser, authFetch, logout } = useAuth()
-  const [form, setForm] = useState(INITIAL)
-  const [salesPeople, setSalesPeople] = useState([])
+  const [form, setForm] = useState(() => buildInitialForm())
+  const [countries, setCountries] = useState(FALLBACK_COUNTRIES)
   const [customers, setCustomers] = useState([])
   const [vendors, setVendors] = useState([])
   const [saving, setSaving] = useState(false)
@@ -78,22 +105,30 @@ function TransactionCreatePage() {
       navigate('/dashboard', { replace: true })
       return
     }
-    const mode = searchParams.get('mode')
-    if (mode === 'trade_commission' || mode === 'qc_services') setValue('transaction', 'booking_mode', mode)
-    loadSalesPeople()
-    loadBookingParties()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, searchParams])
 
-  async function loadSalesPeople() {
-    try {
-      const response = await authFetch('/users')
-      const payload = await response.json()
-      if (response.ok) setSalesPeople((payload?.data ?? []).filter((u) => u.role === 'sales'))
-    } catch {
-      setSalesPeople([])
-    }
-  }
+    const mode = searchParams.get('mode')
+    const bookingMode = mode === 'trade_commission' || mode === 'qc_services' ? mode : 'trade_commission'
+
+    setForm((previous) => {
+      const issueDate = previous.transaction.issue_date || getTodayInputValue()
+
+      return {
+        ...previous,
+        transaction: {
+          ...previous.transaction,
+          booking_mode: bookingMode,
+          booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
+          issue_date: issueDate,
+          sales_person_id: currentUser.id ?? '',
+          product_origin: previous.transaction.product_origin || 'India (Singapore)',
+        },
+      }
+    })
+
+    loadBookingParties()
+    loadCountries()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, searchParams, navigate])
 
   async function loadBookingParties() {
     try {
@@ -107,25 +142,20 @@ function TransactionCreatePage() {
         vendorResponse.json(),
       ])
 
-      if (customerResponse.ok) {
-        setCustomers(extractUserNames(customerPayload?.data))
-      } else {
-        setCustomers([])
-      }
-
-      if (vendorResponse.ok) {
-        setVendors(extractUserNames(vendorPayload?.data))
-      } else {
-        setVendors([])
-      }
+      setCustomers(customerResponse.ok ? extractUserNames(customerPayload?.data) : [])
+      setVendors(vendorResponse.ok ? extractUserNames(vendorPayload?.data) : [])
     } catch {
       setCustomers([])
       setVendors([])
     }
   }
 
+  async function loadCountries() {
+    setCountries(await fetchCountryOptions())
+  }
+
   function setValue(section, field, value) {
-    setForm((p) => ({ ...p, [section]: { ...p[section], [field]: value } }))
+    setForm((previous) => ({ ...previous, [section]: { ...previous[section], [field]: value } }))
   }
 
   async function onLogout() {
@@ -138,12 +168,18 @@ function TransactionCreatePage() {
     setSaving(true)
     setMessage('')
     setError('')
+
     const payload = JSON.parse(JSON.stringify(form))
-    payload.transaction.sales_person_id = payload.transaction.sales_person_id ? Number(payload.transaction.sales_person_id) : null
+    payload.transaction.booking_no = payload.transaction.booking_no || generateBookingNo(payload.transaction.issue_date)
+    payload.transaction.issue_date = getTodayInputValue()
+    payload.transaction.sales_person_id = currentUser?.id ?? null
+    payload.transaction.product_origin = payload.transaction.product_origin || 'India (Singapore)'
     payload.transaction.certified = payload.transaction.certified === 'Yes'
+
     try {
       const response = await authFetch('/transactions', { method: 'POST', body: JSON.stringify(payload) })
       const body = await response.json()
+
       if (!response.ok) {
         const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
         setError(firstValidationMessage ?? body?.message ?? 'Unable to create transaction.')
@@ -168,7 +204,10 @@ function TransactionCreatePage() {
       onLogout={onLogout}
     >
       <form className="transaction-page" onSubmit={onSubmit}>
-        <section className="txn-panel txn-top"><h5>TRANSACTION DETAILS</h5><TxHeader form={form} setValue={setValue} salesPeople={salesPeople} /></section>
+        <section className="txn-panel txn-top">
+          <h5>TRANSACTION DETAILS</h5>
+          <TxHeader form={form} setValue={setValue} currentUser={currentUser} countries={countries} />
+        </section>
         <section className="txn-double-grid">
           <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} customers={customers} /></TxnColumn>
           <TxnColumn title="GENERAL INFO" side="PACKER"><GeneralPacker form={form} setValue={setValue} vendors={vendors} /></TxnColumn>
@@ -192,19 +231,38 @@ function TransactionCreatePage() {
   )
 }
 
-function TxHeader({ form, setValue, salesPeople }) {
+function TxHeader({ form, setValue, currentUser, countries }) {
+  const salesPersonName = currentUser?.name || currentUser?.email || ''
+  const productOriginOptions = mergeCountryOptions(countries, 'India (Singapore)')
+  const destinationOptions = countries
+
   return (
     <div className="txn-grid cols-4">
-      <Field label="Booking No."><input required value={form.transaction.booking_no} onChange={(e) => setValue('transaction', 'booking_no', e.target.value)} /></Field>
-      <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} onChange={(e) => setValue('transaction', 'issue_date', e.target.value)} /></Field>
-      <Field label="Category"><Select value={form.transaction.category} list={DUMMY.category} onChange={(v) => setValue('transaction', 'category', v)} /></Field>
-      <Field label="Country"><Select value={form.transaction.country} list={DUMMY.country} onChange={(v) => setValue('transaction', 'country', v)} /></Field>
-      <Field label="Sales Person"><select value={form.transaction.sales_person_id} onChange={(e) => setValue('transaction', 'sales_person_id', e.target.value)}><option value="">Select</option>{salesPeople.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field>
-      <Field label="Product Origin"><Select value={form.transaction.product_origin} list={DUMMY.productOrigin} onChange={(v) => setValue('transaction', 'product_origin', v)} /></Field>
-      <Field label="Type"><Select value={form.transaction.type} list={DUMMY.type} onChange={(v) => setValue('transaction', 'type', v)} /></Field>
-      <Field label="Container"><Select value={form.transaction.container_primary} list={DUMMY.container} onChange={(v) => setValue('transaction', 'container_primary', v)} /></Field>
-      <Field label="Destination"><Select value={form.transaction.destination} list={DUMMY.destination} onChange={(v) => setValue('transaction', 'destination', v)} /></Field>
-      <Field label="Certified"><Select value={form.transaction.certified} list={DUMMY.yesNo} onChange={(v) => setValue('transaction', 'certified', v)} /></Field>
+      <Field label="Booking No."><input value={form.transaction.booking_no} disabled className="txn-readonly" /></Field>
+      <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} disabled className="txn-readonly" /></Field>
+      <Field label="Category"><Select value={form.transaction.category} list={DUMMY.category} onChange={(value) => setValue('transaction', 'category', value)} /></Field>
+      <Field label="Country"><Select value={form.transaction.country} list={countries} onChange={(value) => setValue('transaction', 'country', value)} /></Field>
+      <Field label="Sales Person"><input value={salesPersonName} disabled className="txn-readonly" /></Field>
+      <Field label="Product Origin"><Select value={form.transaction.product_origin} list={productOriginOptions} onChange={(value) => setValue('transaction', 'product_origin', value)} /></Field>
+      <Field label="Type"><Select value={form.transaction.type} list={DUMMY.type} onChange={(value) => setValue('transaction', 'type', value)} /></Field>
+      <Field label="Container">
+        <div className="txn-container-split">
+          <input
+            className="txn-container-small"
+            placeholder="Size"
+            value={form.transaction.container_primary}
+            onChange={(e) => setValue('transaction', 'container_primary', e.target.value)}
+          />
+          <input
+            className="txn-container-large"
+            placeholder="Container details"
+            value={form.transaction.container_secondary}
+            onChange={(e) => setValue('transaction', 'container_secondary', e.target.value)}
+          />
+        </div>
+      </Field>
+      <Field label="Destination"><Select value={form.transaction.destination} list={destinationOptions} onChange={(value) => setValue('transaction', 'destination', value)} /></Field>
+      <Field label="Certified"><Select value={form.transaction.certified} list={DUMMY.yesNo} onChange={(value) => setValue('transaction', 'certified', value)} /></Field>
       <Field label="Net Margin"><input type="number" step="0.01" value={form.transaction.net_margin} onChange={(e) => setValue('transaction', 'net_margin', e.target.value)} /></Field>
     </div>
   )

@@ -1202,6 +1202,26 @@ select:focus {
   grid-column: span 2;
 }
 
+.txn-readonly:disabled {
+  background: #f4f4f5;
+  color: #475467;
+  cursor: not-allowed;
+}
+
+.txn-container-split {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+.txn-container-small {
+  max-width: 110px;
+}
+
+.txn-container-large {
+  min-width: 0;
+}
+
 .radio-inline {
   display: flex;
   align-items: center;
