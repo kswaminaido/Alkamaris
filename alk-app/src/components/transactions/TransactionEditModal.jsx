@@ -280,7 +280,6 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           <div className="txn-edit-header-copy">
             <span className="txn-edit-eyebrow">Transaction Details</span>
             <h2>Transaction# {transaction.booking_no || 'SIN2605802'}</h2>
-            <p>Review commercial details, shipping information, and print-ready documents in one workspace.</p>
           </div>
           <button type="button" className="txn-edit-close" onClick={onClose} aria-label="Close transaction details">x</button>
         </div>
