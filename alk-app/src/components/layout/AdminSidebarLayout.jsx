@@ -80,6 +80,11 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
     setMobileMenuOpen(false)
   }
 
+  function closeSidebarSubmenus() {
+    setTransactionSubmenuOpen(false)
+    setReportSubmenuOpen(false)
+  }
+
   function handleTopNavAction(action) {
     if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
       navigate(`/transactions/new?mode=${action.mode}`)
@@ -90,7 +95,11 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
       return
     }
     if (action.key === 'master_list') {
-        navigate('/master')
+      navigate('/master')
+      return
+    }
+    if (action.key === 'data') {
+      navigate('/data')
       return
     }
     navigate('/dashboard')
@@ -121,7 +130,10 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             to="/dashboard"
             end
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={() => {
+              closeMobileMenu()
+              closeSidebarSubmenus()
+            }}
           >
             <SidebarIcon icon="dashboard" />
             <span className="sidebar-link-text">Dashboard</span>
@@ -146,14 +158,14 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             </button>
 
             {transactionSubmenuOpen && (
-              <div className="submenu-panel shadow rounded border">
+              <div className="sidebar-submenu-panel shadow rounded border">
                 <nav className="list-group list-group-flush">
                   <NavLink
                     to="/transactions"
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive && location.pathname === '/transactions' ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     All Transactions
@@ -163,7 +175,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Specs
@@ -173,7 +185,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Special Notes
@@ -183,7 +195,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     QC Inspection Date
@@ -193,7 +205,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Payment Request
@@ -203,7 +215,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Payment Request List
@@ -213,7 +225,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setTransactionSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Overdue Invoice
@@ -221,6 +233,21 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                 </nav>
               </div>
             )}
+          </div>
+
+          <div className="position-relative">
+            <NavLink
+              to="/data"
+              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+              onClick={() => {
+                closeMobileMenu()
+                closeSidebarSubmenus()
+              }}
+            >
+              <SidebarIcon icon="data" />
+              <span className="sidebar-link-text">Data</span>
+              <span className="sidebar-link-end" />
+            </NavLink>
           </div>
 
           <div className="position-relative">
@@ -240,14 +267,14 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
               </span>
             </button>
             {reportSubmenuOpen && (
-              <div className="submenu-panel shadow rounded border">
+              <div className="sidebar-submenu-panel shadow rounded border">
                 <nav className="list-group list-group-flush">
                   <NavLink
                     to="/reports/summary"
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setReportSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Summary Report
@@ -257,7 +284,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setReportSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Vendor Sales
@@ -267,7 +294,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
                       closeMobileMenu()
-                      setReportSubmenuOpen(false)
+                      closeSidebarSubmenus()
                     }}
                   >
                     Payment Status
@@ -403,6 +430,13 @@ function SidebarIcon({ icon }) {
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 20V8M10 20V4M16 20v-9M22 20H2" />
+        </svg>
+      )
+    case 'data':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+          <path d="M7 4v16M17 4v16" />
         </svg>
       )
     case 'help':
