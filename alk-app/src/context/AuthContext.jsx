@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useGlobalLoading } from './GlobalLoadingContext'
 
 const API_BASE = 'http://localhost:8000/api'
 const TOKEN_KEY = 'alkamaris_access_token'
@@ -7,6 +8,7 @@ const DEFAULT_USER_TYPES = ['vendor', 'customer']
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
+  const { trackGlobalLoad } = useGlobalLoading()
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) ?? '')
   const [currentUser, setCurrentUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
@@ -39,7 +41,10 @@ export function AuthProvider({ children }) {
 
   async function loadUserTypeOptions() {
     try {
-      const response = await fetch(`${API_BASE}/configs/roles/options`)
+      const response = await trackGlobalLoad(
+        () => fetch(`${API_BASE}/configs/roles/options`),
+        'Loading application data...',
+      )
       const payload = await response.json()
       const options = payload?.data?.options ?? []
       if (options.length > 0) {
@@ -52,12 +57,15 @@ export function AuthProvider({ children }) {
 
   async function fetchMe(accessToken) {
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json',
-        },
-      })
+      const response = await trackGlobalLoad(
+        () => fetch(`${API_BASE}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }),
+        'Loading your session...',
+      )
 
       if (!response.ok) {
         clearSession()
@@ -78,14 +86,17 @@ export function AuthProvider({ children }) {
     setError('')
     setMessage('')
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      })
+      const response = await trackGlobalLoad(
+        () => fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(credentials),
+        }),
+        'Signing in...',
+      )
       const payload = await response.json()
 
       if (!response.ok) {
@@ -118,14 +129,17 @@ export function AuthProvider({ children }) {
     setError('')
     setMessage('')
     try {
-      const response = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
+      const response = await trackGlobalLoad(
+        () => fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }),
+        'Creating your account...',
+      )
       const body = await response.json()
 
       if (!response.ok) {
@@ -157,13 +171,16 @@ export function AuthProvider({ children }) {
   async function logout() {
     if (token) {
       try {
-        await fetch(`${API_BASE}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-        })
+        await trackGlobalLoad(
+          () => fetch(`${API_BASE}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/json',
+            },
+          }),
+          'Signing out...',
+        )
       } catch {
         // best effort
       }
@@ -183,10 +200,19 @@ export function AuthProvider({ children }) {
       headers.Authorization = `Bearer ${token}`
     }
 
-    return fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers,
-    })
+    const loaderLabel = typeof options.loadingLabel === 'string' && options.loadingLabel.trim()
+      ? options.loadingLabel
+      : 'Loading...'
+
+    const { loadingLabel, ...requestOptions } = options
+
+    return trackGlobalLoad(
+      () => fetch(`${API_BASE}${path}`, {
+        ...requestOptions,
+        headers,
+      }),
+      loaderLabel,
+    )
   }
 
   function clearSession() {

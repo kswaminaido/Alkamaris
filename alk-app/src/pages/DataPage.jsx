@@ -155,17 +155,13 @@ function DataPage() {
   if (!currentUser || currentUser.role !== 'admin') return null
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Data" activeKey="data" onLogout={handleLogout}>
+    <AdminSidebarLayout
+      currentUser={currentUser}
+      title="Data"
+      activeKey="data"
+      onLogout={handleLogout}
+    >
       <div className="transaction-page data-page">
-        {(loading || savingField) ? (
-          <div className="data-page-loader" role="status" aria-live="polite">
-            <div className="data-page-loader-card">
-              <span className="data-page-loader-spinner" aria-hidden="true" />
-              <strong>{loading ? 'Refreshing data...' : 'Saving data...'}</strong>
-            </div>
-          </div>
-        ) : null}
-
         {toast ? <div className="data-toast">{toast}</div> : null}
 
         <section className="txn-panel txn-top data-page-header">
