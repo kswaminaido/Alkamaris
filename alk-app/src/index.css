@@ -69,6 +69,26 @@ textarea {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+.sidebar-submenu-panel .list-group-item {
+  white-space: nowrap;
+}
+
 .dashboard-sidebar-nav {
   position: relative;
+}
+
+@media (min-width: 981px) {
+  .dashboard-shell.sidebar-collapsed .dashboard-sidebar {
+    overflow: visible;
+  }
+
+  .dashboard-shell.sidebar-collapsed .sidebar-submenu-panel {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 0.75rem);
+    margin: 0;
+    min-width: 240px;
+    max-width: 280px;
+    z-index: 80;
+  }
 }
