@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
+import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
 import TransactionCreatePage from './pages/TransactionCreatePage'
 import TransactionsPage from './pages/TransactionsPage'
@@ -46,6 +47,14 @@ function AppShell() {
           element={
             <RequireAuth>
               <DashboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <ProfilePage />
             </RequireAuth>
           }
         />

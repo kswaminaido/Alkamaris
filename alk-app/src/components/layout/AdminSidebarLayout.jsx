@@ -29,7 +29,6 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
     return savedValue === null ? true : savedValue === 'true'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
   const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
@@ -51,30 +50,6 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
   }, [mobileMenuOpen])
-
-  useEffect(() => {
-    if (!profileMenuOpen) return undefined
-
-    function handlePointerDown(event) {
-      if (!event.target.closest('.dashboard-topbar-profile-menu-wrap')) {
-        setProfileMenuOpen(false)
-      }
-    }
-
-    function handleEscape(event) {
-      if (event.key === 'Escape') {
-        setProfileMenuOpen(false)
-      }
-    }
-
-    window.addEventListener('mousedown', handlePointerDown)
-    window.addEventListener('keydown', handleEscape)
-
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown)
-      window.removeEventListener('keydown', handleEscape)
-    }
-  }, [profileMenuOpen])
 
   function closeMobileMenu() {
     setMobileMenuOpen(false)
@@ -361,46 +336,24 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             </nav>
           </div>
           <div className="dashboard-topbar-profile-menu-wrap">
-            <button
-              type="button"
+            <Link
+              to="/profile"
               className="dashboard-topbar-profile"
-              aria-label="Open profile menu"
-              aria-expanded={profileMenuOpen}
-              aria-haspopup="menu"
-              onClick={() => setProfileMenuOpen((value) => !value)}
+              aria-label="Open profile page"
             >
               <span className="dashboard-topbar-profile-name">{currentUser.name}</span>
               <span className="dashboard-topbar-profile-icon">
                 <ProfileIcon />
               </span>
+            </Link>
+            <button
+              type="button"
+              className="dashboard-topbar-logout-btn"
+              aria-label="Logout"
+              onClick={onLogout}
+            >
+              <SidebarIcon icon="logout" />
             </button>
-
-            {profileMenuOpen && (
-              <div className="dashboard-topbar-profile-menu" role="menu" aria-label="Profile options">
-                <button
-                  type="button"
-                  className="dashboard-topbar-profile-menu-item"
-                  role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false)
-                    navigate('/dashboard')
-                  }}
-                >
-                  Profile
-                </button>
-                <button
-                  type="button"
-                  className="dashboard-topbar-profile-menu-item"
-                  role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false)
-                    onLogout()
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
           </div>
         </header>
 

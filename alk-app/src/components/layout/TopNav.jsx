@@ -16,9 +16,14 @@ function TopNav({ currentUser, showSignupLink, showLoginLink, onLogout }) {
       {!currentUser && showLoginLink && <Link to="/" className="nav-link-btn">Log in</Link>}
 
       {currentUser && (
-        <button type="button" className="nav-link-btn" onClick={onLogout}>
-          Logout
-        </button>
+        <div className="top-nav-actions">
+          <Link to="/profile" className="nav-link-btn">
+            Profile
+          </Link>
+          <button type="button" className="nav-link-btn" onClick={onLogout}>
+            Logout
+          </button>
+        </div>
       )}
     </header>
   )

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TransactionDocumentController;
@@ -17,6 +18,8 @@ Route::prefix('auth')->group(function (): void {
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('logout', [AuthController::class, 'logout']);
+        Route::patch('profile', [ProfileController::class, 'update']);
+        Route::patch('password', [ProfileController::class, 'updatePassword']);
     });
 });
 

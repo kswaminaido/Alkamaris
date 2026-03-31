@@ -227,6 +227,12 @@ export function AuthProvider({ children }) {
     setError('')
   }
 
+  function syncCurrentUser(user) {
+    const normalized = normalizeUser(user)
+    setCurrentUser(normalized)
+    return normalized
+  }
+
   function normalizeUser(user) {
     if (!user) return null
     const normalizedRole = typeof user.role === 'string' ? user.role.trim().toLowerCase() : user.role
@@ -255,6 +261,7 @@ export function AuthProvider({ children }) {
     logout,
     authFetch,
     clearFeedback,
+    syncCurrentUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

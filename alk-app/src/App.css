@@ -81,6 +81,12 @@
   opacity: 1;
 }
 
+.top-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .login-wrap {
   padding: 2.1rem 1rem;
   display: flex;
@@ -814,6 +820,9 @@ select:focus {
 .dashboard-topbar-profile-menu-wrap {
   position: relative;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
 }
 
 .dashboard-topbar-profile {
@@ -844,6 +853,29 @@ select:focus {
 .dashboard-topbar-profile-icon svg {
   width: 20px;
   height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-topbar-logout-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dashboard-topbar-logout-btn svg {
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -915,6 +947,10 @@ select:focus {
   .top-nav {
     height: 84px;
     padding: 0 1rem;
+  }
+
+  .top-nav-actions {
+    gap: 0.7rem;
   }
 
   .register-grid,
@@ -1132,6 +1168,91 @@ select:focus {
   border-radius: 0;
   background: #edf9ff;
   color: #0b4a6b;
+}
+
+.profile-app-page {
+  min-width: 0;
+}
+
+.profile-summary-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-summary-copy h5,
+.profile-panel-head h5 {
+  margin: 0;
+}
+
+.profile-summary-copy p,
+.profile-panel-head p {
+  margin-top: 0.35rem;
+}
+
+.profile-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: min(100%, 420px);
+}
+
+.profile-email-chip {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.profile-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.95fr);
+  gap: 0.8rem;
+}
+
+.profile-panel-head {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.35rem;
+}
+
+.profile-form-grid,
+.profile-password-grid {
+  margin-top: 0.25rem;
+}
+
+.profile-password-panel .profile-panel-head {
+  margin-bottom: 0.1rem;
+  gap: 0;
+}
+
+.profile-password-panel {
+  gap: 0;
+}
+
+.profile-password-panel .profile-panel-head p {
+  margin-top: 0.05rem;
+  line-height: 1.2;
+}
+
+.profile-password-panel .profile-password-grid {
+  margin-top: 0;
+  gap: 0.2rem;
+}
+
+.profile-password-panel .register-field {
+  gap: 0.2rem;
+}
+
+.profile-address-field {
+  grid-column: 1 / -1;
+}
+
+.profile-form-actions {
+  margin-top: 0.4rem;
 }
 
 .transaction-page {
@@ -2967,6 +3088,12 @@ h5{
 }
 
 @media (max-width: 560px) {
+  .top-nav-actions {
+    display: grid;
+    justify-items: end;
+    gap: 0.3rem;
+  }
+
   .modern-dashboard {
     margin: 0;
     border-radius: 0;
@@ -3011,6 +3138,24 @@ h5{
   .dashboard-topbar-profile {
     align-self: flex-end;
     padding-left: 0.75rem;
+  }
+
+  .profile-summary-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-summary-meta,
+  .profile-content-grid {
+    width: 100%;
+  }
+
+  .profile-summary-meta {
+    justify-content: flex-start;
+  }
+
+  .profile-content-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 final class AuthApiTest extends TestCase
@@ -164,6 +165,78 @@ final class AuthApiTest extends TestCase
         $this->assertDatabaseMissing('personal_access_tokens', [
             'id' => (int) $tokenId,
         ]);
+    }
+
+    public function test_authenticated_user_can_update_profile(): void
+    {
+        $user = User::factory()->create([
+            'role' => UserRole::Vendor,
+            'email' => 'before@example.com',
+            'registration_number' => 'REG-1001',
+        ]);
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson('/api/auth/profile', [
+                'name' => 'Updated User',
+                'phone_number' => '9000000000',
+                'email' => 'after@example.com',
+                'address' => 'Updated address',
+                'registration_number' => 'REG-2002',
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Profile updated successfully.')
+            ->assertJsonPath('data.email', 'after@example.com');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'Updated User',
+            'email' => 'after@example.com',
+            'registration_number' => 'REG-2002',
+        ]);
+    }
+
+    public function test_authenticated_user_can_update_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'Password@123',
+        ]);
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson('/api/auth/password', [
+                'password' => 'NewPassword@123',
+                'password_confirmation' => 'NewPassword@123',
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Password updated successfully.');
+
+        $this->assertTrue(Hash::check('NewPassword@123', $user->fresh()->password));
+    }
+
+    public function test_password_update_requires_confirmation(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'Password@123',
+        ]);
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson('/api/auth/password', [
+                'password' => 'NewPassword@123',
+                'password_confirmation' => 'DifferentPassword@123',
+            ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
     }
 
     public function test_revoked_token_cannot_access_protected_route(): void
