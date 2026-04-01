@@ -3,7 +3,8 @@ import { useGlobalLoading } from './GlobalLoadingContext'
 
 const API_BASE = 'http://localhost:8000/api'
 const TOKEN_KEY = 'alkamaris_access_token'
-const DEFAULT_USER_TYPES = ['vendor', 'customer']
+const DEFAULT_USER_TYPES = ['vendor', 'customer', 'sales']
+const SESSION_EXPIRED_ERROR = 'SESSION_EXPIRED'
 
 const AuthContext = createContext(null)
 
@@ -206,13 +207,20 @@ export function AuthProvider({ children }) {
 
     const { loadingLabel, ...requestOptions } = options
 
-    return trackGlobalLoad(
+    const response = await trackGlobalLoad(
       () => fetch(`${API_BASE}${path}`, {
         ...requestOptions,
         headers,
       }),
       loaderLabel,
     )
+
+    if (response.status === 401) {
+      clearSession()
+      throw new Error(SESSION_EXPIRED_ERROR)
+    }
+
+    return response
   }
 
   function clearSession() {

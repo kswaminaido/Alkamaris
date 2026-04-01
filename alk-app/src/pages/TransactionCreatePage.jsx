@@ -255,17 +255,15 @@ function TxHeader({ form, setValue, currentUser, optionsFor }) {
       <Field label="Type"><Select value={form.transaction.type} list={optionsFor('transaction.type')} onChange={(value) => setValue('transaction', 'type', value)} /></Field>
       <Field label="Container">
         <div className="txn-container-split">
-          <input
-            className="txn-container-small"
-            placeholder="Size"
+          <Select
             value={form.transaction.container_primary}
-            onChange={(e) => setValue('transaction', 'container_primary', e.target.value)}
+            list={optionsFor('transaction.container_primary')}
+            onChange={(value) => setValue('transaction', 'container_primary', value)}
           />
-          <input
-            className="txn-container-large"
-            placeholder="Container details"
+          <Select
             value={form.transaction.container_secondary}
-            onChange={(e) => setValue('transaction', 'container_secondary', e.target.value)}
+            list={optionsFor('transaction.container_secondary')}
+            onChange={(value) => setValue('transaction', 'container_secondary', value)}
           />
         </div>
       </Field>

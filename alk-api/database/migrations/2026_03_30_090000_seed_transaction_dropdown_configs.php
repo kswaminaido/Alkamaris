@@ -15,6 +15,8 @@ return new class extends Migration
         $configs = [
             'transaction_category' => ['Food Grade', 'Feed Grade', 'Industrial'],
             'transaction_type' => ['Trade', 'Service', 'Commission'],
+            'transaction_container_size' => ['20 ft', '30 ft', '40 ft'],
+            'transaction_container_load' => ['Full Load', 'Partial Load'],
             'transaction_certified' => ['Yes', 'No'],
             'customer_attention' => ['Accounts', 'Purchase', 'Logistics'],
             'customer_ship_to' => ['Main Warehouse', 'Port Facility', 'Client Yard'],
@@ -63,6 +65,8 @@ return new class extends Migration
         DB::table('configs')->whereIn('type', [
             'transaction_category',
             'transaction_type',
+            'transaction_container_size',
+            'transaction_container_load',
             'transaction_certified',
             'customer_attention',
             'customer_ship_to',

@@ -740,8 +740,8 @@ function PrintDialog({
             </div>
 
             <div className="txe-print-actions">
-              <button type="button" onClick={onSubmit} disabled={printing}>{printing ? 'Loading...' : 'OK'}</button>
-              <button type="button" onClick={onClose}>Cancel</button>
+              <button type="button" className="primary-btn txe-print-action-primary" onClick={onSubmit} disabled={printing}>{printing ? 'Loading...' : 'OK'}</button>
+              <button type="button" className="secondary-btn txe-print-action-secondary" onClick={onClose}>Cancel</button>
             </div>
             <div className="txe-print-preview-panel">
               {documents.length > 0 ? (

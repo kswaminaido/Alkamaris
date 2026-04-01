@@ -8,6 +8,8 @@ export const DROPDOWN_FIELD_GROUPS = [
       { key: 'transaction.country', label: 'Country', source: 'countries', fallback: [] },
       { key: 'transaction.product_origin', label: 'Product Origin', source: 'countries', fallback: ['India (Singapore)'] },
       { key: 'transaction.destination', label: 'Destination', source: 'countries', fallback: [] },
+      { key: 'transaction.container_primary', label: 'Container Size', source: 'config', type: 'transaction_container_size', fallback: ['20 ft', '30 ft', '40 ft'], pages: ['New Booking'] },
+      { key: 'transaction.container_secondary', label: 'Container Load', source: 'config', type: 'transaction_container_load', fallback: ['Full Load', 'Partial Load'], pages: ['New Booking'] },
       { key: 'transaction.certified', label: 'Certified', source: 'config', type: 'transaction_certified', fallback: ['Yes', 'No'], pages: ['New Booking'] },
     ],
   },
