@@ -12,6 +12,7 @@ use App\Models\ShippingDetailsCustomer;
 use App\Models\ShippingDetailsPacker;
 use App\Models\Transaction;
 use App\Models\TransactionExpenseLine;
+use App\Models\TransactionItem;
 use App\Models\TransactionLogistics;
 use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
@@ -100,6 +101,7 @@ final class TransactionService
             $this->cloneOneToOneRelations($transaction, $newTransaction);
             $this->cloneMany($transaction->expenseLines, TransactionExpenseLine::class, $newTransaction->id);
             $this->cloneMany($transaction->noteEntries, TransactionNoteEntry::class, $newTransaction->id);
+            $this->cloneMany($transaction->items, TransactionItem::class, $newTransaction->id);
 
             return $newTransaction->load(Transaction::detailRelations());
         });
@@ -113,6 +115,7 @@ final class TransactionService
         $this->syncOneToOneRelations($transaction->id, $validated);
         $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
         $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
+        $this->replaceItems($transaction->id, $validated['items'] ?? []);
     }
 
     /**
@@ -298,6 +301,22 @@ final class TransactionService
                 'note_key' => (string) ($entry['note_key'] ?? ''),
                 'note_value' => $entry['note_value'] ?? null,
                 'sort_order' => (int) ($entry['sort_order'] ?? $index),
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function replaceItems(int $transactionId, array $items): void
+    {
+        TransactionItem::query()->where('transaction_id', $transactionId)->delete();
+
+        foreach ($items as $index => $item) {
+            TransactionItem::query()->create([
+                'transaction_id' => $transactionId,
+                ...$item,
+                'sort_order' => (int) ($item['sort_order'] ?? $index),
             ]);
         }
     }

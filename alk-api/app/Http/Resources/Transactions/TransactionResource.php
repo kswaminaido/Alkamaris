@@ -45,6 +45,7 @@ final class TransactionResource extends JsonResource
             'logistics' => $this->whenLoaded('logistics'),
             'expense_lines' => $this->whenLoaded('expenseLines'),
             'note_entries' => $this->whenLoaded('noteEntries'),
+            'items' => TransactionItemResource::collection($this->whenLoaded('items')),
         ];
     }
 }

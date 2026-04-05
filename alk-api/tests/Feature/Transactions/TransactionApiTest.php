@@ -56,6 +56,14 @@ final class TransactionApiTest extends TestCase
                         'note_value' => 'Week 12',
                     ],
                 ],
+                'items' => [
+                    [
+                        'product' => 'Frozen Vannamei',
+                        'style' => 'PDTO',
+                        'qty_booking' => 3600,
+                        'selling_total' => 174600,
+                    ],
+                ],
             ]);
 
         $response
@@ -66,7 +74,8 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.product_origin', 'India (Singapore)')
             ->assertJsonPath('data.notes.by_sales', 'Priority shipment')
             ->assertJsonPath('data.expense_lines.0.line_key', 'freight')
-            ->assertJsonPath('data.note_entries.0.note_key', 'eta');
+            ->assertJsonPath('data.note_entries.0.note_key', 'eta')
+            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
 
         $bookingNo = $response->json('data.booking_no');
 
@@ -113,13 +122,20 @@ final class TransactionApiTest extends TestCase
                         'amount' => 99.99,
                     ],
                 ],
+                'items' => [
+                    [
+                        'product' => 'Updated Item',
+                        'selling_total' => 88.88,
+                    ],
+                ],
             ]);
 
         $response
             ->assertOk()
             ->assertJsonPath('data.booking_mode', 'qc_services')
             ->assertJsonPath('data.destination', 'Aqaba')
-            ->assertJsonPath('data.expense_lines.0.line_key', 'new-line');
+            ->assertJsonPath('data.expense_lines.0.line_key', 'new-line')
+            ->assertJsonPath('data.items.0.product', 'Updated Item');
 
         $this->assertDatabaseMissing('transaction_expense_lines', [
             'transaction_id' => $transaction->id,
@@ -139,6 +155,7 @@ final class TransactionApiTest extends TestCase
         ]);
 
         $transaction->note()->create(['by_sales' => 'Duplicate this']);
+        $transaction->items()->create(['product' => 'Item one', 'sort_order' => 0]);
 
         $response = $this
             ->withHeader('Authorization', "Bearer {$token}")
@@ -148,7 +165,8 @@ final class TransactionApiTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('message', 'Transaction duplicated successfully.')
             ->assertJsonPath('data.booking_no', 'TRX-3001-D1')
-            ->assertJsonPath('data.notes.by_sales', 'Duplicate this');
+            ->assertJsonPath('data.notes.by_sales', 'Duplicate this')
+            ->assertJsonPath('data.items.0.product', 'Item one');
     }
 
     public function test_index_returns_paginated_transaction_resource_payload(): void

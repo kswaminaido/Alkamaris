@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import TransactionItemsModal from './TransactionItemsModal'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../../utils/countries'
 
 const OPTIONS = {
@@ -59,8 +60,9 @@ const ATTACHMENT_OPTIONS = [
   'Other Document',
 ]
 
-function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDuplicate }) {
+function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDuplicate, onTransactionChange }) {
   const [tab, setTab] = useState('home')
+  const [itemsModalOpen, setItemsModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [message, setMessage] = useState('')
@@ -91,6 +93,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
     setPrintOptions(buildInitialPrintOptions(transaction))
     setDocumentPreviews([])
     setPrintDialogOpen(false)
+    setItemsModalOpen(false)
   }, [transaction])
 
   useEffect(() => {
@@ -288,11 +291,12 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           <div className="txn-edit-main">
             <HeaderCard transaction={transaction} countryOptions={countryOptions} />
             {tab === 'home' && <HomeTab transaction={transaction} />}
-            {tab === 'dollar' && <DollarTab />}
+            {tab === 'dollar' && <DollarTab transaction={transaction} />}
             {tab === 'ship' && <ShipTab transaction={transaction} countryOptions={countryOptions} />}
             <BottomActions
               saving={saving}
               duplicating={duplicating}
+              onOpenItems={() => setItemsModalOpen(true)}
               onDuplicate={handleDuplicate}
               onPrint={handlePrint}
               onSave={() => handleSave(false)}
@@ -328,6 +332,14 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           onSubmit={handleRenderDocuments}
           onDownloadSpecificDocument={handleDownloadSpecificDocument}
           onPrintDocument={handlePrintDocument}
+        />
+      ) : null}
+      {itemsModalOpen ? (
+        <TransactionItemsModal
+          transaction={transaction}
+          authFetch={authFetch}
+          onClose={() => setItemsModalOpen(false)}
+          onTransactionChange={onTransactionChange}
         />
       ) : null}
       {toast ? <Toast text={toast.text} tone={toast.tone} /> : null}
@@ -485,52 +497,153 @@ function HomeTab({ transaction }) {
   )
 }
 
-function DollarTab() {
+function DollarTab({ transaction }) {
   return (
     <div className="txe-stack">
       <div className="txe-two">
         <SectionCard title="Expenses" side="TRANSPORTATION & CUSTOMS" tone="pink">
-          <Row label="Trucking"><div className="txe-inline"><input name="expense.trucking.amount" /><select name="expense.trucking.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Freight"><div className="txe-inline"><input name="expense.freight.amount" /><select name="expense.freight.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Local Charges"><div className="txe-inline"><input name="expense.local_charges.amount" /><select name="expense.local_charges.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Custom Clearance"><div className="txe-inline"><input name="expense.custom_clearance.amount" /><select name="expense.custom_clearance.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Trucking"><div className="txe-inline"><input name="expense.trucking.amount" defaultValue={getExpenseValue(transaction, 'trucking', 'amount')} /><select name="expense.trucking.currency" defaultValue={getExpenseValue(transaction, 'trucking', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'trucking', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Freight"><div className="txe-inline"><input name="expense.freight.amount" defaultValue={getExpenseValue(transaction, 'freight', 'amount')} /><select name="expense.freight.currency" defaultValue={getExpenseValue(transaction, 'freight', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'freight', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Local Charges"><div className="txe-inline"><input name="expense.local_charges.amount" defaultValue={getExpenseValue(transaction, 'local_charges', 'amount')} /><select name="expense.local_charges.currency" defaultValue={getExpenseValue(transaction, 'local_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'local_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Custom Clearance"><div className="txe-inline"><input name="expense.custom_clearance.amount" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'amount')} /><select name="expense.custom_clearance.currency" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'custom_clearance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="INSURANCE" tone="pink">
-          <Row label="Marine Insurance"><div className="txe-inline"><input name="expense.marine_insurance.amount" /><select name="expense.marine_insurance.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Rejection Insurance"><div className="txe-inline"><input name="expense.rejection_insurance.amount" /><select name="expense.rejection_insurance.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Credit Insurance"><div className="txe-inline"><input name="expense.credit_insurance.amount" /><select name="expense.credit_insurance.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="War risk charges"><div className="txe-inline"><input name="expense.war_risk_charges.amount" /><select name="expense.war_risk_charges.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Marine Insurance"><div className="txe-inline"><input name="expense.marine_insurance.amount" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'amount')} /><select name="expense.marine_insurance.currency" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'marine_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Rejection Insurance"><div className="txe-inline"><input name="expense.rejection_insurance.amount" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'amount')} /><select name="expense.rejection_insurance.currency" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rejection_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Credit Insurance"><div className="txe-inline"><input name="expense.credit_insurance.amount" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'amount')} /><select name="expense.credit_insurance.currency" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'credit_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="War risk charges"><div className="txe-inline"><input name="expense.war_risk_charges.amount" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'amount')} /><select name="expense.war_risk_charges.currency" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'war_risk_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
       </div>
 
       <div className="txe-two">
         <SectionCard title="EXPENSES" side="DOCUMENTATION / BANK CHARGES" tone="pink">
-          <Row label="Legalization Docs"><div className="txe-inline"><input name="expense.legalization_docs.amount" /><select name="expense.legalization_docs.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Bank Charges"><div className="txe-inline"><input name="expense.bank_charges.amount" defaultValue="0.00" /><select name="expense.bank_charges.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Legalization Docs"><div className="txe-inline"><input name="expense.legalization_docs.amount" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'amount')} /><select name="expense.legalization_docs.currency" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'legalization_docs', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Bank Charges"><div className="txe-inline"><input name="expense.bank_charges.amount" defaultValue={getExpenseValue(transaction, 'bank_charges', 'amount') ?? '0.00'} /><select name="expense.bank_charges.currency" defaultValue={getExpenseValue(transaction, 'bank_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'bank_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="PACKAGING" tone="pink">
-          <Row label="Packaging material"><div className="txe-inline"><input name="expense.packaging_material.amount" /><select name="expense.packaging_material.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Printing cylinder"><div className="txe-inline"><input name="expense.printing_cylinder.amount" /><select name="expense.printing_cylinder.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Packaging material"><div className="txe-inline"><input name="expense.packaging_material.amount" defaultValue={getExpenseValue(transaction, 'packaging_material', 'amount')} /><select name="expense.packaging_material.currency" defaultValue={getExpenseValue(transaction, 'packaging_material', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'packaging_material', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Printing cylinder"><div className="txe-inline"><input name="expense.printing_cylinder.amount" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'amount')} /><select name="expense.printing_cylinder.currency" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'printing_cylinder', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
       </div>
 
       <div className="txe-two">
         <SectionCard title="Expenses" side="INSPECTION / LAB TEST" tone="pink">
-          <Row label="Inspection Amt."><div className="txe-inline"><input name="expense.inspection_amt.amount" /><select name="expense.inspection_amt.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Loading Supervision"><div className="txe-inline"><input name="expense.loading_supervision.amount" /><select name="expense.loading_supervision.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Lab Test"><div className="txe-inline"><input name="expense.lab_test.amount" /><select name="expense.lab_test.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Inspection Amt."><div className="txe-inline"><input name="expense.inspection_amt.amount" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'amount')} /><select name="expense.inspection_amt.currency" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'inspection_amt', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Loading Supervision"><div className="txe-inline"><input name="expense.loading_supervision.amount" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'amount')} /><select name="expense.loading_supervision.currency" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'loading_supervision', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Lab Test"><div className="txe-inline"><input name="expense.lab_test.amount" defaultValue={getExpenseValue(transaction, 'lab_test', 'amount')} /><select name="expense.lab_test.currency" defaultValue={getExpenseValue(transaction, 'lab_test', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'lab_test', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="REBATE / CLAIM" tone="pink">
-          <Row label="Rebate to Customer"><div className="txe-inline"><input name="expense.rebate_customer.amount" defaultValue="2,000.00" /><select name="expense.rebate_customer.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Description"><input name="expense.rebate_customer.description" /></Row>
-          <Row label="Rebate to Packer"><div className="txe-inline"><input name="expense.rebate_packer.amount" defaultValue="0.00" /><select name="expense.rebate_packer.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Description"><input name="expense.rebate_packer.description" /></Row>
-          <Row label="Claim"><div className="txe-inline"><input name="expense.claim.amount" /><select name="expense.claim.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Others"><div className="txe-inline"><input name="expense.others.amount" /><select name="expense.others.currency">{OPTIONS.currency.map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Rebate to Customer"><div className="txe-inline"><input name="expense.rebate_customer.amount" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'amount') ?? '2,000.00'} /><select name="expense.rebate_customer.currency" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_customer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Description"><input name="expense.rebate_customer.description" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'description')} /></Row>
+          <Row label="Rebate to Packer"><div className="txe-inline"><input name="expense.rebate_packer.amount" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'amount') ?? '0.00'} /><select name="expense.rebate_packer.currency" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_packer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Description"><input name="expense.rebate_packer.description" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'description')} /></Row>
+          <Row label="Claim"><div className="txe-inline"><input name="expense.claim.amount" defaultValue={getExpenseValue(transaction, 'claim', 'amount')} /><select name="expense.claim.currency" defaultValue={getExpenseValue(transaction, 'claim', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'claim', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Others"><div className="txe-inline"><input name="expense.others.amount" defaultValue={getExpenseValue(transaction, 'others', 'amount')} /><select name="expense.others.currency" defaultValue={getExpenseValue(transaction, 'others', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'others', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
+      </div>
+    </div>
+  )
+}
+
+function ItemsModal({ transaction, onClose }) {
+  const rows = buildItemDetailRows(transaction)
+  const totalSellingPrice = rows.reduce((sum, row) => sum + (row.totalSellingPriceValue ?? 0), 0)
+  const totalBuyingPrice = rows.reduce((sum, row) => sum + (row.totalBuyingPriceValue ?? 0), 0)
+  const totalWeight = rows.reduce((sum, row) => sum + (row.weightValue ?? 0), 0)
+  const vendor = transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? ''
+  const customer = transaction.general_info_customer?.customer ?? ''
+  const etaDate = transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta ?? ''
+  const lsdDate = transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min ?? ''
+
+  return (
+    <div className="txe-items-overlay" role="dialog" aria-modal="true" aria-label="Transaction items">
+      <div className="txe-items-modal">
+        <div className="txe-items-topbar">
+          <div className="txe-items-breadcrumb">Transaction &gt; All Transaction &gt; Items Detail</div>
+          <div className="txe-items-timer">Remaining Time: <strong>00:15:00</strong></div>
+        </div>
+        <div className="txe-items-body">
+          <div className="txe-items-summary">
+            <div className="txe-items-summary-grid">
+              <label><span>Transaction ID</span><input readOnly value={transaction.booking_no || ''} /></label>
+              <label><span>Vendor</span><input readOnly value={vendor} /></label>
+              <label><span>Book Date</span><input readOnly value={formatDate(transaction.issue_date)} /></label>
+              <label><span>Customer</span><input readOnly value={customer} /></label>
+              <label><span>ETA Date</span><input readOnly value={formatDate(etaDate)} /></label>
+              <label><span>LSD</span><input readOnly value={formatDate(lsdDate)} /></label>
+              <label><span>Status</span><input readOnly value={transaction.transaction_status ?? 'I'} /></label>
+            </div>
+            <div className="txe-items-summary-actions">
+              <button type="button">Add</button>
+              <button type="button">Save</button>
+            </div>
+          </div>
+
+          <section className="txe-items-table-card">
+            <div className="txe-items-section-title">Items Detail</div>
+            <div className="txe-items-table-wrap">
+              <table className="txe-items-table">
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>Product</th>
+                    <th>Style</th>
+                    <th>Media / Item Code</th>
+                    <th>Packing</th>
+                    <th>Brand</th>
+                    <th>Size</th>
+                    <th>Weight</th>
+                    <th>Qty</th>
+                    <th>Selling price</th>
+                    <th>Total Selling price</th>
+                    <th>Buying price</th>
+                    <th>Up</th>
+                    <th>Down</th>
+                    <th>Duplicate</th>
+                    <th>Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.no}>
+                      <td>{row.no}</td>
+                      <td>{row.product}</td>
+                      <td>{row.style}</td>
+                      <td>{row.code}</td>
+                      <td>{row.packing}</td>
+                      <td>{row.brand}</td>
+                      <td>{row.size}</td>
+                      <td>{row.weight}</td>
+                      <td>{row.qty}</td>
+                      <td>{row.sellingPrice}</td>
+                      <td>{row.totalSellingPrice}</td>
+                      <td>{row.buyingPrice}</td>
+                      <td><button type="button" className="txe-items-icon-btn" aria-label="Move up">↑</button></td>
+                      <td><button type="button" className="txe-items-icon-btn" aria-label="Move down">↓</button></td>
+                      <td><button type="button" className="txe-items-icon-btn" aria-label="Duplicate row">⧉</button></td>
+                      <td><button type="button" className="txe-items-icon-btn delete" aria-label="Delete row">×</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div className="txe-items-footer">
+            <div className="txe-items-totals">
+              <label><span>Total Selling Price</span><input readOnly value={formatAmount(totalSellingPrice)} /></label>
+              <label><span>Total Buying Price</span><input readOnly value={formatAmount(totalBuyingPrice)} /></label>
+              <label><span>Total Weight</span><input readOnly value={formatAmount(totalWeight)} /></label>
+            </div>
+            <div className="txe-items-nav">
+              <button type="button" onClick={onClose}>Back trans.</button>
+              <button type="button">Next Trans.</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -602,11 +715,11 @@ function ShipTab({ transaction, countryOptions }) {
   )
 }
 
-function BottomActions({ saving, duplicating, onDuplicate, onPrint, onSave, onSaveQuit }) {
+function BottomActions({ saving, duplicating, onOpenItems, onDuplicate, onPrint, onSave, onSaveQuit }) {
   return (
     <div className="txe-bottom-actions">
       <div className="txe-bottom-tabs">
-        <button type="button">Items</button>
+        <button type="button" onClick={onOpenItems}>Items</button>
         <button type="button">Special Notes</button>
         <button type="button">L/C Terms</button>
       </div>
@@ -953,6 +1066,63 @@ function normalizeText(value) {
   if (value === null || value === undefined) return null
   const text = String(value).trim()
   return text === '' ? null : text
+}
+
+function getExpenseValue(transaction, lineKey, fieldName) {
+  const line = (transaction?.expense_lines ?? transaction?.expenseLines ?? []).find((item) => item?.line_key === lineKey)
+  return line?.[fieldName] ?? ''
+}
+
+function formatAmount(value) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return '0.00'
+  return amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
+function formatUnitAmount(value) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return '0.00000'
+  return amount.toLocaleString('en-US', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+    useGrouping: false,
+  })
+}
+
+function buildItemDetailRows(transaction) {
+  const revenueCustomer = transaction.revenue_customer ?? {}
+  const revenuePacker = transaction.revenue_packer ?? {}
+  const customer = transaction.general_info_customer ?? {}
+  const packer = transaction.general_info_packer ?? {}
+  const weightValue = normalizeNumber(packer.total_lqd_price) ?? normalizeNumber(transaction.net_margin) ?? 0
+  const qtyValue = normalizeText(customer.buyer_number) ?? normalizeText(packer.packer_number) ?? '-'
+  const sellingPriceValue = normalizeNumber(revenueCustomer.amount) ?? normalizeNumber(revenueCustomer.total_selling_value) ?? 0
+  const totalSellingPriceValue = normalizeNumber(revenueCustomer.total_selling_value) ?? sellingPriceValue
+  const buyingPriceValue = normalizeNumber(revenuePacker.amount) ?? normalizeNumber(revenuePacker.total_buying_value) ?? 0
+  const totalBuyingPriceValue = normalizeNumber(revenuePacker.total_buying_value) ?? buyingPriceValue
+
+  return [{
+    no: 1,
+    product: transaction.category ?? revenueCustomer.description ?? 'Transaction Item',
+    style: customer.description ?? packer.description ?? '-',
+    code: transaction.booking_no ?? '-',
+    packing: transaction.container_secondary ?? '-',
+    brand: packer.vendor ?? packer.packer_name ?? '-',
+    size: transaction.container_primary ?? '-',
+    weight: weightValue ? formatAmount(weightValue) : '-',
+    weightValue,
+    qty: qtyValue,
+    sellingPrice: formatUnitAmount(sellingPriceValue),
+    sellingPriceValue,
+    totalSellingPrice: formatAmount(totalSellingPriceValue),
+    totalSellingPriceValue,
+    buyingPrice: formatUnitAmount(buyingPriceValue),
+    buyingPriceValue,
+    totalBuyingPriceValue,
+  }]
 }
 
 function normalizeNumber(value) {

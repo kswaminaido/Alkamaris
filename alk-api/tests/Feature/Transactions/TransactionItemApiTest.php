@@ -1,0 +1,86 @@
+<?php
+
+namespace Tests\Feature\Transactions;
+
+use App\Enums\UserRole;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+final class TransactionItemApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_can_create_update_duplicate_move_and_delete_transaction_item(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-ITEM-1',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $createResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/items", [
+                'item' => [
+                    'product' => 'Frozen Vannamei',
+                    'qty_booking' => 100,
+                    'selling_total' => 1500,
+                ],
+            ]);
+
+        $createResponse
+            ->assertCreated()
+            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
+
+        $itemId = $createResponse->json('data.items.0.id');
+
+        $updateResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$transaction->id}/items/{$itemId}", [
+                'item' => [
+                    'product' => 'Frozen Vannamei Updated',
+                    'qty_booking' => 120,
+                ],
+            ]);
+
+        $updateResponse
+            ->assertOk()
+            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei Updated');
+
+        $duplicateResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/items/{$itemId}/duplicate");
+
+        $duplicateResponse
+            ->assertCreated()
+            ->assertJsonCount(2, 'data.items');
+
+        $secondItemId = $duplicateResponse->json('data.items.1.id');
+
+        $moveResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/items/{$secondItemId}/move", [
+                'direction' => 'up',
+            ]);
+
+        $moveResponse
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $secondItemId);
+
+        $deleteResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/transactions/{$transaction->id}/items/{$itemId}");
+
+        $deleteResponse
+            ->assertOk()
+            ->assertJsonCount(1, 'data.items');
+
+        $this->assertDatabaseCount('transaction_items', 1);
+    }
+}

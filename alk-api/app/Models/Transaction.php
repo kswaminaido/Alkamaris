@@ -55,6 +55,7 @@ class Transaction extends Model
             'logistics',
             'expenseLines',
             'noteEntries',
+            'items',
         ];
     }
 
@@ -126,5 +127,10 @@ class Transaction extends Model
     public function noteEntries(): HasMany
     {
         return $this->hasMany(TransactionNoteEntry::class)->orderBy('sort_order');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(TransactionItem::class)->orderBy('sort_order');
     }
 }

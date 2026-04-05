@@ -141,6 +141,12 @@ function TransactionsPage() {
     }
   }
 
+  function syncTransactionRecord(updatedTransaction) {
+    if (!updatedTransaction?.id) return
+    setTransactions((previous) => previous.map((item) => (item.id === updatedTransaction.id ? updatedTransaction : item)))
+    setSelectedTransaction(updatedTransaction)
+  }
+
   async function onLogout() {
     await logout()
     navigate('/', { replace: true })
@@ -388,6 +394,7 @@ function TransactionsPage() {
           onClose={() => setSelectedTransaction(null)}
           onSave={saveTransaction}
           onDuplicate={duplicateTransaction}
+          onTransactionChange={syncTransactionRecord}
         />
       )}
     </AdminSidebarLayout>

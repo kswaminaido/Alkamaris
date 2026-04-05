@@ -12,6 +12,7 @@ use App\Models\RevenuePacker;
 use App\Models\ShippingDetailsCustomer;
 use App\Models\ShippingDetailsPacker;
 use App\Models\Transaction;
+use App\Models\TransactionItem;
 use App\Models\TransactionNote;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,27 @@ use Illuminate\Support\Carbon;
 
 class TransactionSeeder extends Seeder
 {
+    private const ITEM_PRODUCTS = [
+        'Frozen Vannamei White Shrimp',
+        'Frozen Squid Tube',
+        'Frozen Cuttlefish',
+        'Frozen Breaded Shrimp',
+    ];
+
+    private const ITEM_STYLES = [
+        'Raw Peeled & Deveined Tail On',
+        'Whole Round',
+        'Cleaned Tube',
+        'Breaded Butterfly',
+    ];
+
+    private const ITEM_PACKINGS = [
+        '5 x 2 LB(S) IQF',
+        '10 x 1 KG',
+        '20 x 500 G',
+        '4 x 2.5 KG',
+    ];
+
     public function run(): void
     {
         $admin = User::query()->where('role', UserRole::Admin->value)->first();
@@ -174,6 +196,61 @@ class TransactionSeeder extends Seeder
                 'transaction_id' => $transaction->id,
                 'by_sales' => fake()->sentence(8),
             ]);
+
+            foreach (range(0, rand(2, 4)) as $itemIndex) {
+                $qtyBooking = rand(800, 4200);
+                $sellingUnitPrice = rand(250, 900) / 100;
+                $buyingUnitPrice = rand(200, 800) / 100;
+                $weightValue = rand(1200, 45000) / 10;
+                $commissionPacker = rand(0, 20) / 10;
+                $commissionCustomer = rand(0, 20) / 10;
+
+                TransactionItem::query()->create([
+                    'transaction_id' => $transaction->id,
+                    'product' => fake()->randomElement(self::ITEM_PRODUCTS),
+                    'style' => fake()->randomElement(self::ITEM_STYLES),
+                    'packing' => fake()->randomElement(self::ITEM_PACKINGS),
+                    'media' => fake()->randomElement(['Retail', 'Food Service', 'Bulk']),
+                    'notes' => fake()->sentence(),
+                    'brand' => fake()->randomElement(['Plain+Sticker', 'Ocean Star', 'Blue Wave', 'Alkamaris']),
+                    'secondary_packaging' => fake()->randomElement(['Carton', 'Master Carton', 'Inner Bag']),
+                    'item_code' => strtoupper(fake()->bothify('ITM-###??')),
+                    'customer_lot_no' => strtoupper(fake()->bothify('LOT-#####')),
+                    'size' => fake()->randomElement(['13/15', '16/20', '21/25', 'U/10']),
+                    'glaze_percentage' => rand(0, 20),
+                    'total_weight_value' => $weightValue,
+                    'total_weight_unit_category' => 'weight',
+                    'total_weight_unit_slug' => fake()->randomElement(['pound', 'kilogram']),
+                    'qty_value' => $qtyBooking,
+                    'qty_unit' => fake()->randomElement(['CTN(S)', 'PCS', 'BAG(S)']),
+                    'qty_booking' => $qtyBooking,
+                    'selling_unit_price' => $sellingUnitPrice,
+                    'selling_currency' => 'USD',
+                    'selling_unit_category' => 'weight',
+                    'selling_unit_slug' => 'pound',
+                    'selling_total' => round($qtyBooking * $sellingUnitPrice, 2),
+                    'lqd_qty' => $qtyBooking,
+                    'lqd_price' => rand(200, 700) / 100,
+                    'lqd_currency' => 'USD',
+                    'lqd_unit_category' => 'weight',
+                    'lqd_unit_slug' => 'pound',
+                    'lqd_total' => round($qtyBooking * (rand(200, 700) / 100), 2),
+                    'buying_unit_price' => $buyingUnitPrice,
+                    'buying_currency' => 'USD',
+                    'buying_unit_category' => 'weight',
+                    'buying_unit_slug' => 'pound',
+                    'buying_total' => round($qtyBooking * $buyingUnitPrice, 2),
+                    'commission_from_packer' => $commissionPacker,
+                    'commission_from_packer_unit_category' => 'weight',
+                    'commission_from_packer_unit_slug' => 'kilogram',
+                    'total_packer_commission' => round($weightValue * $commissionPacker, 2),
+                    'commission_from_customer' => $commissionCustomer,
+                    'commission_from_customer_unit_category' => 'weight',
+                    'commission_from_customer_unit_slug' => 'kilogram',
+                    'total_customer_commission' => round($weightValue * $commissionCustomer, 2),
+                    'sort_order' => $itemIndex,
+                ]);
+            }
         }
     }
 }
