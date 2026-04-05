@@ -240,15 +240,37 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
             <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
             <EditorField label="Buying Unit Price"><PriceRow value={form.buying_unit_price} currency={form.buying_currency} unit={form.buying_unit_slug} onValue={(value) => setValue('buying_unit_price', value)} onCurrency={(value) => setValue('buying_currency', value)} onUnit={(value) => setValue('buying_unit_slug', value)} /></EditorField>
             <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
-            <EditorField label="Comm. from Packer"><MeasureRow value={form.commission_from_packer} unit={form.commission_from_packer_unit_slug} onValue={(value) => setValue('commission_from_packer', value)} onUnit={(value) => setValue('commission_from_packer_unit_slug', value)} /></EditorField>
             <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
-            <EditorField label="Comm. from Customer"><MeasureRow value={form.commission_from_customer} unit={form.commission_from_customer_unit_slug} onValue={(value) => setValue('commission_from_customer', value)} onUnit={(value) => setValue('commission_from_customer_unit_slug', value)} /></EditorField>
             <EditorField label="Buying Total"><div className="txe-item-inline"><input readOnly value={form.buying_total} /><input value={form.buying_correction} onChange={(event) => setValue('buying_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
-            <EditorField label="Total Packer Com."><input readOnly value={form.total_packer_commission} /></EditorField>
             <EditorField label="Total CTN Correction"><input value={form.total_ctn_correction} onChange={(event) => setValue('total_ctn_correction', event.target.value)} /></EditorField>
-            <EditorField label="Total Customer Com."><input readOnly value={form.total_customer_commission} /></EditorField>
             <EditorField label="Total NW Correction"><input value={form.total_nw_correction} onChange={(event) => setValue('total_nw_correction', event.target.value)} /></EditorField>
           </div>
+
+          <section className="txe-item-commission-panel" aria-label="Commission summary">
+            <div className="txe-item-commission-bar" />
+            <div className="txe-item-commission-grid">
+              <div className="txe-item-commission-col">
+                <label className="txe-item-commission-row">
+                  <span>Comm. from Packer</span>
+                  <MeasureRow value={form.commission_from_packer} unit={form.commission_from_packer_unit_slug} onValue={(value) => setValue('commission_from_packer', value)} onUnit={(value) => setValue('commission_from_packer_unit_slug', value)} />
+                </label>
+                <label className="txe-item-commission-row">
+                  <span>Comm. from Customer </span>
+                  <MeasureRow value={form.commission_from_customer} unit={form.commission_from_customer_unit_slug} onValue={(value) => setValue('commission_from_customer', value)} onUnit={(value) => setValue('commission_from_customer_unit_slug', value)} />
+                </label>
+              </div>
+              <div className="txe-item-commission-col txe-item-commission-col-totals">
+                <label className="txe-item-commission-row">
+                  <span>Total Packer Com.</span>
+                  <input readOnly value={form.total_packer_commission} />
+                </label>
+                <label className="txe-item-commission-row">
+                  <span>Total Customer Com.</span>
+                  <input readOnly value={form.total_customer_commission} />
+                </label>
+              </div>
+            </div>
+          </section>
 
           <div className="txe-item-editor-actions">
             <div className="txe-item-editor-actions-left">
