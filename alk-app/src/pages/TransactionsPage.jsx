@@ -27,14 +27,6 @@ function TransactionsPage() {
 
   useEffect(() => {
     if (!currentUser) return
-    if (currentUser.role !== 'admin') {
-      navigate('/dashboard', { replace: true })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser])
-
-  useEffect(() => {
-    if (!currentUser || currentUser.role !== 'admin') return
     loadTransactions(searchFilters, page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilters, page])
@@ -221,7 +213,7 @@ function TransactionsPage() {
     )
   }
 
-  if (!currentUser || currentUser.role !== 'admin') return null
+  if (!currentUser) return null
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout}>

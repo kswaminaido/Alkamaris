@@ -19,21 +19,16 @@ function DashboardPage() {
   }
 
   return (
-    <>
+    <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout}>
       {currentUser.role === 'admin' ? (
-        <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout}>
-          <DashboardPanel
-            currentUser={currentUser}
-            dashboardTitle={dashboardTitle}
-          />
-        </AdminSidebarLayout>
+        <DashboardPanel
+          currentUser={currentUser}
+          dashboardTitle={dashboardTitle}
+        />
       ) : (
-        <>
-          <TopNav currentUser={currentUser} onLogout={handleLogout} />
-          <UserDashboardPanel currentUser={currentUser} dashboardTitle={dashboardTitle} />
-        </>
+        <UserDashboardPanel currentUser={currentUser} dashboardTitle={dashboardTitle} />
       )}
-    </>
+    </AdminSidebarLayout>
   )
 }
 

@@ -27,6 +27,21 @@ class TransactionController extends Controller
         $query = Transaction::query()
             ->with(Transaction::detailRelations());
 
+        // Filter transactions based on user role
+        $user = request()->user();
+        if ($user->role->value === 'sales') {
+            $query->where('sales_person_id', $user->id);
+        } elseif ($user->role->value === 'customer') {
+            $query->whereHas('generalInfoCustomer', function ($q) use ($user) {
+                $q->where('customer', $user->name);
+            });
+        } elseif ($user->role->value === 'vendor') {
+            $query->whereHas('generalInfoPacker', function ($q) use ($user) {
+                $q->where('vendor', $user->name);
+            });
+        }
+        // Admin sees all transactions (no additional filtering)
+
         if ($bookingNo = request('booking_no')) {
             $query->where('booking_no', 'like', "%{$bookingNo}%");
         }

@@ -70,6 +70,9 @@ class TransactionSeeder extends Seeder
             ]);
         }
 
+        $customerUsers = User::query()->where('role', UserRole::Customer->value)->pluck('name');
+        $vendorUsers = User::query()->where('role', UserRole::Vendor->value)->pluck('name');
+
         for ($i = 1; $i <= 60; $i++) {
             $bookingNo = 'SIF'.str_pad((string) (2602000 + $i), 7, '0', STR_PAD_LEFT);
             if (Transaction::query()->where('booking_no', $bookingNo)->exists()) {
@@ -97,7 +100,7 @@ class TransactionSeeder extends Seeder
 
             GeneralInfoCustomer::query()->create([
                 'transaction_id' => $transaction->id,
-                'customer' => fake()->company(),
+                'customer' => $customerUsers->random(),
                 'attention' => fake()->randomElement(['Accounts', 'Purchase']),
                 'ship_to' => fake()->city(),
                 'buyer' => fake()->company(),
@@ -115,7 +118,7 @@ class TransactionSeeder extends Seeder
 
             GeneralInfoPacker::query()->create([
                 'transaction_id' => $transaction->id,
-                'vendor' => fake()->company(),
+                'vendor' => $vendorUsers->random(),
                 'packer_name' => fake()->company(),
                 'packer_number' => (string) rand(1000, 9999),
                 'packed_by' => fake()->randomElement(['Factory', 'Vendor']),

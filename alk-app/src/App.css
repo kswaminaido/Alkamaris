@@ -113,7 +113,6 @@
 }
 
 .login-banner img {
-  width: min(220px, 60%);
   height: 140px;
 }
 
@@ -742,7 +741,6 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 1.2rem;
   background: linear-gradient(180deg, #24213a 0%, #1a1730 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
@@ -828,9 +826,7 @@ select:focus {
 .dashboard-topbar-profile-menu-wrap {
   position: relative;
   margin-left: auto;
-  display: flex;
   align-items: center;
-  gap: 0.65rem;
 }
 
 .dashboard-topbar-profile {
@@ -2327,10 +2323,10 @@ select:focus {
 .transactions-table th {
   background: #161616;
   color: #ffffff;
-  font-size: 0.86rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 400;
   border: 1px solid #2a2a2a;
-  padding: 0.85rem 0.7rem;
+  padding: 0.4rem 0.4rem;
   text-align: left;
   white-space: nowrap;
 }

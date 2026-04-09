@@ -27,12 +27,15 @@ Route::prefix('auth')->group(function (): void {
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::apiResource('configs', ConfigController::class)->except(['create', 'edit']);
     Route::apiResource('users', UserController::class)->except(['create', 'edit']);
-    Route::apiResource('transactions', TransactionController::class)->only(['index', 'show', 'store', 'update']);
-    Route::post('transactions/{transaction}/duplicate', [TransactionController::class, 'duplicate']);
     Route::post('transactions/{transaction}/documents/render', [TransactionDocumentController::class, 'render']);
     Route::post('transactions/{transaction}/items', [TransactionItemController::class, 'store']);
     Route::put('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'update']);
     Route::delete('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'destroy']);
     Route::post('transactions/{transaction}/items/{item}/duplicate', [TransactionItemController::class, 'duplicate']);
     Route::post('transactions/{transaction}/items/{item}/move', [TransactionItemController::class, 'move']);
+});
+
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::apiResource('transactions', TransactionController::class)->only(['index', 'show', 'store', 'update']);
+    Route::post('transactions/{transaction}/duplicate', [TransactionController::class, 'duplicate']);
 });
