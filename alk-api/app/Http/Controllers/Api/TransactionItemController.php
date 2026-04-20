@@ -9,6 +9,7 @@ use App\Http\Requests\Transactions\UpdateTransactionItemRequest;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Services\Transactions\TransactionItemOptionService;
 use App\Services\Transactions\TransactionItemService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -17,7 +18,15 @@ class TransactionItemController extends Controller
 {
     public function __construct(
         private readonly TransactionItemService $transactionItemService,
+        private readonly TransactionItemOptionService $transactionItemOptionService,
     ) {}
+
+    public function options(): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->transactionItemOptionService->all(),
+        ]);
+    }
 
     public function store(StoreTransactionItemRequest $request, Transaction $transaction): JsonResponse
     {

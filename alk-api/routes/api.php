@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::apiResource('configs', ConfigController::class)->except(['create', 'edit']);
     Route::apiResource('users', UserController::class)->except(['create', 'edit']);
     Route::post('transactions/{transaction}/documents/render', [TransactionDocumentController::class, 'render']);
+    Route::get('transaction-item-options', [TransactionItemController::class, 'options']);
     Route::post('transactions/{transaction}/items', [TransactionItemController::class, 'store']);
     Route::put('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'update']);
     Route::delete('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'destroy']);

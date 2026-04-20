@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
+const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: [], size: [] }
+
+let transactionItemOptionsCache = null
+let transactionItemOptionsPromise = null
 
 function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionChange }) {
   const [editingItem, setEditingItem] = useState(null)
@@ -159,9 +163,63 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
 
 function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onSaved }) {
   const [form, setForm] = useState(() => buildForm(transaction, item))
+  const [fieldOptions, setFieldOptions] = useState(() => transactionItemOptionsCache ?? EMPTY_ITEM_OPTIONS)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [calculating, setCalculating] = useState(false)
+
+  useEffect(() => {
+    setForm(buildForm(transaction, item))
+  }, [item, transaction])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadFieldOptions() {
+      if (transactionItemOptionsCache) {
+        setFieldOptions(transactionItemOptionsCache)
+        return
+      }
+
+      try {
+        if (!transactionItemOptionsPromise) {
+          transactionItemOptionsPromise = authFetch('/transaction-item-options')
+            .then((response) => response.json())
+            .then((body) => ({
+              product: normalizeOptionList(body?.data?.product),
+              style: normalizeOptionList(body?.data?.style),
+              packing: normalizeOptionList(body?.data?.packing),
+              brand: normalizeOptionList(body?.data?.brand),
+              size: normalizeOptionList(body?.data?.size),
+            }))
+            .catch(() => EMPTY_ITEM_OPTIONS)
+            .then((options) => {
+              transactionItemOptionsCache = options
+              return options
+            })
+            .finally(() => {
+              transactionItemOptionsPromise = null
+            })
+        }
+
+        const options = await transactionItemOptionsPromise
+
+        if (!active) return
+
+        setFieldOptions(options)
+      } catch {
+        if (active) {
+          setFieldOptions(EMPTY_ITEM_OPTIONS)
+        }
+      }
+    }
+
+    loadFieldOptions()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   function setValue(key, value) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -222,16 +280,15 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
           {error ? <p className="message error">{error}</p> : null}
 
           <div className="txe-item-editor-grid">
-            <EditorField label="Product"><input value={form.product} onChange={(event) => setValue('product', event.target.value)} /></EditorField>
-            <EditorField label="Brand"><input value={form.brand} onChange={(event) => setValue('brand', event.target.value)} /></EditorField>
-            <EditorField label="Style"><input value={form.style} onChange={(event) => setValue('style', event.target.value)} /></EditorField>
+            <EditorField label="Product"><SearchableSelect value={form.product} list={fieldOptions.product} onChange={(value) => setValue('product', value)} /></EditorField>
+            <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} /></EditorField>
+            <EditorField label="Style"><SearchableSelect value={form.style} list={fieldOptions.style} onChange={(value) => setValue('style', value)} /></EditorField>
             <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
-            <EditorField label="Packing"><input value={form.packing} onChange={(event) => setValue('packing', event.target.value)} /></EditorField>
-            <EditorField label="Item Code"><input value={form.item_code} onChange={(event) => setValue('item_code', event.target.value)} /></EditorField>
+            <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} /></EditorField>
+            <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
             <EditorField label="Media"><input value={form.media} onChange={(event) => setValue('media', event.target.value)} /></EditorField>
-            <EditorField label="Customer/Lot No."><input value={form.customer_lot_no} onChange={(event) => setValue('customer_lot_no', event.target.value)} /></EditorField>
             <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
-            <EditorField label="Size"><div className="txe-item-inline"><input value={form.size} onChange={(event) => setValue('size', event.target.value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
+            <EditorField label="Size"><div className="txe-item-inline"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
             <EditorField label="Total Weight"><MeasureRow value={form.total_weight_value} unit={form.total_weight_unit_slug} onValue={(value) => setValue('total_weight_value', value)} onUnit={(value) => setValue('total_weight_unit_slug', value)} /></EditorField>
             <EditorField label="Qty"><div className="txe-item-inline txe-item-inline-wide"><input value={form.qty_value} onChange={(event) => setValue('qty_value', event.target.value)} /><select value={form.qty_unit} onChange={(event) => setValue('qty_unit', event.target.value)}>{COUNT_UNITS.map((option) => <option key={option}>{option}</option>)}</select><input value={form.qty_booking} onChange={(event) => setValue('qty_booking', event.target.value)} placeholder="Qty Booking" /></div></EditorField>
             <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} /></EditorField>
@@ -304,6 +361,72 @@ function PriceRow({ value, currency, unit, onValue, onCurrency, onUnit }) {
   return <div className="txe-item-inline txe-item-inline-wide"><input value={value} onChange={(event) => onValue(event.target.value)} /><select value={currency} onChange={(event) => onCurrency(event.target.value)}>{CURRENCIES.map((option) => <option key={option}>{option}</option>)}</select><input value={unit} onChange={(event) => onUnit(event.target.value)} placeholder="Unit" /></div>
 }
 
+function SearchableSelect({ value, list, onChange }) {
+  const rootRef = useRef(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const options = normalizeOptionList(list)
+  const normalizedValue = value.trim().toLowerCase()
+  const filteredOptions = normalizedValue
+    ? options.filter((option) => option.toLowerCase().includes(normalizedValue))
+    : options
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    function handlePointerDown(event) {
+      if (!rootRef.current?.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [isOpen])
+
+  return (
+    <div className="txn-combobox" ref={rootRef}>
+      <input
+        type="text"
+        value={value}
+        placeholder="Search or select"
+        autoComplete="off"
+        onFocus={() => setIsOpen(true)}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <button
+        type="button"
+        className="txn-combobox-toggle"
+        aria-label={isOpen ? 'Close options' : 'Open options'}
+        onClick={() => setIsOpen((previous) => !previous)}
+      >
+        <span className={`txn-combobox-caret${isOpen ? ' is-open' : ''}`} aria-hidden="true" />
+      </button>
+      {isOpen ? (
+        <div className="txn-combobox-menu">
+          {filteredOptions.length ? (
+            filteredOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`txn-combobox-option${option === value ? ' is-selected' : ''}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  onChange(option)
+                  setIsOpen(false)
+                }}
+              >
+                {option}
+              </button>
+            ))
+          ) : (
+            <div className="txn-combobox-empty">No matches found</div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function MiniAction({ children, onClick, tone = '', busy = false }) {
   return <button type="button" className={`txe-items-icon-btn${tone ? ` ${tone}` : ''}`} onClick={onClick} disabled={busy}>{busy ? '…' : children}</button>
 }
@@ -317,8 +440,7 @@ function buildForm(transaction, item) {
     notes: item?.notes ?? '',
     brand: item?.brand ?? transaction.general_info_packer?.vendor ?? '',
     secondary_packaging: item?.secondary_packaging ?? '',
-    item_code: item?.item_code ?? '',
-    customer_lot_no: item?.customer_lot_no ?? '',
+    customer_lot_item_code: item?.item_code ?? item?.customer_lot_no ?? '',
     size: item?.size ?? transaction.container_primary ?? '',
     glaze_percentage: stringify(item?.glaze_percentage),
     total_weight_value: stringify(item?.total_weight_value),
@@ -374,15 +496,24 @@ async function calculateDraft(form, authFetch) {
 }
 
 function normalizePayload(form) {
-  return Object.fromEntries(Object.entries(form).map(([key, value]) => {
+  const sharedItemCode = normalizeText(form.customer_lot_item_code)
+
+  return Object.fromEntries(Object.entries(form).flatMap(([key, value]) => {
+    if (key === 'customer_lot_item_code') {
+      return [
+        ['item_code', sharedItemCode],
+        ['customer_lot_no', sharedItemCode],
+      ]
+    }
+
     if (key.endsWith('_category')) {
-      return [key, null]
+      return [[key, null]]
     }
-    if (key.endsWith('_slug') || key.endsWith('_currency') || ['product', 'style', 'packing', 'media', 'notes', 'brand', 'secondary_packaging', 'item_code', 'customer_lot_no', 'size', 'qty_unit'].includes(key)) {
-      return [key, normalizeText(value)]
+    if (key.endsWith('_slug') || key.endsWith('_currency') || ['product', 'style', 'packing', 'media', 'notes', 'brand', 'secondary_packaging', 'size', 'qty_unit'].includes(key)) {
+      return [[key, normalizeText(value)]]
     }
-    if (key === 'sort_order') return [key, Number.isFinite(Number(value)) ? Number(value) : 0]
-    return [key, normalizeNumber(value)]
+    if (key === 'sort_order') return [[key, Number.isFinite(Number(value)) ? Number(value) : 0]]
+    return [[key, normalizeNumber(value)]]
   }))
 }
 
@@ -412,6 +543,14 @@ function toNumber(value) {
 
 function stringify(value) {
   return value === null || value === undefined ? '' : String(value)
+}
+
+function normalizeOptionList(options) {
+  return [...new Set(
+    (Array.isArray(options) ? options : [])
+      .map((option) => (typeof option === 'string' ? option.trim() : ''))
+      .filter(Boolean),
+  )]
 }
 
 function formatMoney(value) {
