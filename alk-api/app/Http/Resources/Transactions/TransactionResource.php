@@ -37,8 +37,6 @@ final class TransactionResource extends JsonResource
             'general_info_packer' => $this->whenLoaded('generalInfoPacker'),
             'revenue_customer' => $this->whenLoaded('revenueCustomer'),
             'revenue_packer' => $this->whenLoaded('revenuePacker'),
-            'cash_flow_customer' => $this->whenLoaded('cashFlowCustomer'),
-            'cash_flow_packer' => $this->whenLoaded('cashFlowPacker'),
             'shipping_details_customer' => $this->whenLoaded('shippingDetailsCustomer'),
             'shipping_details_packer' => $this->whenLoaded('shippingDetailsPacker'),
             'notes' => $this->whenLoaded('note'),

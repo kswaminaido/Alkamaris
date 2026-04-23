@@ -175,6 +175,29 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   }, [item, transaction])
 
   useEffect(() => {
+    const nextCalculated = calculateDraft(form)
+
+    setForm((current) => {
+      const hasChanges = Object.entries(nextCalculated).some(([key, value]) => current[key] !== value)
+      return hasChanges ? { ...current, ...nextCalculated } : current
+    })
+  }, [
+    form.packing,
+    form.total_weight_value,
+    form.qty_value,
+    form.qty_booking,
+    form.selling_unit_price,
+    form.selling_correction,
+    form.lqd_price,
+    form.buying_unit_price,
+    form.buying_correction,
+    form.rebate_rate_packer,
+    form.rebate_rate_customer,
+    form.commission_from_packer,
+    form.commission_from_customer,
+  ])
+
+  useEffect(() => {
     let active = true
 
     async function loadFieldOptions() {
@@ -231,7 +254,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setCalculating(true)
     setError('')
     try {
-      const next = await calculateDraft(form)
+      const next = calculateDraft(form)
       setForm((current) => ({ ...current, ...next }))
     } catch {
       setError('Unable to calculate item totals.')
@@ -366,7 +389,15 @@ function EditorField({ label, children }) {
 }
 
 function MeasureRow({ value, unit, onValue, onUnit }) {
-  return <div className="txe-item-inline txe-item-inline-wide"><input value={value} onChange={(event) => onValue(event.target.value)} /><input value={unit} onChange={(event) => onUnit(event.target.value)} placeholder="Unit" /></div>
+  return (
+    <div className="txe-item-inline txe-item-inline-wide">
+      <input value={value} onChange={(event) => onValue(event.target.value)} />
+      <select value={unit} onChange={(event) => onUnit(event.target.value)}>
+        <option value="">Select</option>
+        {WEIGHT_UNITS.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    </div>
+  )
 }
 
 function QtyRow({ value, unit, booking, onValue, onUnit, onBooking }) {
@@ -436,11 +467,18 @@ function RebateRow({ value, currency, unit, total, onValue, onCurrency, onUnit, 
 function SearchableSelect({ value, list, onChange }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [searchText, setSearchText] = useState('')
   const options = normalizeOptionList(list)
-  const normalizedValue = value.trim().toLowerCase()
-  const filteredOptions = normalizedValue
-    ? options.filter((option) => option.toLowerCase().includes(normalizedValue))
+  const normalizedSearch = searchText.trim().toLowerCase()
+  const filteredOptions = normalizedSearch
+    ? options.filter((option) => option.toLowerCase().includes(normalizedSearch))
     : options
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchText('')
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -463,7 +501,12 @@ function SearchableSelect({ value, list, onChange }) {
         placeholder="Search or select"
         autoComplete="off"
         onFocus={() => setIsOpen(true)}
-        onChange={(event) => onChange(event.target.value)}
+        onClick={() => setIsOpen(true)}
+        onChange={(event) => {
+          setSearchText(event.target.value)
+          onChange(event.target.value)
+          setIsOpen(true)
+        }}
       />
       <button
         type="button"
@@ -483,6 +526,7 @@ function SearchableSelect({ value, list, onChange }) {
                 className={`txn-combobox-option${option === value ? ' is-selected' : ''}`}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
+                  setSearchText('')
                   onChange(option)
                   setIsOpen(false)
                 }}
@@ -563,19 +607,24 @@ function buildForm(transaction, item) {
   }
 }
 
-async function calculateDraft(form) {
-  const baseQuantity = toNumber(form.total_weight_value || form.qty_booking)
-  const commissionBase = toNumber(form.total_weight_value)
+function calculateDraft(form) {
+  const baseQuantity = resolveBaseQuantity(form)
+  const quantity = resolveQuantity(form)
+  const packingMultiplier = extractPackingMultiplier(form.packing)
+  const sellingBase = packingMultiplier * quantity
+  const commissionBase = packingMultiplier * quantity
+  const packerCommissionRate = normalizeNumber(form.commission_from_packer) ?? 0
+  const customerCommissionRate = normalizeNumber(form.commission_from_customer) ?? 0
 
   return {
     lqd_qty: fixed(baseQuantity),
-    selling_total: fixed(baseQuantity * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
+    selling_total: fixed(sellingBase * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
     lqd_total: fixed(baseQuantity * toNumber(form.lqd_price)),
     buying_total: fixed(baseQuantity * toNumber(form.buying_unit_price) + toNumber(form.buying_correction)),
     rebate_rate_packer_total: fixed4(commissionBase * toNumber(form.rebate_rate_packer)),
     rebate_rate_customer_total: fixed4(commissionBase * toNumber(form.rebate_rate_customer)),
-    total_packer_commission: fixed(commissionBase * toNumber(form.commission_from_packer)),
-    total_customer_commission: fixed(commissionBase * toNumber(form.commission_from_customer)),
+    total_packer_commission: fixed(packerCommissionRate === 0 ? 0 : commissionBase * packerCommissionRate),
+    total_customer_commission: fixed(customerCommissionRate === 0 ? 0 : commissionBase * customerCommissionRate),
   }
 }
 
@@ -596,6 +645,39 @@ function normalizePayload(form) {
     if (key === 'sort_order') return [[key, Number.isFinite(Number(value)) ? Number(value) : 0]]
     return [[key, normalizeNumber(value)]]
   }))
+}
+
+function resolveBaseQuantity(form) {
+  return firstDefinedNumber(form.total_weight_value, form.qty_booking, form.qty_value)
+}
+
+function resolveQuantity(form) {
+  return firstDefinedNumber(form.qty_value, form.qty_booking)
+}
+
+function firstDefinedNumber(...values) {
+  for (const value of values) {
+    const normalized = normalizeNumber(value)
+    if (normalized !== null) {
+      return normalized
+    }
+  }
+
+  return 0
+}
+
+function extractPackingMultiplier(value) {
+  const text = normalizeText(value)
+  if (text === null) return 0
+
+  const factors = text
+    .match(/-?\d+(?:\.\d+)?/g)
+    ?.map((part) => Number(part))
+    .filter((part) => Number.isFinite(part) && part > 0) ?? []
+
+  if (factors.length === 0) return 0
+
+  return factors.reduce((product, factor) => product * factor, 1)
 }
 
 function displayDate(value) {

@@ -47,8 +47,6 @@ class Transaction extends Model
             'generalInfoPacker',
             'revenueCustomer',
             'revenuePacker',
-            'cashFlowCustomer',
-            'cashFlowPacker',
             'shippingDetailsCustomer',
             'shippingDetailsPacker',
             'note',
@@ -87,16 +85,6 @@ class Transaction extends Model
     public function revenuePacker(): HasOne
     {
         return $this->hasOne(RevenuePacker::class);
-    }
-
-    public function cashFlowCustomer(): HasOne
-    {
-        return $this->hasOne(CashFlowCustomer::class);
-    }
-
-    public function cashFlowPacker(): HasOne
-    {
-        return $this->hasOne(CashFlowPacker::class);
     }
 
     public function shippingDetailsCustomer(): HasOne

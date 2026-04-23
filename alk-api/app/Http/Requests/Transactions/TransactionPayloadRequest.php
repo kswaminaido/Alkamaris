@@ -24,7 +24,6 @@ abstract class TransactionPayloadRequest extends FormRequest
             $this->generalInfoPackerRules(),
             $this->revenueCustomerRules(),
             $this->revenuePackerRules(),
-            $this->cashFlowRules(),
             $this->shippingRules(),
             $this->notesAndLogisticsRules(),
             $this->collectionRules(),
@@ -158,25 +157,6 @@ abstract class TransactionPayloadRequest extends FormRequest
             'revenue_packer.description' => ['nullable', 'string'],
             'revenue_packer.overcharge_sc_amount' => ['nullable', 'numeric'],
             'revenue_packer.overcharge_sc_description' => ['nullable', 'string', 'max:255'],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function cashFlowRules(): array
-    {
-        return [
-            'cash_flow_customer' => ['nullable', 'array'],
-            'cash_flow_customer.date_advance' => ['nullable', 'date'],
-            'cash_flow_customer.amount_advance' => ['nullable', 'numeric'],
-            'cash_flow_customer.date_balance' => ['nullable', 'date'],
-            'cash_flow_customer.amount_balance' => ['nullable', 'numeric'],
-            'cash_flow_packer' => ['nullable', 'array'],
-            'cash_flow_packer.date_advance' => ['nullable', 'date'],
-            'cash_flow_packer.amount_advance' => ['nullable', 'numeric'],
-            'cash_flow_packer.date_balance' => ['nullable', 'date'],
-            'cash_flow_packer.amount_balance' => ['nullable', 'numeric'],
         ];
     }
 

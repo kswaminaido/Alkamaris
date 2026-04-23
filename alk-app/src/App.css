@@ -2742,9 +2742,10 @@ h5 {
 
 .txe-items-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 180px));
   gap: 0.65rem 1rem;
   align-items: start;
+  justify-content: start;
 }
 
 .txe-items-summary-grid label,
@@ -2772,6 +2773,7 @@ h5 {
   padding: 0.35rem 0.5rem;
   font-size: 0.78rem;
   color: #111111;
+  width: 100%;
 }
 
 .txe-items-summary-actions {
@@ -2870,8 +2872,8 @@ h5 {
 
 .txe-items-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: start;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 1rem;
 }
 
@@ -2890,7 +2892,7 @@ h5 {
 .txe-items-nav {
   display: flex;
   gap: 0.55rem;
-  align-self: end;
+  align-self: flex-end;
 }
 
 .txe-items-empty {

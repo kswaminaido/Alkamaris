@@ -29,14 +29,19 @@ final class TransactionItemApiTest extends TestCase
             ->postJson("/api/transactions/{$transaction->id}/items", [
                 'item' => [
                     'product' => 'Frozen Vannamei',
+                    'packing' => '2',
                     'qty_booking' => 100,
+                    'selling_unit_price' => 15,
+                    'commission_from_packer' => 1.5,
                     'selling_total' => 1500,
                 ],
             ]);
 
         $createResponse
             ->assertCreated()
-            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
+            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei')
+            ->assertJsonPath('data.items.0.selling_total', '3000.00000')
+            ->assertJsonPath('data.items.0.total_packer_commission', '300.00000');
 
         $itemId = $createResponse->json('data.items.0.id');
 
@@ -46,12 +51,15 @@ final class TransactionItemApiTest extends TestCase
                 'item' => [
                     'product' => 'Frozen Vannamei Updated',
                     'qty_booking' => 120,
+                    'selling_unit_price' => 20,
                 ],
             ]);
 
         $updateResponse
             ->assertOk()
-            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei Updated');
+            ->assertJsonPath('data.items.0.product', 'Frozen Vannamei Updated')
+            ->assertJsonPath('data.items.0.selling_total', '4800.00000')
+            ->assertJsonPath('data.items.0.total_packer_commission', '360.00000');
 
         $duplicateResponse = $this
             ->withHeader('Authorization', "Bearer {$token}")

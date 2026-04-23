@@ -2,8 +2,6 @@
 
 namespace App\Services\Transactions;
 
-use App\Models\CashFlowCustomer;
-use App\Models\CashFlowPacker;
 use App\Models\GeneralInfoCustomer;
 use App\Models\GeneralInfoPacker;
 use App\Models\RevenueCustomer;
@@ -48,8 +46,6 @@ final class TransactionService
         GeneralInfoPacker::class,
         RevenueCustomer::class,
         RevenuePacker::class,
-        CashFlowCustomer::class,
-        CashFlowPacker::class,
         ShippingDetailsCustomer::class,
         ShippingDetailsPacker::class,
         TransactionNote::class,
@@ -146,8 +142,6 @@ final class TransactionService
             GeneralInfoPacker::class => $validated['general_info_packer'] ?? [],
             RevenueCustomer::class => $validated['revenue_customer'] ?? [],
             RevenuePacker::class => $validated['revenue_packer'] ?? [],
-            CashFlowCustomer::class => $validated['cash_flow_customer'] ?? [],
-            CashFlowPacker::class => $validated['cash_flow_packer'] ?? [],
             ShippingDetailsCustomer::class => $validated['shipping_details_customer'] ?? [],
             ShippingDetailsPacker::class => $validated['shipping_details_packer'] ?? [],
             TransactionNote::class => $validated['notes'] ?? [],
@@ -165,8 +159,6 @@ final class TransactionService
             GeneralInfoPacker::class => $transaction->generalInfoPacker,
             RevenueCustomer::class => $transaction->revenueCustomer,
             RevenuePacker::class => $transaction->revenuePacker,
-            CashFlowCustomer::class => $transaction->cashFlowCustomer,
-            CashFlowPacker::class => $transaction->cashFlowPacker,
             ShippingDetailsCustomer::class => $transaction->shippingDetailsCustomer,
             ShippingDetailsPacker::class => $transaction->shippingDetailsPacker,
             TransactionNote::class => $transaction->note,

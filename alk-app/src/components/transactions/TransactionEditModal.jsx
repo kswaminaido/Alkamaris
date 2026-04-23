@@ -389,8 +389,6 @@ function HomeTab({ transaction }) {
   const packer = transaction.general_info_packer ?? {}
   const revenueCustomer = transaction.revenue_customer ?? {}
   const revenuePacker = transaction.revenue_packer ?? {}
-  const cashCustomer = transaction.cash_flow_customer ?? {}
-  const cashPacker = transaction.cash_flow_packer ?? {}
   const shippingCustomer = transaction.shipping_details_customer ?? {}
   const shippingPacker = transaction.shipping_details_packer ?? {}
   const notes = transaction.notes ?? transaction.note ?? {}
@@ -433,17 +431,6 @@ function HomeTab({ transaction }) {
           <Row label="Commission"><div className="txe-inline"><label><input type="radio" name="revenue_packer.commission_enabled" value="Yes" defaultChecked={!!revenuePacker.commission_enabled} /> Yes</label><label><input type="radio" name="revenue_packer.commission_enabled" value="No" defaultChecked={!revenuePacker.commission_enabled} /> No</label><input name="revenue_packer.commission_percent" defaultValue={revenuePacker.commission_percent ?? ''} placeholder="Percent" /></div></Row>
           <Row label="Amount"><div className="txe-inline"><input name="revenue_packer.amount" defaultValue={revenuePacker.amount ?? ''} /><select name="revenue_packer.amount_currency" defaultValue={revenuePacker.amount_currency ?? 'US($)'}>{withCurrent(OPTIONS.currency, revenuePacker.amount_currency || 'US($)').map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Description"><textarea name="revenue_packer.description" rows="2" defaultValue={revenuePacker.description ?? ''} /></Row>
-        </SectionCard>
-      </div>
-
-      <div className="txe-two">
-        <SectionCard title="CASH FLOW" side="CUSTOMER" tone="green">
-          <Row label="Date Advance"><div className="txe-inline"><input name="cash_flow_customer.date_advance" defaultValue={formatDate(cashCustomer.date_advance)} /><input name="cash_flow_customer.amount_advance" defaultValue={cashCustomer.amount_advance ?? ''} /></div></Row>
-          <Row label="Date Balance"><div className="txe-inline"><input name="cash_flow_customer.date_balance" defaultValue={formatDate(cashCustomer.date_balance)} /><input name="cash_flow_customer.amount_balance" defaultValue={cashCustomer.amount_balance ?? ''} /></div></Row>
-        </SectionCard>
-        <SectionCard title="CASH FLOW" side="PACKER" tone="green">
-          <Row label="Date Advance"><div className="txe-inline"><input name="cash_flow_packer.date_advance" defaultValue={formatDate(cashPacker.date_advance)} /><input name="cash_flow_packer.amount_advance" defaultValue={cashPacker.amount_advance ?? ''} /></div></Row>
-          <Row label="Date Balance"><div className="txe-inline"><input name="cash_flow_packer.date_balance" defaultValue={formatDate(cashPacker.date_balance)} /><input name="cash_flow_packer.amount_balance" defaultValue={cashPacker.amount_balance ?? ''} /></div></Row>
         </SectionCard>
       </div>
 
@@ -1286,18 +1273,6 @@ function buildPayload(formElement, transaction) {
       description: getField(formData, 'revenue_packer.description'),
       overcharge_sc_amount: transaction.revenue_packer?.overcharge_sc_amount ?? null,
       overcharge_sc_description: transaction.revenue_packer?.overcharge_sc_description ?? null,
-    },
-    cash_flow_customer: {
-      date_advance: toApiDate(getField(formData, 'cash_flow_customer.date_advance') ?? transaction.cash_flow_customer?.date_advance),
-      amount_advance: normalizeNumber(formData.get('cash_flow_customer.amount_advance')),
-      date_balance: toApiDate(getField(formData, 'cash_flow_customer.date_balance') ?? transaction.cash_flow_customer?.date_balance),
-      amount_balance: normalizeNumber(formData.get('cash_flow_customer.amount_balance')),
-    },
-    cash_flow_packer: {
-      date_advance: toApiDate(getField(formData, 'cash_flow_packer.date_advance') ?? transaction.cash_flow_packer?.date_advance),
-      amount_advance: normalizeNumber(formData.get('cash_flow_packer.amount_advance')),
-      date_balance: toApiDate(getField(formData, 'cash_flow_packer.date_balance') ?? transaction.cash_flow_packer?.date_balance),
-      amount_balance: normalizeNumber(formData.get('cash_flow_packer.amount_balance')),
     },
     shipping_details_customer: {
       lsd_min: toApiDate(getField(formData, 'shipping_details_customer.lsd_min') ?? transaction.shipping_details_customer?.lsd_min),
