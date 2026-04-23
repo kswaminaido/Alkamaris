@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
 const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
+const RATE_HINTS = ['Std', 'Adj']
 const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: [], size: [] }
 
 let transactionItemOptionsCache = null
@@ -289,10 +290,10 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
               <EditorField label="Size"><div className="txe-item-inline txe-item-inline-size"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
               <EditorField label="Total Weight"><WeightRow value={form.total_weight_value} unit={form.total_weight_unit_slug} onValue={(value) => setValue('total_weight_value', value)} onUnit={(value) => setValue('total_weight_unit_slug', value)} /></EditorField>
-              <EditorField label="Qty"><div className="txe-item-inline txe-item-inline-wide"><input value={form.qty_value} onChange={(event) => setValue('qty_value', event.target.value)} /><select value={form.qty_unit} onChange={(event) => setValue('qty_unit', event.target.value)}>{COUNT_UNITS.map((option) => <option key={option}>{option}</option>)}</select><input value={form.qty_booking} onChange={(event) => setValue('qty_booking', event.target.value)} placeholder="Qty Booking" /></div></EditorField>
-              <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} /></EditorField>
-              <EditorField label="Lqd-Price"><PriceRow value={form.lqd_price} currency={form.lqd_currency} unit={form.lqd_unit_slug} onValue={(value) => setValue('lqd_price', value)} onCurrency={(value) => setValue('lqd_currency', value)} onUnit={(value) => setValue('lqd_unit_slug', value)} /></EditorField>
-              <EditorField label="Buying Unit Price"><PriceRow value={form.buying_unit_price} currency={form.buying_currency} unit={form.buying_unit_slug} onValue={(value) => setValue('buying_unit_price', value)} onCurrency={(value) => setValue('buying_currency', value)} onUnit={(value) => setValue('buying_unit_slug', value)} /></EditorField>
+              <EditorField label="Qty"><QtyRow value={form.qty_value} unit={form.qty_unit} booking={form.qty_booking} onValue={(value) => setValue('qty_value', value)} onUnit={(value) => setValue('qty_unit', value)} onBooking={(value) => setValue('qty_booking', value)} /></EditorField>
+              <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} hint={form.selling_unit_category} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} onHint={(value) => setValue('selling_unit_category', value)} beforeText="Before Tariff" /></EditorField>
+              <EditorField label="Lqd-Price"><PriceRow value={form.lqd_price} currency={form.lqd_currency} unit={form.lqd_unit_slug} hint={form.lqd_unit_category} onValue={(value) => setValue('lqd_price', value)} onCurrency={(value) => setValue('lqd_currency', value)} onUnit={(value) => setValue('lqd_unit_slug', value)} onHint={(value) => setValue('lqd_unit_category', value)} /></EditorField>
+              <EditorField label={<><strong>Buying</strong> Unit Price</>}><PriceRow value={form.buying_unit_price} currency={form.buying_currency} unit={form.buying_unit_slug} hint={form.buying_unit_category} onValue={(value) => setValue('buying_unit_price', value)} onCurrency={(value) => setValue('buying_currency', value)} onUnit={(value) => setValue('buying_unit_slug', value)} onHint={(value) => setValue('buying_unit_category', value)} /></EditorField>
               <EditorField label="Total CTN Correction"><input value={form.total_ctn_correction} onChange={(event) => setValue('total_ctn_correction', event.target.value)} /></EditorField>
             </div>
 
@@ -307,7 +308,9 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
               <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
               <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
-              <EditorField label="Buying Total"><div className="txe-item-inline"><input readOnly value={form.buying_total} /><input value={form.buying_correction} onChange={(event) => setValue('buying_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
+              <EditorField label={<><strong>Buying</strong> Total</>}><div className="txe-item-inline"><input readOnly value={form.buying_total} /><input value={form.buying_correction} onChange={(event) => setValue('buying_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
+              <EditorField label="Rebate Rate (Packer)"><RebateRow value={form.rebate_rate_packer} currency={form.rebate_rate_packer_currency} unit={form.rebate_rate_packer_unit_slug} total={form.rebate_rate_packer_total} onValue={(value) => setValue('rebate_rate_packer', value)} onCurrency={(value) => setValue('rebate_rate_packer_currency', value)} onUnit={(value) => setValue('rebate_rate_packer_unit_slug', value)} onTotal={(value) => setValue('rebate_rate_packer_total', value)} /></EditorField>
+              <EditorField label="Rebate Rate (Customer)"><RebateRow value={form.rebate_rate_customer} currency={form.rebate_rate_customer_currency} unit={form.rebate_rate_customer_unit_slug} total={form.rebate_rate_customer_total} onValue={(value) => setValue('rebate_rate_customer', value)} onCurrency={(value) => setValue('rebate_rate_customer_currency', value)} onUnit={(value) => setValue('rebate_rate_customer_unit_slug', value)} onTotal={(value) => setValue('rebate_rate_customer_total', value)} /></EditorField>
               <EditorField label="Total NW Correction"><input value={form.total_nw_correction} onChange={(event) => setValue('total_nw_correction', event.target.value)} /></EditorField>
             </div>
           </div>
@@ -366,20 +369,68 @@ function MeasureRow({ value, unit, onValue, onUnit }) {
   return <div className="txe-item-inline txe-item-inline-wide"><input value={value} onChange={(event) => onValue(event.target.value)} /><input value={unit} onChange={(event) => onUnit(event.target.value)} placeholder="Unit" /></div>
 }
 
+function QtyRow({ value, unit, booking, onValue, onUnit, onBooking }) {
+  return (
+    <div className="txe-item-inline txe-item-inline-qty">
+      <input value={value} onChange={(event) => onValue(event.target.value)} />
+      <select value={unit} onChange={(event) => onUnit(event.target.value)}>
+        {COUNT_UNITS.map((option) => <option key={option}>{option}</option>)}
+      </select>
+      <span className="txe-inline-caption">Qty Booking</span>
+      <input value={booking} onChange={(event) => onBooking(event.target.value)} />
+    </div>
+  )
+}
+
 function WeightRow({ value, unit, onValue, onUnit }) {
   return (
     <div className="txe-item-inline txe-item-inline-weight">
       <input value={value} onChange={(event) => onValue(event.target.value)} />
       <select value={unit} onChange={(event) => onUnit(event.target.value)}>
-        <option value="">Select unit</option>
+        <option value=""></option>
         {WEIGHT_UNITS.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </div>
   )
 }
 
-function PriceRow({ value, currency, unit, onValue, onCurrency, onUnit }) {
-  return <div className="txe-item-inline txe-item-inline-wide"><input value={value} onChange={(event) => onValue(event.target.value)} /><select value={currency} onChange={(event) => onCurrency(event.target.value)}>{CURRENCIES.map((option) => <option key={option}>{option}</option>)}</select><input value={unit} onChange={(event) => onUnit(event.target.value)} placeholder="Unit" /></div>
+function PriceRow({ value, currency, unit, hint, onValue, onCurrency, onUnit, onHint, beforeText = '' }) {
+  return (
+    <div className="txe-item-inline txe-item-inline-price">
+      <input value={value} onChange={(event) => onValue(event.target.value)} />
+      <select value={currency} onChange={(event) => onCurrency(event.target.value)}>
+        {CURRENCIES.map((option) => <option key={option} value={option}>{currencyLabel(option)}</option>)}
+      </select>
+      <span className="txe-inline-divider">/</span>
+      <select value={unit} onChange={(event) => onUnit(event.target.value)}>
+        <option value=""></option>
+        {WEIGHT_UNITS.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+      <select className="txe-item-select-compact" value={hint} onChange={(event) => onHint(event.target.value)}>
+        <option value="">Select</option>
+        {RATE_HINTS.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+      {beforeText ? <span className="txe-inline-caption">{beforeText}</span> : null}
+    </div>
+  )
+}
+
+function RebateRow({ value, currency, unit, total, onValue, onCurrency, onUnit, onTotal }) {
+  return (
+    <div className="txe-item-inline txe-item-inline-rebate">
+      <input value={value} onChange={(event) => onValue(event.target.value)} />
+      <select value={currency} onChange={(event) => onCurrency(event.target.value)}>
+        {CURRENCIES.map((option) => <option key={option} value={option}>{currencyLabel(option)}</option>)}
+      </select>
+      <span className="txe-inline-divider">/</span>
+      <select value={unit} onChange={(event) => onUnit(event.target.value)}>
+        <option value=""></option>
+        {WEIGHT_UNITS.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+      <span className="txe-inline-caption">Total</span>
+      <input value={total} onChange={(event) => onTotal(event.target.value)} />
+    </div>
+  )
 }
 
 function SearchableSelect({ value, list, onChange }) {
@@ -465,35 +516,45 @@ function buildForm(transaction, item) {
     size: item?.size ?? transaction.container_primary ?? '',
     glaze_percentage: stringify(item?.glaze_percentage),
     total_weight_value: stringify(item?.total_weight_value),
-    total_weight_unit_category: '',
+    total_weight_unit_category: item?.total_weight_unit_category ?? '',
     total_weight_unit_slug: item?.total_weight_unit_slug ?? '',
     qty_value: stringify(item?.qty_value),
     qty_unit: item?.qty_unit ?? COUNT_UNITS[0],
     qty_booking: stringify(item?.qty_booking),
     selling_unit_price: stringify(item?.selling_unit_price),
     selling_currency: item?.selling_currency ?? 'USD',
-    selling_unit_category: '',
+    selling_unit_category: item?.selling_unit_category ?? '',
     selling_unit_slug: item?.selling_unit_slug ?? '',
     selling_total: stringify(item?.selling_total),
     selling_correction: stringify(item?.selling_correction),
     lqd_qty: stringify(item?.lqd_qty),
     lqd_price: stringify(item?.lqd_price),
     lqd_currency: item?.lqd_currency ?? 'USD',
-    lqd_unit_category: '',
+    lqd_unit_category: item?.lqd_unit_category ?? '',
     lqd_unit_slug: item?.lqd_unit_slug ?? '',
     lqd_total: stringify(item?.lqd_total),
     buying_unit_price: stringify(item?.buying_unit_price),
     buying_currency: item?.buying_currency ?? 'USD',
-    buying_unit_category: '',
+    buying_unit_category: item?.buying_unit_category ?? '',
     buying_unit_slug: item?.buying_unit_slug ?? '',
     buying_total: stringify(item?.buying_total),
     buying_correction: stringify(item?.buying_correction),
+    rebate_rate_packer: stringify(item?.rebate_rate_packer),
+    rebate_rate_packer_currency: item?.rebate_rate_packer_currency ?? 'USD',
+    rebate_rate_packer_unit_category: item?.rebate_rate_packer_unit_category ?? '',
+    rebate_rate_packer_unit_slug: item?.rebate_rate_packer_unit_slug ?? '',
+    rebate_rate_packer_total: item?.rebate_rate_packer_total === null || item?.rebate_rate_packer_total === undefined ? '0.0000' : stringify(item?.rebate_rate_packer_total),
+    rebate_rate_customer: stringify(item?.rebate_rate_customer),
+    rebate_rate_customer_currency: item?.rebate_rate_customer_currency ?? 'USD',
+    rebate_rate_customer_unit_category: item?.rebate_rate_customer_unit_category ?? '',
+    rebate_rate_customer_unit_slug: item?.rebate_rate_customer_unit_slug ?? '',
+    rebate_rate_customer_total: item?.rebate_rate_customer_total === null || item?.rebate_rate_customer_total === undefined ? '0.0000' : stringify(item?.rebate_rate_customer_total),
     commission_from_packer: stringify(item?.commission_from_packer),
-    commission_from_packer_unit_category: '',
+    commission_from_packer_unit_category: item?.commission_from_packer_unit_category ?? '',
     commission_from_packer_unit_slug: item?.commission_from_packer_unit_slug ?? '',
     total_packer_commission: stringify(item?.total_packer_commission),
     commission_from_customer: stringify(item?.commission_from_customer),
-    commission_from_customer_unit_category: '',
+    commission_from_customer_unit_category: item?.commission_from_customer_unit_category ?? '',
     commission_from_customer_unit_slug: item?.commission_from_customer_unit_slug ?? '',
     total_customer_commission: stringify(item?.total_customer_commission),
     total_ctn_correction: stringify(item?.total_ctn_correction),
@@ -511,6 +572,8 @@ async function calculateDraft(form) {
     selling_total: fixed(baseQuantity * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
     lqd_total: fixed(baseQuantity * toNumber(form.lqd_price)),
     buying_total: fixed(baseQuantity * toNumber(form.buying_unit_price) + toNumber(form.buying_correction)),
+    rebate_rate_packer_total: fixed4(commissionBase * toNumber(form.rebate_rate_packer)),
+    rebate_rate_customer_total: fixed4(commissionBase * toNumber(form.rebate_rate_customer)),
     total_packer_commission: fixed(commissionBase * toNumber(form.commission_from_packer)),
     total_customer_commission: fixed(commissionBase * toNumber(form.commission_from_customer)),
   }
@@ -527,10 +590,7 @@ function normalizePayload(form) {
       ]
     }
 
-    if (key.endsWith('_category')) {
-      return [[key, null]]
-    }
-    if (key.endsWith('_slug') || key.endsWith('_currency') || ['product', 'style', 'packing', 'media', 'notes', 'brand', 'secondary_packaging', 'size', 'qty_unit'].includes(key)) {
+    if (key.endsWith('_category') || key.endsWith('_slug') || key.endsWith('_currency') || ['product', 'style', 'packing', 'media', 'notes', 'brand', 'secondary_packaging', 'size', 'qty_unit'].includes(key)) {
       return [[key, normalizeText(value)]]
     }
     if (key === 'sort_order') return [[key, Number.isFinite(Number(value)) ? Number(value) : 0]]
@@ -589,6 +649,14 @@ function formatQty(value, unit) {
 
 function fixed(value) {
   return toNumber(value).toFixed(5)
+}
+
+function fixed4(value) {
+  return toNumber(value).toFixed(4)
+}
+
+function currencyLabel(value) {
+  return value === 'USD' ? 'US ($)' : value
 }
 
 export default TransactionItemsModal

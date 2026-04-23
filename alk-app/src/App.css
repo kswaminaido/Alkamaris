@@ -3057,6 +3057,10 @@ h5 {
   font-size: 0.78rem;
 }
 
+.txe-item-field-row span strong {
+  font-weight: 800;
+}
+
 .txe-item-field-row input,
 .txe-item-field-row select,
 .txe-item-field-row textarea {
@@ -3083,17 +3087,63 @@ h5 {
   grid-template-columns: minmax(0, 1fr) 84px;
 }
 
+.txe-item-inline-qty {
+  grid-template-columns: minmax(0, 1fr) 96px auto minmax(0, 0.9fr);
+  align-items: center;
+}
+
 .txe-item-inline-weight {
-  grid-template-columns: minmax(0, 1fr) 110px;
+  grid-template-columns: minmax(0, 1fr) 64px;
 }
 
 .txe-item-inline-wide {
   grid-template-columns: 110px 120px minmax(0, 1fr);
 }
 
+.txe-item-inline-price {
+  grid-template-columns: minmax(120px, 1.9fr) 78px 10px 58px 48px auto;
+  align-items: center;
+}
+
+.txe-item-inline-rebate {
+  grid-template-columns: minmax(120px, 1.9fr) 78px 10px 58px auto 76px;
+  align-items: center;
+}
+
 .txe-item-inline-wide select:last-child,
 .txe-item-inline-wide input:last-child {
   min-width: 0;
+}
+
+.txe-item-inline-qty input:last-child,
+.txe-item-inline-price input,
+.txe-item-inline-price select,
+.txe-item-inline-rebate input,
+.txe-item-inline-rebate select {
+  min-width: 0;
+}
+
+.txe-item-select-compact {
+  min-width: 48px;
+  padding-inline: 0.15rem;
+}
+
+.txe-inline-divider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.txe-inline-caption {
+  color: #344054;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .txe-item-stack {
@@ -3591,7 +3641,10 @@ h5 {
   .txe-item-commission-row .txe-item-inline-wide,
   .txe-item-inline,
   .txe-item-inline-size,
-  .txe-item-inline-weight {
+  .txe-item-inline-weight,
+  .txe-item-inline-qty,
+  .txe-item-inline-price,
+  .txe-item-inline-rebate {
     grid-template-columns: 1fr;
   }
 
