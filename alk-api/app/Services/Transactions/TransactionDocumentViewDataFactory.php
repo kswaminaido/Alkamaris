@@ -30,12 +30,15 @@ final class TransactionDocumentViewDataFactory
         return [
             'type' => $documentType,
             'label' => $label,
-            'file_stem' => Str::slug(($transaction->booking_no ?: 'transaction').'-'.$documentType),
-            'company' => 'Siam Canadian (Asia) Limited',
-            'title' => $documentType === 'delivery_order' ? 'DELIVERY ORDER' : 'BOOKING CONFIRMATION',
+            'file_stem' => Str::slug(($transaction->booking_no ?: 'transaction') . '-' . $documentType),
+            'company' => 'Alkamaris',
+            'header_company' => 'Alkamaris Exports Pvt Ltd',
+            'header_tagline' => 'Sourced with care, Delivered with Trust',
+            'logo_path' => public_path('images/alkamaris-logo.png'),
+            'title' => $documentType === 'delivery_order' ? 'DELIVERY ORDER' : 'ORDER CONFIRMATION',
             'transaction_date' => $transactionDate,
             'render_date' => $renderDate,
-            'booking_reference' => trim(($transaction->booking_no ?? 'SIN2605802').' - '.$transactionDate, ' -'),
+            'order_reference' => trim(($transaction->booking_no ?? 'SIN2605802') . ' - ' . $transactionDate, ' -'),
             'buyer' => strtoupper((string) ($customer?->customer ?: 'LEADER FOOD SUPPLY INSTITUTION')),
             'attention' => strtoupper((string) ($customer?->attention ?: 'MR. YOUSEF AZIZ')),
             'product_title' => strtoupper((string) ($revenueCustomer?->description ?: $revenuePacker?->description ?: 'FROZEN VANNAMEI WHITE SHRIMP')),
@@ -45,7 +48,7 @@ final class TransactionDocumentViewDataFactory
             'notes' => strtoupper((string) ($notes?->by_sales ?: '35% GLAZE FROZEN WEIGHT & FROZEN COUNT. EU STANDARD TREATMENT')),
             'rows' => $this->rows($customer),
             'amount_total' => $this->money(119300),
-            'price_basis' => strtoupper((string) ($customer?->prices_customer_type ?: 'CFR')).' '.$port,
+            'price_basis' => strtoupper((string) ($customer?->prices_customer_type ?: 'CFR')) . ' ' . $port,
             'payment_terms' => $this->paymentTerms($customer?->payment_customer_advance_percent, $options),
             'latest_shipment_date' => strtoupper((string) ($this->formatDate($shippingPacker?->lsd_max) ?: 'FEB 28, 2026')),
             'packer' => strtoupper((string) ($packer?->packer_name ?: 'CONTAI MARINE FISH EXPORT PRIVATE LIMITED')),
@@ -57,6 +60,8 @@ final class TransactionDocumentViewDataFactory
             'show_glazing' => $this->stringOrFallback(Arr::get($options, 'show_glazing'), 'Size'),
             'articles' => $this->articles($options),
             'attachments' => $this->attachments($options),
+            'footer_note' => 'Alkamaris issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
+            'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
         ];
     }
 
@@ -78,7 +83,7 @@ final class TransactionDocumentViewDataFactory
     private function articles(array $options): array
     {
         return collect(Arr::get($options, 'articles', []))
-            ->map(fn (mixed $article): string => trim((string) $article))
+            ->map(fn(mixed $article): string => trim((string) $article))
             ->filter()
             ->values()
             ->pad(6, '')
@@ -92,7 +97,7 @@ final class TransactionDocumentViewDataFactory
     private function attachments(array $options): array
     {
         return collect(Arr::get($options, 'attachments', []))
-            ->map(fn (mixed $value): string => trim((string) $value))
+            ->map(fn(mixed $value): string => trim((string) $value))
             ->filter()
             ->values()
             ->all();
@@ -105,7 +110,7 @@ final class TransactionDocumentViewDataFactory
     {
         $paymentAdvance = $this->stringOrFallback(
             Arr::get($options, 'payment_advance'),
-            $advancePercent ? $advancePercent.'% DEPOSIT' : '30% DEPOSIT',
+            $advancePercent ? $advancePercent . '% DEPOSIT' : '30% DEPOSIT',
         );
 
         return strtoupper(trim("T/T   {$paymentAdvance} AND BALANCE AGAINST SHIPPING DOCUMENTS COPY VIA EMAIL"));

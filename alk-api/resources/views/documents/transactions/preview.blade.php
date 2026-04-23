@@ -11,8 +11,13 @@
     .pv-page-inner { padding: 10mm 12mm 8mm; }
     .pv-head { width: 100%; border-collapse: collapse; }
     .pv-head td { vertical-align: top; }
+    .pv-head-logo { width: 180px; }
+    .pv-logo { max-width: 160px; max-height: 54px; }
+    .pv-head-center { text-align: center; }
     .pv-head-right { text-align: right; }
-    .pv-company { font-size: 15px; font-weight: 700; font-style: italic; margin-bottom: 14px; }
+    .pv-company { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .pv-subtitle { font-size: 11px; color: #4b5563; }
+    .pv-title-row td { padding-top: 10px; text-align: center; }
     .pv-title { display: inline-block; background: #050505; color: #fff; padding: 7px 14px; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; }
     .pv-page-no { font-size: 12px; }
     .pv-meta { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 12px; }
@@ -42,8 +47,7 @@
     .pv-sign div { font-size: 11px; }
     .pv-footer-note { text-align: center; font-size: 10px; margin-top: 16px; line-height: 1.25; }
     .pv-office { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10px; line-height: 1.2; }
-    .pv-office td { width: 50%; vertical-align: top; }
-    .pv-office .pv-office-gap { width: 20px; }
+    .pv-office td { width: 100%; vertical-align: top; }
     @media screen {
       body { background: #eef3fb; }
       .pv-wrap { padding: 12px; }
@@ -58,11 +62,19 @@
       <div class="pv-page-inner">
         <table class="pv-head">
           <tr>
-            <td>
-            <div class="pv-company">{{ $view['company'] }}</div>
-            <div class="pv-title">{{ $view['title'] }}</div>
+            <td class="pv-head-logo">
+              @if (!empty($view['logo_path']))
+                <img class="pv-logo" src="{{ $view['logo_path'] }}" alt="Alkamaris logo">
+              @endif
+            </td>
+            <td class="pv-head-center">
+              <div class="pv-company">{{ $view['header_company'] }}</div>
+              <div class="pv-subtitle">{{ $view['header_tagline'] }}</div>
             </td>
             <td class="pv-head-right"><div class="pv-page-no">Page : 1/1</div></td>
+          </tr>
+          <tr class="pv-title-row">
+            <td colspan="3"><div class="pv-title">{{ $view['title'] }}</div></td>
           </tr>
         </table>
 
@@ -70,7 +82,7 @@
           <tr>
             <td><strong>Date</strong> {{ $view['render_date'] }}</td>
             <td class="pv-meta-spacer"></td>
-            <td><strong>Booking Reference #</strong> {{ $view['booking_reference'] }}</td>
+            <td><strong>Order Reference #</strong> {{ $view['order_reference'] }}</td>
           </tr>
           <tr>
             <td><strong>Fax</strong></td>
@@ -177,14 +189,12 @@
         </table>
 
         <div class="pv-footer-note">
-          Siam Canadian issues this booking confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.
+          {{ $view['footer_note'] }}
         </div>
 
         <table class="pv-office">
           <tr>
-            <td><strong>Siam Canadian (Asia) Limited</strong><br>UNIT 1, 20/F, LOW BLOCK, GRAND MILLENNIUM PLAZA,<br>181 QUEEN'S ROAD CENTRAL, HONG KONG</td>
-            <td class="pv-office-gap"></td>
-            <td><strong>Mailing Address</strong><br>9th FL, Suite 283/44 Home Place Office Bldg,<br>283 Thonglor 13, Sukhumvit 55, Klongton Nua, Wattana,<br>Bangkok, Thailand 10110</td>
+            <td><strong>{{ $view['header_company'] }}</strong><br>{!! nl2br(e($view['footer_address'])) !!}</td>
           </tr>
         </table>
       </div>
