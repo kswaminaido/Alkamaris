@@ -3031,11 +3031,17 @@ h5 {
 .txe-item-editor-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem 1.4rem;
+  gap: 1rem 1.6rem;
   border: 1px solid #e4e7ec;
   background: #ffffff;
   box-shadow: 0 14px 32px rgba(16, 24, 40, 0.05);
   padding: 1rem;
+}
+
+.txe-item-editor-col {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
 }
 
 .txe-item-field-row {
@@ -3073,6 +3079,14 @@ h5 {
   gap: 0.45rem;
 }
 
+.txe-item-inline-size {
+  grid-template-columns: minmax(0, 1fr) 84px;
+}
+
+.txe-item-inline-weight {
+  grid-template-columns: minmax(0, 1fr) 110px;
+}
+
 .txe-item-inline-wide {
   grid-template-columns: 110px 120px minmax(0, 1fr);
 }
@@ -3085,6 +3099,23 @@ h5 {
 .txe-item-stack {
   display: grid;
   gap: 0.4rem;
+}
+
+.txe-item-calc-panel {
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d0d5dd;
+  background: #f8fafc;
+  min-height: 92px;
+}
+
+.txe-item-calc-panel-header {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #333333;
+  text-transform: uppercase;
 }
 
 .txe-items-calc-btn,
@@ -3511,8 +3542,11 @@ h5 {
   .txe-items-summary-grid,
   .txe-item-commission-grid,
   .txe-items-footer,
-  .txe-item-editor-grid,
   .txe-item-editor-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .txe-item-editor-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3554,7 +3588,10 @@ h5 {
   }
 
   .txe-item-commission-col-totals .txe-item-commission-row,
-  .txe-item-commission-row .txe-item-inline-wide {
+  .txe-item-commission-row .txe-item-inline-wide,
+  .txe-item-inline,
+  .txe-item-inline-size,
+  .txe-item-inline-weight {
     grid-template-columns: 1fr;
   }
 

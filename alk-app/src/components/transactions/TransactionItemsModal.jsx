@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
+const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
 const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: [], size: [] }
 
 let transactionItemOptionsCache = null
@@ -229,7 +230,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setCalculating(true)
     setError('')
     try {
-      const next = await calculateDraft(form, authFetch)
+      const next = await calculateDraft(form)
       setForm((current) => ({ ...current, ...next }))
     } catch {
       setError('Unable to calculate item totals.')
@@ -280,27 +281,35 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
           {error ? <p className="message error">{error}</p> : null}
 
           <div className="txe-item-editor-grid">
-            <EditorField label="Product"><SearchableSelect value={form.product} list={fieldOptions.product} onChange={(value) => setValue('product', value)} /></EditorField>
-            <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} /></EditorField>
-            <EditorField label="Style"><SearchableSelect value={form.style} list={fieldOptions.style} onChange={(value) => setValue('style', value)} /></EditorField>
-            <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
-            <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} /></EditorField>
-            <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
-            <EditorField label="Media"><input value={form.media} onChange={(event) => setValue('media', event.target.value)} /></EditorField>
-            <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
-            <EditorField label="Size"><div className="txe-item-inline"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
-            <EditorField label="Total Weight"><MeasureRow value={form.total_weight_value} unit={form.total_weight_unit_slug} onValue={(value) => setValue('total_weight_value', value)} onUnit={(value) => setValue('total_weight_unit_slug', value)} /></EditorField>
-            <EditorField label="Qty"><div className="txe-item-inline txe-item-inline-wide"><input value={form.qty_value} onChange={(event) => setValue('qty_value', event.target.value)} /><select value={form.qty_unit} onChange={(event) => setValue('qty_unit', event.target.value)}>{COUNT_UNITS.map((option) => <option key={option}>{option}</option>)}</select><input value={form.qty_booking} onChange={(event) => setValue('qty_booking', event.target.value)} placeholder="Qty Booking" /></div></EditorField>
-            <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} /></EditorField>
-            <EditorField label="Calculate"><button type="button" className="txe-items-calc-btn" onClick={calculate} disabled={calculating}>{calculating ? 'Calculating...' : 'Calculate'}</button></EditorField>
-            <EditorField label="Lqd-Price"><PriceRow value={form.lqd_price} currency={form.lqd_currency} unit={form.lqd_unit_slug} onValue={(value) => setValue('lqd_price', value)} onCurrency={(value) => setValue('lqd_currency', value)} onUnit={(value) => setValue('lqd_unit_slug', value)} /></EditorField>
-            <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
-            <EditorField label="Buying Unit Price"><PriceRow value={form.buying_unit_price} currency={form.buying_currency} unit={form.buying_unit_slug} onValue={(value) => setValue('buying_unit_price', value)} onCurrency={(value) => setValue('buying_currency', value)} onUnit={(value) => setValue('buying_unit_slug', value)} /></EditorField>
-            <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
-            <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
-            <EditorField label="Buying Total"><div className="txe-item-inline"><input readOnly value={form.buying_total} /><input value={form.buying_correction} onChange={(event) => setValue('buying_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
-            <EditorField label="Total CTN Correction"><input value={form.total_ctn_correction} onChange={(event) => setValue('total_ctn_correction', event.target.value)} /></EditorField>
-            <EditorField label="Total NW Correction"><input value={form.total_nw_correction} onChange={(event) => setValue('total_nw_correction', event.target.value)} /></EditorField>
+            <div className="txe-item-editor-col">
+              <EditorField label="Product"><SearchableSelect value={form.product} list={fieldOptions.product} onChange={(value) => setValue('product', value)} /></EditorField>
+              <EditorField label="Style"><SearchableSelect value={form.style} list={fieldOptions.style} onChange={(value) => setValue('style', value)} /></EditorField>
+              <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} /></EditorField>
+              <EditorField label="Media"><input value={form.media} onChange={(event) => setValue('media', event.target.value)} /></EditorField>
+              <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
+              <EditorField label="Size"><div className="txe-item-inline txe-item-inline-size"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
+              <EditorField label="Total Weight"><WeightRow value={form.total_weight_value} unit={form.total_weight_unit_slug} onValue={(value) => setValue('total_weight_value', value)} onUnit={(value) => setValue('total_weight_unit_slug', value)} /></EditorField>
+              <EditorField label="Qty"><div className="txe-item-inline txe-item-inline-wide"><input value={form.qty_value} onChange={(event) => setValue('qty_value', event.target.value)} /><select value={form.qty_unit} onChange={(event) => setValue('qty_unit', event.target.value)}>{COUNT_UNITS.map((option) => <option key={option}>{option}</option>)}</select><input value={form.qty_booking} onChange={(event) => setValue('qty_booking', event.target.value)} placeholder="Qty Booking" /></div></EditorField>
+              <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} /></EditorField>
+              <EditorField label="Lqd-Price"><PriceRow value={form.lqd_price} currency={form.lqd_currency} unit={form.lqd_unit_slug} onValue={(value) => setValue('lqd_price', value)} onCurrency={(value) => setValue('lqd_currency', value)} onUnit={(value) => setValue('lqd_unit_slug', value)} /></EditorField>
+              <EditorField label="Buying Unit Price"><PriceRow value={form.buying_unit_price} currency={form.buying_currency} unit={form.buying_unit_slug} onValue={(value) => setValue('buying_unit_price', value)} onCurrency={(value) => setValue('buying_currency', value)} onUnit={(value) => setValue('buying_unit_slug', value)} /></EditorField>
+              <EditorField label="Total CTN Correction"><input value={form.total_ctn_correction} onChange={(event) => setValue('total_ctn_correction', event.target.value)} /></EditorField>
+            </div>
+
+            <div className="txe-item-editor-col">
+              <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} /></EditorField>
+              <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
+              <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
+              <section className="txe-item-calc-panel" aria-label="Calculation controls">
+                <div className="txe-item-calc-panel-header">Calculate</div>
+                <button type="button" className="txe-items-calc-btn" onClick={calculate} disabled={calculating}>{calculating ? 'Calculating...' : 'Calculate'}</button>
+              </section>
+              <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
+              <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
+              <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
+              <EditorField label="Buying Total"><div className="txe-item-inline"><input readOnly value={form.buying_total} /><input value={form.buying_correction} onChange={(event) => setValue('buying_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
+              <EditorField label="Total NW Correction"><input value={form.total_nw_correction} onChange={(event) => setValue('total_nw_correction', event.target.value)} /></EditorField>
+            </div>
           </div>
 
           <section className="txe-item-commission-panel" aria-label="Commission summary">
@@ -355,6 +364,18 @@ function EditorField({ label, children }) {
 
 function MeasureRow({ value, unit, onValue, onUnit }) {
   return <div className="txe-item-inline txe-item-inline-wide"><input value={value} onChange={(event) => onValue(event.target.value)} /><input value={unit} onChange={(event) => onUnit(event.target.value)} placeholder="Unit" /></div>
+}
+
+function WeightRow({ value, unit, onValue, onUnit }) {
+  return (
+    <div className="txe-item-inline txe-item-inline-weight">
+      <input value={value} onChange={(event) => onValue(event.target.value)} />
+      <select value={unit} onChange={(event) => onUnit(event.target.value)}>
+        <option value="">Select unit</option>
+        {WEIGHT_UNITS.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    </div>
+  )
 }
 
 function PriceRow({ value, currency, unit, onValue, onCurrency, onUnit }) {
@@ -481,7 +502,7 @@ function buildForm(transaction, item) {
   }
 }
 
-async function calculateDraft(form, authFetch) {
+async function calculateDraft(form) {
   const baseQuantity = toNumber(form.total_weight_value || form.qty_booking)
   const commissionBase = toNumber(form.total_weight_value)
 
