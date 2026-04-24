@@ -27,7 +27,10 @@ class UserController extends Controller
             $query->where('name', 'like', "%{$name}%");
         }
 
-        if ($role = request('role')) {
+        $roles = request('roles') ? explode(',', request('roles')) : [];
+        if (!empty($roles)) {
+            $query->whereIn('role', $roles);
+        } elseif ($role = request('role')) {
             $query->where('role', $role);
         }
 

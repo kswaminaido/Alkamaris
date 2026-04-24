@@ -2321,7 +2321,7 @@ select:focus {
 }
 
 .transactions-table th {
-  background: #161616;
+  background: #2a2a2a;
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 400;
@@ -2395,7 +2395,7 @@ select:focus {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(180deg, #1e1e1e 0%, #111111 100%);
+  background: linear-gradient(179deg, #4b4848 0%, #454141 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 h5 {
@@ -2494,8 +2494,8 @@ h5 {
 }
 
 .txe-side-btn.active {
-  background: #111111;
-  border-color: #111111;
+  background: #2a2a2a;
+  border-color: #2a2a2a;
   color: #ffffff;
 }
 

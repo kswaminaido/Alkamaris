@@ -123,18 +123,18 @@ function TransactionCreatePage() {
 
   async function loadBookingParties() {
     try {
-      const [customerResponse, vendorResponse] = await Promise.all([
-        authFetch('/users?role=customer&per_page=100'),
-        authFetch('/users?role=vendor&per_page=100'),
-      ])
+      const response = await authFetch('/users?roles=customer,vendor&per_page=100')
+      const payload = await response.json()
 
-      const [customerPayload, vendorPayload] = await Promise.all([
-        customerResponse.json(),
-        vendorResponse.json(),
-      ])
-
-      setCustomers(customerResponse.ok ? extractUserNames(customerPayload?.data) : [])
-      setVendors(vendorResponse.ok ? extractUserNames(vendorPayload?.data) : [])
+      if (response.ok && payload?.data) {
+        const customers = payload.data.filter(user => user.role === 'customer')
+        const vendors = payload.data.filter(user => user.role === 'vendor')
+        setCustomers(extractUserNames(customers))
+        setVendors(extractUserNames(vendors))
+      } else {
+        setCustomers([])
+        setVendors([])
+      }
     } catch {
       setCustomers([])
       setVendors([])

@@ -68,22 +68,20 @@ function DataPage() {
     setMessage('')
 
     try {
-      const [configResponse, customerResponse, vendorResponse] = await Promise.all([
+      const [configResponse, usersResponse] = await Promise.all([
         authFetch('/configs'),
-        authFetch('/users?role=customer&per_page=100'),
-        authFetch('/users?role=vendor&per_page=100'),
+        authFetch('/users?roles=customer,vendor&per_page=100'),
       ])
 
-      const [configPayload, customerPayload, vendorPayload] = await Promise.all([
+      const [configPayload, usersPayload] = await Promise.all([
         configResponse.json(),
-        customerResponse.json(),
-        vendorResponse.json(),
+        usersResponse.json(),
       ])
 
       const nextConfigMap = configResponse.ok ? buildConfigMap(configPayload?.data) : {}
       const nextUsersByRole = {
-        customer: customerResponse.ok ? extractUserNames(customerPayload?.data) : [],
-        vendor: vendorResponse.ok ? extractUserNames(vendorPayload?.data) : [],
+        customer: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'customer')) : [],
+        vendor: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'vendor')) : [],
       }
 
       setConfigMap(nextConfigMap)
