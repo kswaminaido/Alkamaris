@@ -76,8 +76,6 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRIES)
   const formRef = useRef(null)
 
-  if (!transaction) return null
-
   useEffect(() => {
     if (!toast) return undefined
     const timer = setTimeout(() => setToast(null), 2200)
@@ -112,6 +110,8 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
       active = false
     }
   }, [])
+
+  if (!transaction) return null
 
   async function handleSave(closeAfterSave) {
     if (!onSave || !formRef.current) return
@@ -292,7 +292,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
             <HeaderCard transaction={transaction} countryOptions={countryOptions} />
             {tab === 'home' && <HomeTab transaction={transaction} />}
             {tab === 'dollar' && <DollarTab transaction={transaction} />}
-            {tab === 'ship' && <ShipTab transaction={transaction} countryOptions={countryOptions} />}
+            {tab === 'ship' && <ShipTab transaction={transaction} />}
             <BottomActions
               saving={saving}
               duplicating={duplicating}
@@ -636,42 +636,44 @@ function ItemsModal({ transaction, onClose }) {
   )
 }
 
-function ShipTab({ transaction, countryOptions }) {
+function ShipTab({ transaction }) {
   const notes = transaction.notes ?? transaction.note ?? {}
-  const logisticsDestinationOptions = mergeCountryOptions(
-    countryOptions,
-    transaction.logistics?.destination,
-    transaction.destination,
-  )
+  const logistics = transaction.logistics ?? {}
+  const logisticsValue = (key, fallback = '') => logistics[key] ?? fallback
+  const logisticsDate = (key, fallback = '') => formatDate(logistics[key]) || fallback
+  const destination = logisticsValue('destination', 'MONTREAL, CANADA')
 
   return (
     <div className="txe-stack">
       <SectionCard title="LOGISTICS" tone="blue">
         <div className="txe-two">
           <div>
-            <Row label="Plan ETD"><input name="logistics.plan_etd" defaultValue="" /></Row>
-            <Row label="Plan ETA"><input name="logistics.plan_eta" defaultValue="" /></Row>
-            <Row label="Packaging Date"><div className="txe-inline"><input name="logistics.packaging_date_inner" placeholder="Inner" /><input name="logistics.packaging_date_outer" placeholder="Outer" /></div></Row>
-            <Row label="Feeder Vessel"><input name="logistics.feeder_vessel" /></Row>
-            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue="ORCHARD STAR V.008S" /></Row>
-            <Row label="Container #"><input name="logistics.container_no" defaultValue="EMCU5743198" /></Row>
-            <Row label="Seal #"><input name="logistics.seal_no" defaultValue="EMCHVP5524" /></Row>
-            <Row label="LC #"><input name="logistics.lc_no" /></Row>
-            <Row label="Temperature Recorder No"><input name="logistics.temperature_recorder_no" /></Row>
+            <Row label="Plan ETD"><input name="logistics.plan_etd" defaultValue={logisticsDate('plan_etd')} /></Row>
+            <Row label="Plan ETA"><input name="logistics.plan_eta" defaultValue={logisticsDate('plan_eta')} /></Row>
+            <Row label="Packaging Date"><div className="txe-inline txe-inline-3"><input name="logistics.packaging_date_inner" defaultValue={logisticsDate('packaging_date_inner')} placeholder="Inner" /><input name="logistics.packaging_date_outer" defaultValue={logisticsDate('packaging_date_outer')} placeholder="Outter" /><input name="logistics.packaging_date_approved" defaultValue={logisticsDate('packaging_date_approved')} placeholder="Approved" /></div></Row>
+            <Row label="Feeder Vessel"><input name="logistics.feeder_vessel" defaultValue={logisticsValue('feeder_vessel')} /></Row>
+            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue={logisticsValue('mother_vessel', 'VARADA V.081W')} /></Row>
+            <Row label="Container #"><input name="logistics.container_no" defaultValue={logisticsValue('container_no', 'MNBU9177027')} /></Row>
+            <Row label="Seal #"><input name="logistics.seal_no" defaultValue={logisticsValue('seal_no', 'ML-IN2683329')} /></Row>
+            <Row label="LC #"><input name="logistics.lc_no" defaultValue={logisticsValue('lc_no')} /></Row>
+            <Row label="Temperature Recorder No"><input name="logistics.temperature_recorder_no" defaultValue={logisticsValue('temperature_recorder_no')} /></Row>
+            <Row label="Temperature Recorder Location ROW NO"><input name="logistics.temperature_recorder_location_row_no" defaultValue={logisticsValue('temperature_recorder_location_row_no')} /></Row>
           </div>
           <div>
-            <Row label="ETD Date"><input name="logistics.etd_date" defaultValue="20/02/2026" /></Row>
-            <Row label="ETA Date"><input name="logistics.eta_date" defaultValue="29/03/2026" /></Row>
-            <Row label="QC Inspection Date"><input name="logistics.qc_inspection_date" /></Row>
-            <Row label="Discharge At"><input name="logistics.discharge_at" /></Row>
-            <Row label="Service Type"><select name="logistics.service_type" defaultValue="ALL WATER OR MLB">{OPTIONS.serviceType.map((o) => <option key={o}>{o}</option>)}</select></Row>
-            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue="20/02/2026" /></Row>
-            <Row label="B/L No."><input name="logistics.bl_no" defaultValue="EGLV1046000036" /></Row>
-            <Row label="Port"><input name="logistics.port" defaultValue="KOLKATA, INDIA" /></Row>
-            <Row label="Destination"><select name="logistics.destination" defaultValue={transaction.logistics?.destination ?? transaction.destination ?? ''}><option value="">Select</option>{logisticsDestinationOptions.map((option) => <option key={option}>{option}</option>)}</select></Row>
-            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue="EVERGREEN LINE" /></Row>
-            <Row label="Packer Inv Date"><input name="logistics.packer_inv_date" defaultValue="16/02/2026" /></Row>
-            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue="CMFE/S/074/25-2" /></Row>
+            <Row label="ETD Date"><input name="logistics.etd_date" defaultValue={logisticsDate('etd_date', '08/01/2026')} /></Row>
+            <Row label="ETA Date"><input name="logistics.eta_date" defaultValue={logisticsDate('eta_date', '26/02/2026')} /></Row>
+            <Row label="QC Inspection Date"><input name="logistics.qc_inspection_date" defaultValue={logisticsDate('qc_inspection_date')} /></Row>
+            <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row>
+            <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row>
+            <Row label="Service Type"><select name="logistics.service_type" defaultValue={logisticsValue('service_type', 'ALL WATER OR MLB')}>{OPTIONS.serviceType.map((o) => <option key={o}>{o}</option>)}</select></Row>
+            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '08/01/2026')} /></Row>
+            <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '263811951')} /></Row>
+            <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', 'VISAKHAPATNAM, IND')} /></Row>
+            <Row label="Destination"><input name="logistics.destination" defaultValue={destination} /></Row>
+            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', 'MAERSK')} /></Row>
+            <Row label="SC Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row>
+            <Row label="Packer Inv Date"><input name="logistics.packer_inv_date" defaultValue={logisticsDate('packer_inv_date', '26/12/2025')} /></Row>
+            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', 'MAA/286/2025-26')} /></Row>
           </div>
         </div>
       </SectionCard>
@@ -1296,22 +1298,26 @@ function buildPayload(formElement, transaction) {
       plan_eta: toApiDate(getField(formData, 'logistics.plan_eta')),
       packaging_date_inner: toApiDate(getField(formData, 'logistics.packaging_date_inner')),
       packaging_date_outer: toApiDate(getField(formData, 'logistics.packaging_date_outer')),
+      packaging_date_approved: toApiDate(getField(formData, 'logistics.packaging_date_approved')),
       feeder_vessel: getField(formData, 'logistics.feeder_vessel'),
       mother_vessel: getField(formData, 'logistics.mother_vessel'),
       container_no: getField(formData, 'logistics.container_no'),
       seal_no: getField(formData, 'logistics.seal_no'),
       lc_no: getField(formData, 'logistics.lc_no'),
       temperature_recorder_no: getField(formData, 'logistics.temperature_recorder_no'),
+      temperature_recorder_location_row_no: getField(formData, 'logistics.temperature_recorder_location_row_no'),
       etd_date: toApiDate(getField(formData, 'logistics.etd_date')),
       eta_date: toApiDate(getField(formData, 'logistics.eta_date')),
       qc_inspection_date: toApiDate(getField(formData, 'logistics.qc_inspection_date')),
-      discharge_at: getField(formData, 'logistics.discharge_at'),
+      discharge: getField(formData, 'logistics.discharge'),
+      at: getField(formData, 'logistics.at'),
       service_type: getField(formData, 'logistics.service_type'),
       bl_date: toApiDate(getField(formData, 'logistics.bl_date')),
       bl_no: getField(formData, 'logistics.bl_no'),
       port: getField(formData, 'logistics.port'),
       destination: getField(formData, 'logistics.destination'),
       shipping_line_agent: getField(formData, 'logistics.shipping_line_agent'),
+      sc_inv_to_customer: getField(formData, 'logistics.sc_inv_to_customer'),
       packer_inv_date: toApiDate(getField(formData, 'logistics.packer_inv_date')),
       packer_inv: getField(formData, 'logistics.packer_inv'),
       cancel_claim: getCheckbox(formElement, 'logistics.cancel_claim'),

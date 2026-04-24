@@ -41,6 +41,15 @@ final class TransactionApiTest extends TestCase
                 'notes' => [
                     'by_sales' => 'Priority shipment',
                 ],
+                'logistics' => [
+                    'packaging_date_approved' => '2026-01-02',
+                    'mother_vessel' => 'VARADA V.081W',
+                    'container_no' => 'MNBU9177027',
+                    'temperature_recorder_location_row_no' => 'ROW 7',
+                    'discharge' => 'Montreal discharge',
+                    'at' => 'Terminal 1',
+                    'sc_inv_to_customer' => 'SC-1001',
+                ],
                 'expense_lines' => [
                     [
                         'section' => 'charges',
@@ -73,6 +82,9 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.sales_person_id', $admin->id)
             ->assertJsonPath('data.product_origin', 'India (Singapore)')
             ->assertJsonPath('data.notes.by_sales', 'Priority shipment')
+            ->assertJsonPath('data.logistics.mother_vessel', 'VARADA V.081W')
+            ->assertJsonPath('data.logistics.temperature_recorder_location_row_no', 'ROW 7')
+            ->assertJsonPath('data.logistics.sc_inv_to_customer', 'SC-1001')
             ->assertJsonPath('data.expense_lines.0.line_key', 'freight')
             ->assertJsonPath('data.note_entries.0.note_key', 'eta')
             ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
@@ -85,6 +97,15 @@ final class TransactionApiTest extends TestCase
             'issue_date' => '2026-03-29 00:00:00',
             'sales_person_id' => $admin->id,
             'created_by_user_id' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('transaction_logistics', [
+            'transaction_id' => $response->json('data.id'),
+            'mother_vessel' => 'VARADA V.081W',
+            'container_no' => 'MNBU9177027',
+            'temperature_recorder_location_row_no' => 'ROW 7',
+            'discharge' => 'Montreal discharge',
+            'at' => 'Terminal 1',
+            'sc_inv_to_customer' => 'SC-1001',
         ]);
 
         CarbonImmutable::setTestNow();

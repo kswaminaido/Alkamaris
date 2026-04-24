@@ -2581,6 +2581,10 @@ h5 {
   gap: 0.45rem;
 }
 
+.txe-inline-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .txe-inline > label {
   display: inline-flex;
   align-items: center;
