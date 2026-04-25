@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 function ModulePlaceholderPage({ title, activeKey = '' }) {
   const navigate = useNavigate()
-  const { currentUser, logout } = useAuth()
+  const { currentUser, logout, authFetch } = useAuth()
 
   async function handleLogout() {
     await logout()
@@ -14,7 +14,7 @@ function ModulePlaceholderPage({ title, activeKey = '' }) {
   if (!currentUser || currentUser.role !== 'admin') return null
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title={title} activeKey={activeKey} onLogout={handleLogout}>
+    <AdminSidebarLayout currentUser={currentUser} title={title} activeKey={activeKey} onLogout={handleLogout} authFetch={authFetch}>
       <div className="transaction-page">
         <section className="txn-panel txn-top">
           <h5>{title}</h5>

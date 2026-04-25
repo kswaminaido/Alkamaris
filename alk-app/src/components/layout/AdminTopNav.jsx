@@ -15,7 +15,7 @@ const navActions = [
   },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
   { key: 'follow_up', title: 'Follow Up', subtitle: 'Shipments' },
-  { key: 'master_list', title: 'Master List', subtitle: 'TycMail' },
+  { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
 ]
 
 function AdminTopNav({ activeKey, onAction, onLogout }) {

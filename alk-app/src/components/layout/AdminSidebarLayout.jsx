@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import MailModal from '../mail/MailModal'
 
 const SIDEBAR_STATE_KEY = 'alk-dashboard-sidebar-open'
 const navActions = [
@@ -17,10 +18,10 @@ const navActions = [
   },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
   { key: 'follow_up', title: 'Follow Up', subtitle: 'Shipments' },
-  { key: 'master_list', title: 'Master List', subtitle: 'TycMail' },
+  { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
 ]
 
-function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLogout }) {
+function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLogout, authFetch }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(() => {
@@ -31,6 +32,7 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
   const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
+  const [mailModalOpen, setMailModalOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
 
   useEffect(() => {
@@ -67,6 +69,10 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
     }
     if (action.key === 'all_transactions') {
       navigate('/transactions')
+      return
+    }
+    if (action.key === 'mail') {
+      setMailModalOpen(true)
       return
     }
     if (action.key === 'master_list') {
@@ -290,6 +296,19 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             <span className="sidebar-link-text">Request</span>
             <span className="sidebar-link-end" />
           </button>
+
+          <NavLink
+            to="/master"
+            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+            onClick={() => {
+              closeMobileMenu()
+              closeSidebarSubmenus()
+            }}
+          >
+            <SidebarIcon icon="transactions" />
+            <span className="sidebar-link-text">Master List</span>
+            <span className="sidebar-link-end" />
+          </NavLink>
         </nav>
 
         <div className="dashboard-sidebar-footer">
@@ -359,6 +378,8 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
 
         <main className="dashboard-page-content">{children}</main>
       </div>
+
+      <MailModal isOpen={mailModalOpen} authFetch={authFetch} onClose={() => setMailModalOpen(false)} />
     </section>
   )
 }

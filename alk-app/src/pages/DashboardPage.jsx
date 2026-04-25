@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 
 function DashboardPage() {
   const navigate = useNavigate()
-  const { currentUser, dashboardTitle, logout } = useAuth()
+  const { currentUser, dashboardTitle, logout, authFetch } = useAuth()
 
   async function handleLogout() {
     await logout()
@@ -19,7 +19,7 @@ function DashboardPage() {
   }
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout}>
+    <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
       {currentUser.role === 'admin' ? (
         <DashboardPanel
           currentUser={currentUser}

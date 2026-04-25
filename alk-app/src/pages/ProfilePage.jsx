@@ -239,7 +239,7 @@ function ProfilePage() {
 
   if (currentUser.role === 'admin') {
     return (
-      <AdminSidebarLayout currentUser={currentUser} title="Profile" activeKey="" onLogout={handleLogout}>
+      <AdminSidebarLayout currentUser={currentUser} title="Profile" activeKey="" onLogout={handleLogout} authFetch={authFetch}>
         {content}
       </AdminSidebarLayout>
     )

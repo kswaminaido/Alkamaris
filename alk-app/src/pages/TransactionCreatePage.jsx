@@ -208,6 +208,7 @@ function TransactionCreatePage() {
       title={pageTitle}
       activeKey={form.transaction.booking_mode === 'qc_services' ? 'new_booking_qc' : 'new_booking_trade'}
       onLogout={onLogout}
+      authFetch={authFetch}
     >
       <form className="transaction-page" onSubmit={onSubmit}>
         <section className="txn-panel txn-top">

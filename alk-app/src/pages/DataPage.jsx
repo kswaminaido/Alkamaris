@@ -158,6 +158,7 @@ function DataPage() {
       title="Data"
       activeKey="data"
       onLogout={handleLogout}
+      authFetch={authFetch}
     >
       <div className="transaction-page data-page">
         {toast ? <div className="data-toast">{toast}</div> : null}

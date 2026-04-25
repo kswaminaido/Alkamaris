@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\ConfigController;
+use App\Http\Controllers\Api\MailController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TransactionDocumentController;
 use App\Http\Controllers\Api\TransactionItemController;
@@ -39,4 +40,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'show', 'store', 'update']);
     Route::post('transactions/{transaction}/duplicate', [TransactionController::class, 'duplicate']);
+    Route::get('mail/recipients', [MailController::class, 'recipients']);
+    Route::post('mail/send', [MailController::class, 'send']);
 });

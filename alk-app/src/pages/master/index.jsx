@@ -133,7 +133,7 @@ function MasterData() {
   }
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout}>
+    <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>

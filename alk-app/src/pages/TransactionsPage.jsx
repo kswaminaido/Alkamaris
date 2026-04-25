@@ -216,7 +216,7 @@ function TransactionsPage() {
   if (!currentUser) return null
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout}>
+    <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>
