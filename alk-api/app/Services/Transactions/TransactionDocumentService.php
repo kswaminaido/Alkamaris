@@ -13,14 +13,14 @@ class TransactionDocumentService
      */
     private const DOCUMENT_LABELS = [
         'all' => 'Print All',
-        'bcb_lqd' => 'Print BCB /Lqd.',
-        'bcv_lqd' => 'Print BCV /Lqd.',
+        'bcb_lqd' => 'Print BCB /Lqd',
+        'bcv_lqd' => 'Print BCV /Lqd',
         'sales_contract_packer' => 'Print Sales Contract Packer',
         'appendix_packer' => 'Print Appendix Packer',
         'proforma_invoice' => 'Print Proforma Inv',
         'specs' => 'Print Specs',
         's_a' => 'Print S/A',
-        'lc_terms_vendor' => 'Print L/C Terms(Vendor)',
+        'lc_terms_vendor' => 'Print L/C Terms (Vendor)',
         'lc_terms' => 'Print L/C Terms',
         'delivery_order' => 'Print Delivery Order',
     ];
@@ -90,7 +90,11 @@ class TransactionDocumentService
      */
     private function renderPreviewHtml(array $view): string
     {
-        return view('documents.transactions.preview', [
+        $template = ($view['body_template'] ?? null) === 'bcv_lqd'
+            ? 'documents.transactions.bcv-lqd'
+            : 'documents.transactions.preview';
+
+        return view($template, [
             'view' => $view,
         ])->render();
     }

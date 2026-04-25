@@ -3331,6 +3331,10 @@ h5 {
   gap: 8px;
 }
 
+.txe-print-doc-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .txe-print-check {
   display: inline-flex;
   align-items: center;
@@ -3416,6 +3420,11 @@ h5 {
 .txe-print-settings input,
 .txe-print-settings select {
   min-height: 42px;
+}
+
+.txe-print-settings .txe-print-readonly {
+  background: #f8f8f8;
+  color: #344054;
 }
 
 .txe-print-actions,
