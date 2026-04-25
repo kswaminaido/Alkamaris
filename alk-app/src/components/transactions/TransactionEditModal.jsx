@@ -38,17 +38,21 @@ const EXPENSE_FIELDS = [
 
 const PRINT_DOCUMENTS = [
   { type: 'all', label: 'Print All' },
-  { type: 'bcb_lqd', label: 'Print BCB /Lqd.' },
-  { type: 'bcv_lqd', label: 'Print BCV /Lqd.' },
+  { type: 'bcb_lqd', label: 'Print BCB /Lqd' },
+  { type: 'bcv_lqd', label: 'Print BCV /Lqd' },
   { type: 'sales_contract_packer', label: 'Print Sales Contract Packer' },
   { type: 'appendix_packer', label: 'Print Appendix Packer' },
   { type: 'proforma_invoice', label: 'Print Proforma Inv' },
   { type: 'specs', label: 'Print Specs' },
   { type: 's_a', label: 'Print S/A' },
-  { type: 'lc_terms_vendor', label: 'Print L/C Terms(Vendor)' },
+  { type: 'lc_terms_vendor', label: 'Print L/C Terms (Vendor)' },
   { type: 'lc_terms', label: 'Print L/C Terms' },
   { type: 'delivery_order', label: 'Print Delivery Order' },
 ]
+
+const PRINT_YES_NO_OPTIONS = ['NO', 'YES']
+const PRINT_GLAZING_OPTIONS = ['Size', 'NO', 'YES']
+const PRINT_TEMPLATE_OPTIONS = ['India Private']
 
 const ATTACHMENT_OPTIONS = [
   'Health Certificate',
@@ -72,7 +76,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   const [printing, setPrinting] = useState(false)
   const [documentPreviews, setDocumentPreviews] = useState([])
   const [printSelections, setPrintSelections] = useState(() => buildInitialPrintSelections())
-  const [printOptions, setPrintOptions] = useState(() => buildInitialPrintOptions(transaction))
+  const [printOptions, setPrintOptions] = useState(() => buildInitialPrintOptions())
   const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRIES)
   const formRef = useRef(null)
 
@@ -88,7 +92,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
 
   useEffect(() => {
     setPrintSelections(buildInitialPrintSelections())
-    setPrintOptions(buildInitialPrintOptions(transaction))
+    setPrintOptions(buildInitialPrintOptions())
     setDocumentPreviews([])
     setPrintDialogOpen(false)
     setItemsModalOpen(false)
@@ -161,6 +165,11 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   function handlePrint() {
     setPrintDialogOpen(true)
     showToast('Print dialog opened')
+  }
+
+  function handleClosePrintDialog() {
+    setPrintDialogOpen(false)
+    setDocumentPreviews([])
   }
 
   async function handleRenderDocuments() {
@@ -321,10 +330,9 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           transaction={transaction}
           selections={printSelections}
           options={printOptions}
-          countryOptions={countryOptions}
           documents={documentPreviews}
           printing={printing}
-          onClose={() => setPrintDialogOpen(false)}
+          onClose={handleClosePrintDialog}
           onToggleSelection={handlePrintSelectionChange}
           onOptionChange={handlePrintOptionChange}
           onArticleChange={handleArticleChange}
@@ -726,7 +734,6 @@ function PrintDialog({
   transaction,
   selections,
   options,
-  countryOptions,
   documents,
   printing,
   onClose,
@@ -738,12 +745,18 @@ function PrintDialog({
   onDownloadSpecificDocument,
   onPrintDocument,
 }) {
+  const transactionId = transaction.booking_no || 'SIF2502056'
+  const transactionDate = formatDate(transaction.issue_date) || '13/10/2025'
+  const status = transaction.transaction_status ?? 'I'
+  const lastModifiedBy = transaction.updated_by?.name ?? transaction.sales_person?.name ?? transaction.created_by?.name ?? 'Noree Naknava'
+  const lastModifiedDate = formatDate(transaction.updated_at) || '31/03/2026'
+
   return (
     <div className="txe-print-overlay" role="dialog" aria-modal="true" aria-label="Print documents">
       <div className="txe-print-modal">
         <div className="txe-print-header">
           <div>
-            <h3>Transaction# {transaction.booking_no || 'SIN2605802'}</h3>
+            <h3>Transaction# {transactionId}</h3>
             <span>Print &gt; Menu</span>
           </div>
           <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
@@ -752,16 +765,16 @@ function PrintDialog({
         <div className="txe-print-content">
           <div className="txe-print-form">
             <div className="txe-print-topgrid">
-              <div><span>Transaction ID</span><strong>{transaction.booking_no || 'SIN2605802'}</strong></div>
-              <div><span>Transaction Date</span><strong>{formatDate(transaction.issue_date) || '24/01/2026'}</strong></div>
-              <div><span>Status</span><strong>{transaction.transaction_status ?? 'I'}</strong></div>
+              <div><span>Transaction ID</span><strong>{transactionId}</strong></div>
+              <div><span>Transaction Date</span><strong>{transactionDate}</strong></div>
+              <div><span>Status</span><strong>{status}</strong></div>
             </div>
 
             <div className="txe-print-two">
               <div className="txe-print-leftstack">
                 <p className="txe-print-section-label">Document Type (Preview Report)</p>
                 <div className="txe-print-doc-list">
-                  {PRINT_DOCUMENTS.filter((documentType) => documentType.type !== 'all').map((documentType) => (
+                  {PRINT_DOCUMENTS.map((documentType) => (
                     <label key={documentType.type} className="txe-print-check">
                       <input
                         type="checkbox"
@@ -777,25 +790,33 @@ function PrintDialog({
                   <label>
                     <span>Print Revised</span>
                     <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
-                      {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                      {withCurrent(PRINT_YES_NO_OPTIONS, options.print_revised).map((option) => <option key={option}>{option}</option>)}
                     </select>
+                  </label>
+                  <label>
+                    <span>Last Modified By</span>
+                    <input className="txe-print-readonly" readOnly value={lastModifiedBy} />
+                  </label>
+                  <label>
+                    <span>Last Modified Date</span>
+                    <input className="txe-print-readonly" readOnly value={lastModifiedDate} />
                   </label>
                   <label>
                     <span>Print Liquidation</span>
                     <select value={options.print_liquidation} onChange={(event) => onOptionChange('print_liquidation', event.target.value)}>
-                      {OPTIONS.yesNo.map((option) => <option key={option}>{option}</option>)}
+                      {withCurrent(PRINT_YES_NO_OPTIONS, options.print_liquidation).map((option) => <option key={option}>{option}</option>)}
                     </select>
                   </label>
                   <label>
                     <span>Show Glazing</span>
                     <select value={options.show_glazing} onChange={(event) => onOptionChange('show_glazing', event.target.value)}>
-                      {['Size', 'No', 'Yes'].map((option) => <option key={option}>{option}</option>)}
+                      {withCurrent(PRINT_GLAZING_OPTIONS, options.show_glazing).map((option) => <option key={option}>{option}</option>)}
                     </select>
                   </label>
                   <label>
                     <span>Templates</span>
                     <select value={options.template} onChange={(event) => onOptionChange('template', event.target.value)}>
-                      {mergeCountryOptions(countryOptions, options.template).map((option) => <option key={option}>{option}</option>)}
+                      {withCurrent(PRINT_TEMPLATE_OPTIONS, options.template).map((option) => <option key={option}>{option}</option>)}
                     </select>
                   </label>
                   <label>
@@ -806,7 +827,7 @@ function PrintDialog({
               </div>
 
               <div className="txe-print-article-sheet">
-                {options.articles.slice(0, 4).map((article, index) => (
+                {options.articles.slice(0, 3).map((article, index) => (
                   <label key={`article-${index}`} className="txe-print-article">
                     <span>Article {index + 1}</span>
                     <textarea value={article} onChange={(event) => onArticleChange(index, event.target.value)} />
@@ -814,14 +835,10 @@ function PrintDialog({
                 ))}
 
                 <div className="txe-print-article-lower">
-                  <div className="txe-print-article-lower-main">
-                    {[4, 5].map((index) => (
-                      <label key={`article-${index}`} className="txe-print-article">
-                        <span>Article {index + 1}</span>
-                        <textarea value={options.articles[index]} onChange={(event) => onArticleChange(index, event.target.value)} />
-                      </label>
-                    ))}
-                  </div>
+                  <label className="txe-print-article">
+                    <span>Article 4</span>
+                    <textarea value={options.articles[3]} onChange={(event) => onArticleChange(3, event.target.value)} />
+                  </label>
 
                   <div className="txe-print-article-side">
                     <div className="txe-print-attachments">
@@ -838,6 +855,11 @@ function PrintDialog({
                     </div>
                   </div>
                 </div>
+
+                <label className="txe-print-article">
+                  <span>Article 5</span>
+                  <textarea value={options.articles[4]} onChange={(event) => onArticleChange(4, event.target.value)} />
+                </label>
               </div>
             </div>
 
@@ -985,15 +1007,15 @@ function buildInitialPrintSelections() {
   }
 }
 
-function buildInitialPrintOptions(transaction) {
+function buildInitialPrintOptions() {
   return {
-    print_revised: 'No',
-    print_liquidation: 'No',
+    print_revised: 'NO',
+    print_liquidation: 'NO',
     show_glazing: 'Size',
-    template: transaction?.country || transaction?.destination || 'India',
-    approve_code: transaction?.booking_no ? `${transaction.booking_no}-APR` : '',
+    template: 'India Private',
+    approve_code: '',
     payment_advance: '',
-    articles: Array.from({ length: 6 }, () => ''),
+    articles: Array.from({ length: 5 }, () => ''),
     attachments: [],
   }
 }
