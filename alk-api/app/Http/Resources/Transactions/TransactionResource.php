@@ -28,6 +28,7 @@ final class TransactionResource extends JsonResource
             'container_secondary' => $this->container_secondary,
             'certified' => $this->certified,
             'net_margin' => $this->net_margin,
+            'status' => $this->status->value,
             'created_by_user_id' => $this->created_by_user_id,
             'created_at' => optional($this->created_at)->toJSON(),
             'updated_at' => optional($this->updated_at)->toJSON(),

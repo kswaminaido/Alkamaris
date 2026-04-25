@@ -6,6 +6,18 @@ const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
 const RATE_HINTS = ['Std', 'Adj']
 const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: [], size: [] }
 
+const STATUS_OPTIONS = [
+  { value: 'I', label: 'Invoice' },
+  { value: 'P', label: 'Pending' },
+  { value: 'S', label: 'Shipped' },
+  { value: 'R', label: 'Received' },
+]
+
+function getStatusLabel(status) {
+  const option = STATUS_OPTIONS.find(o => o.value === status)
+  return option ? option.label : 'Unknown'
+}
+
 let transactionItemOptionsCache = null
 let transactionItemOptionsPromise = null
 
@@ -69,7 +81,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
               <InfoField label="Customer" value={transaction.general_info_customer?.customer} />
               <InfoField label="ETA Date" value={displayDate(transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta)} />
               <InfoField label="LSD" value={displayDate(transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min)} />
-              <InfoField label="Status" value={transaction.transaction_status ?? 'I'} />
+              <InfoField label="Status" value={getStatusLabel(transaction.status) ?? 'Unknown'} />
             </div>
             <div className="txe-items-summary-actions">
               <button type="button" onClick={() => setEditingItem({})}>Add</button>

@@ -350,7 +350,7 @@ function TransactionsPage() {
                   <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
                   <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td>
-                  <td>{transaction.transaction_status ?? 'U'}</td>
+                  <td>{transaction.status ?? 'U'}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
                   <td>{transaction.destination ?? '-'}</td>
                   <td>{displayDate(transaction.updated_at)}</td>

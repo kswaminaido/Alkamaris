@@ -14,6 +14,18 @@ const OPTIONS = {
   serviceType: ['ALL WATER OR MLB', 'FOB', 'CIF'],
 }
 
+const STATUS_OPTIONS = [
+  { value: 'I', label: 'Invoice' },
+  { value: 'P', label: 'Pending' },
+  { value: 'S', label: 'Shipped' },
+  { value: 'R', label: 'Received' },
+]
+
+function getStatusLabel(status) {
+  const option = STATUS_OPTIONS.find(o => o.value === status)
+  return option ? option.label : 'Unknown'
+}
+
 const EXPENSE_FIELDS = [
   { key: 'trucking', label: 'Trucking', group: 'transportation_customs' },
   { key: 'freight', label: 'Freight', group: 'transportation_customs' },
@@ -366,7 +378,7 @@ function HeaderCard({ transaction, countryOptions }) {
       <div className="txe-grid-4">
         <LabelField label="Booking No."><input name="transaction.booking_no" defaultValue={transaction.booking_no || 'SIN2605802'} /></LabelField>
         <LabelField label="Issue Date"><input name="transaction.issue_date" defaultValue={issueDate} /></LabelField>
-        <LabelField label="Status"><input defaultValue={transaction.transaction_status ?? 'I'} /></LabelField>
+        <LabelField label="Status"><select name="transaction.status" defaultValue={transaction.status ?? 'P'}>{STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></LabelField>
         <LabelField label="Last Modified By"><input defaultValue={salesPersonName || 'Keerthana Gubbala'} /></LabelField>
 
         <LabelField label="Sales Person"><select defaultValue={salesPersonName || 'Chaipat'}>{withCurrent(OPTIONS.salesPeople, salesPersonName || 'Chaipat').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
@@ -561,7 +573,7 @@ function ItemsModal({ transaction, onClose }) {
               <label><span>Customer</span><input readOnly value={customer} /></label>
               <label><span>ETA Date</span><input readOnly value={formatDate(etaDate)} /></label>
               <label><span>LSD</span><input readOnly value={formatDate(lsdDate)} /></label>
-              <label><span>Status</span><input readOnly value={transaction.transaction_status ?? 'I'} /></label>
+              <label><span>Status</span><input readOnly value={getStatusLabel(transaction.status) ?? 'Unknown'} /></label>
             </div>
             <div className="txe-items-summary-actions">
               <button type="button">Add</button>
@@ -754,7 +766,7 @@ function PrintDialog({
             <div className="txe-print-topgrid">
               <div><span>Transaction ID</span><strong>{transaction.booking_no || 'SIN2605802'}</strong></div>
               <div><span>Transaction Date</span><strong>{formatDate(transaction.issue_date) || '24/01/2026'}</strong></div>
-              <div><span>Status</span><strong>{transaction.transaction_status ?? 'I'}</strong></div>
+              <div><span>Status</span><strong>{getStatusLabel(transaction.status) ?? 'Unknown'}</strong></div>
             </div>
 
             <div className="txe-print-two">
@@ -1220,6 +1232,7 @@ function buildPayload(formElement, transaction) {
       container_secondary: getField(formData, 'transaction.container_secondary') ?? transaction.container_secondary ?? null,
       certified: (getField(formData, 'transaction.certified') ?? 'No') === 'Yes',
       net_margin: normalizeNumber(formData.get('transaction.net_margin')),
+      status: getField(formData, 'transaction.status') ?? transaction.status,
     },
     general_info_customer: {
       customer: getField(formData, 'general_info_customer.customer'),
