@@ -7,7 +7,9 @@ enum TransactionStatus: string
     case Invoice = 'I';
     case Pending = 'P';
     case Shipped = 'S';
-    case Received = 'R'; // payment received
+    case Received = 'R'; // payment and documents received
+    case Unshipped = 'U';
+    case Tally = 'T'; 
 
     public function label(): string
     {
@@ -16,6 +18,8 @@ enum TransactionStatus: string
             self::Pending => 'Pending',
             self::Shipped => 'Shipped',
             self::Received => 'Received',
+            self::Unshipped => 'Unshipped',
+            self::Tally => 'Tally',
         };
     }
 

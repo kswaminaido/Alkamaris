@@ -3,7 +3,7 @@ import { useGlobalLoading } from './GlobalLoadingContext'
 
 const API_BASE = 'http://localhost:8000/api'
 const TOKEN_KEY = 'alkamaris_access_token'
-const DEFAULT_USER_TYPES = ['vendor', 'customer', 'sales']
+const DEFAULT_USER_TYPES = []
 const SESSION_EXPIRED_ERROR = 'SESSION_EXPIRED'
 
 const AuthContext = createContext(null)

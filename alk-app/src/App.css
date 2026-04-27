@@ -1651,7 +1651,7 @@ select:focus {
 
 .search-filters {
   display: flex;
-  gap: 1rem;
+  gap: 4px;
   align-items: center;
   flex-wrap: wrap;
   padding: 0;

@@ -20,12 +20,11 @@ function SignupPage() {
     phone_number: '',
     email: '',
     address: '',
-    user_type: userTypeOptions[0] ?? 'vendor',
+    user_type: userTypeOptions[0],
     registration_number: '',
     password: '',
     password_confirmation: '',
   })
-
   useEffect(() => {
     if (currentUser) {
       navigate('/dashboard', { replace: true })

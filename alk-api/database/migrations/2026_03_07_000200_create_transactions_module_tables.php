@@ -24,6 +24,7 @@ return new class extends Migration
             $table->boolean('certified')->default(false);
             $table->decimal('net_margin', 14, 2)->nullable();
             $table->foreignId('created_by_user_id')->constrained('users')->cascadeOnDelete();
+            $table->enum('status', ['I', 'P', 'S', 'R', 'U', 'T'])->default('U');
             $table->timestamps();
         });
 

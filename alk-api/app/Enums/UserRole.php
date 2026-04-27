@@ -7,7 +7,10 @@ enum UserRole: string
     case Admin = 'admin';
     case Sales = 'sales';
     case Vendor = 'vendor';
+    case Packer = 'packer';
     case Customer = 'customer';
+    case Logistics = 'logistics';
+    case Accounts = 'accounts';
 
     /**
      * @return array<int, string>

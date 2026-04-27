@@ -19,6 +19,8 @@ const STATUS_OPTIONS = [
   { value: 'P', label: 'Pending' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
+  { value: 'U', label: 'Unshipped' },
+  { value: 'T', label: 'Tally' },
 ]
 
 function getStatusLabel(status) {

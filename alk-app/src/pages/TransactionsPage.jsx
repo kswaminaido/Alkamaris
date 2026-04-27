@@ -7,6 +7,20 @@ import { useAuth } from '../context/AuthContext'
 const PAGE_SIZE = 10
 const MAX_VISIBLE_PAGES = 5
 
+const statusOptions = [
+  { value: 'I', label: 'Invoice' },
+  { value: 'P', label: 'Pending' },
+  { value: 'S', label: 'Shipped' },
+  { value: 'R', label: 'Received' },
+  { value: 'U', label: 'Unshipped' },
+  { value: 'T', label: 'Tally' },
+]
+
+function getStatusLabel(value) {
+  const option = statusOptions.find(opt => opt.value === value)
+  return option ? option.label : value
+}
+
 function TransactionsPage() {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
@@ -350,7 +364,7 @@ function TransactionsPage() {
                   <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
                   <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td>
-                  <td>{transaction.status ?? 'U'}</td>
+                  <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
                   <td>{transaction.destination ?? '-'}</td>
                   <td>{displayDate(transaction.updated_at)}</td>

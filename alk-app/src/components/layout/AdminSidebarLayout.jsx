@@ -17,7 +17,6 @@ const navActions = [
     mode: 'qc_services',
   },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
-  { key: 'follow_up', title: 'Follow Up', subtitle: 'Shipments' },
   { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
 ]
 
