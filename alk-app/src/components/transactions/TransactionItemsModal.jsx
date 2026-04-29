@@ -181,10 +181,21 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [calculating, setCalculating] = useState(false)
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     setForm(buildForm(transaction, item))
   }, [item, transaction])
+
+  useEffect(() => {
+    if (!toast) return undefined
+    const timer = setTimeout(() => setToast(null), 2200)
+    return () => clearTimeout(timer)
+  }, [toast])
+
+  function showToast(text, tone = 'success') {
+    setToast({ text, tone })
+  }
 
   useEffect(() => {
     const nextCalculated = calculateDraft(form)
@@ -263,6 +274,11 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   }
 
   async function calculate() {
+    if (needsCommissionWeight(form)) {
+      showToast('Please enter Total Weight to calculate commission.', 'error')
+      return
+    }
+
     setCalculating(true)
     setError('')
     try {
@@ -276,6 +292,11 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   }
 
   async function save() {
+    if (needsCommissionWeight(form)) {
+      showToast('Please enter Total Weight to calculate commission.', 'error')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
@@ -387,6 +408,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
             </div>
           </div>
         </div>
+        {toast ? <Toast text={toast.text} tone={toast.tone} /> : null}
       </div>
     </div>
   )
@@ -625,6 +647,7 @@ function calculateDraft(form) {
   const packingMultiplier = extractPackingMultiplier(form.packing)
   const sellingBase = packingMultiplier * quantity
   const commissionBase = packingMultiplier * quantity
+  const commissionWeightBase = firstDefinedNumber(form.total_weight_value, commissionBase)
   const packerCommissionRate = normalizeNumber(form.commission_from_packer) ?? 0
   const customerCommissionRate = normalizeNumber(form.commission_from_customer) ?? 0
 
@@ -635,9 +658,18 @@ function calculateDraft(form) {
     buying_total: fixed(baseQuantity * toNumber(form.buying_unit_price) + toNumber(form.buying_correction)),
     rebate_rate_packer_total: fixed4(commissionBase * toNumber(form.rebate_rate_packer)),
     rebate_rate_customer_total: fixed4(commissionBase * toNumber(form.rebate_rate_customer)),
-    total_packer_commission: fixed(packerCommissionRate === 0 ? 0 : commissionBase * packerCommissionRate),
-    total_customer_commission: fixed(customerCommissionRate === 0 ? 0 : commissionBase * customerCommissionRate),
+    total_packer_commission: fixed(packerCommissionRate === 0 ? 0 : commissionWeightBase * packerCommissionRate),
+    total_customer_commission: fixed(customerCommissionRate === 0 ? 0 : commissionWeightBase * customerCommissionRate),
   }
+}
+
+function needsCommissionWeight(form) {
+  return hasCommissionRate(form) && toNumber(form.total_weight_value) <= 0
+}
+
+function hasCommissionRate(form) {
+  return (normalizeNumber(form.commission_from_packer) ?? 0) !== 0
+    || (normalizeNumber(form.commission_from_customer) ?? 0) !== 0
 }
 
 function normalizePayload(form) {
@@ -751,6 +783,27 @@ function fixed4(value) {
 
 function currencyLabel(value) {
   return value === 'USD' ? 'US ($)' : value
+}
+
+function Toast({ text, tone = 'success' }) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        right: '20px',
+        top: '20px',
+        zIndex: 9999,
+        padding: '10px 14px',
+        borderRadius: '8px',
+        color: '#fff',
+        background: tone === 'error' ? '#b00020' : '#1f7a39',
+        boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)',
+        fontSize: '14px',
+      }}
+    >
+      {text}
+    </div>
+  )
 }
 
 export default TransactionItemsModal

@@ -59,6 +59,10 @@ final class TransactionItemService
         $packingMultiplier = $this->extractPackingMultiplier($payload['packing'] ?? null);
         $sellingBase = $packingMultiplier * $quantity;
         $commissionBase = $packingMultiplier * $quantity;
+        $commissionWeightBase = $this->firstDefinedNumber(
+            $payload['total_weight_value'] ?? null,
+            $commissionBase,
+        );
         $packerCommissionRate = $this->normalizeNumber($payload['commission_from_packer'] ?? null);
         $customerCommissionRate = $this->normalizeNumber($payload['commission_from_customer'] ?? null);
 
@@ -68,8 +72,8 @@ final class TransactionItemService
         $payload['buying_total'] = $this->roundValue($baseQuantity * $this->toNumber($payload['buying_unit_price'] ?? null) + $this->toNumber($payload['buying_correction'] ?? null));
         $payload['rebate_rate_packer_total'] = $this->roundValue($commissionBase * $this->toNumber($payload['rebate_rate_packer'] ?? null), 4);
         $payload['rebate_rate_customer_total'] = $this->roundValue($commissionBase * $this->toNumber($payload['rebate_rate_customer'] ?? null), 4);
-        $payload['total_packer_commission'] = $this->roundValue($packerCommissionRate === null ? 0.0 : $commissionBase * $packerCommissionRate);
-        $payload['total_customer_commission'] = $this->roundValue($customerCommissionRate === null ? 0.0 : $commissionBase * $customerCommissionRate);
+        $payload['total_packer_commission'] = $this->roundValue($packerCommissionRate === null ? 0.0 : $commissionWeightBase * $packerCommissionRate);
+        $payload['total_customer_commission'] = $this->roundValue($customerCommissionRate === null ? 0.0 : $commissionWeightBase * $customerCommissionRate);
 
         return $payload;
     }

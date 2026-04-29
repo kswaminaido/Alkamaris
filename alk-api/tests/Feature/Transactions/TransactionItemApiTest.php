@@ -31,8 +31,10 @@ final class TransactionItemApiTest extends TestCase
                     'product' => 'Frozen Vannamei',
                     'packing' => '2',
                     'qty_booking' => 100,
+                    'total_weight_value' => 8000,
                     'selling_unit_price' => 15,
-                    'commission_from_packer' => 1.5,
+                    'commission_from_packer' => 0.1,
+                    'commission_from_customer' => 0.2,
                     'selling_total' => 1500,
                 ],
             ]);
@@ -41,7 +43,8 @@ final class TransactionItemApiTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.items.0.product', 'Frozen Vannamei')
             ->assertJsonPath('data.items.0.selling_total', '3000.00000')
-            ->assertJsonPath('data.items.0.total_packer_commission', '300.00000');
+            ->assertJsonPath('data.items.0.total_packer_commission', '800.00000')
+            ->assertJsonPath('data.items.0.total_customer_commission', '1600.00000');
 
         $itemId = $createResponse->json('data.items.0.id');
 
@@ -59,7 +62,8 @@ final class TransactionItemApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.items.0.product', 'Frozen Vannamei Updated')
             ->assertJsonPath('data.items.0.selling_total', '4800.00000')
-            ->assertJsonPath('data.items.0.total_packer_commission', '360.00000');
+            ->assertJsonPath('data.items.0.total_packer_commission', '800.00000')
+            ->assertJsonPath('data.items.0.total_customer_commission', '1600.00000');
 
         $duplicateResponse = $this
             ->withHeader('Authorization', "Bearer {$token}")

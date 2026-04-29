@@ -22,15 +22,15 @@ class DatabaseSeeder extends Seeder
             ['data' => UserRole::registrableValues()],
         );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test2@example.com',
-            'role' => UserRole::Admin->value,
-            'phone_number' => '9999999999',
-            'address' => 'Default seeded admin address',
-            'registration_number' => 'REG-ADMIN-00011',
-            'password' => bcrypt('Password@123'),
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test2@example.com',
+        //     'role' => UserRole::Admin->value,
+        //     'phone_number' => '9999999999',
+        //     'address' => 'Default seeded admin address',
+        //     'registration_number' => 'REG-ADMIN-00011',
+        //     'password' => bcrypt('Password@123'),
+        // ]);
 
         $this->call([
             CustomerSeeder::class,
