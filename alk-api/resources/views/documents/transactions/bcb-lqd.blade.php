@@ -86,7 +86,6 @@
 
     .tagline {
       color: #57715b;
-      font-style: italic;
       font-size: 11px;
       margin-top: 4px;
     }
@@ -216,7 +215,7 @@
       font-size: 11px;
       font-family: Arial, sans-serif;
       font-style: normal;
-      }
+    }
 
     .comments-box {
       border-top: 1px solid #000;
@@ -256,8 +255,6 @@
 
     .sign-space {
       height: 66px;
-      padding-top: 38px;
-      vertical-align: bottom;
     }
 
     .sign-label {
@@ -269,16 +266,23 @@
       font-weight: 800;
     }
 
-    .signature-line {
-      border-top: 1px solid #000;
-      height: 1px;
-      width: 82%;
-      margin: 0 auto 5px;
+    .customer-signature {
+      width: 50%;
+      margin-left: auto;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      padding-top: 8px;
     }
 
-    .signature-name {
-      text-align: center;
-      font-weight: 800;
+    .customer-signature-space {
+      height: 54px;
+    }
+
+    .customer-signature-line {
+      border-top: 1px solid #000;
+      width: 82%;
+      margin: 0 auto 5px;
     }
 
     .contact {
@@ -484,28 +488,20 @@
                   <td class="comment-value">{{ $bcv['payment_terms'] }}</td>
                 </tr>
                 <tr>
-                  <td class="comment-label">Latest Shipment Date</td>
+                  <td class="comment-label">Shipment Date</td>
                   <td class="comment-value">{{ $bcv['latest_shipment_date'] }}</td>
                 </tr>
                 <tr>
-                  <td class="comment-label">Customer</td>
-                  <td class="comment-value">{{ $bcv['customer'] }}</td>
+                  <td class="comment-label">Packer</td>
+                  <td class="comment-value">{{ $bcv['packer'] }}</td>
                 </tr>
                 <tr>
                   <td class="comment-label">Factory Approval Number</td>
                   <td class="comment-value">{{ $bcv['factory_approval_number'] }}</td>
                 </tr>
                 <tr>
-                  <td class="comment-label">Commission</td>
-                  <td class="comment-value">{{ $bcv['commission'] }}</td>
-                </tr>
-                <tr class="note-row">
-                  <td class="comment-label">Note</td>
-                  <td class="comment-value">{{ $bcv['commission_note'] }}</td>
-                </tr>
-                <tr class="note-row">
-                  <td></td>
-                  <td class="comment-value">A Separate invoice will be sent after shipment from our office.</td>
+                  <td class="comment-label">Destination</td>
+                  <td class="comment-value">{{ $bcv['destination'] }}</td>
                 </tr>
               </table>
             </div>
@@ -513,22 +509,12 @@
         </tr>
       </table>
 
-      <table class="signature">
-        <tr>
-          <td class="sign-label">For &amp; Behalf of</td>
-          <td class="accepted">Confirmation &amp; Accepted by</td>
-        </tr>
-        <tr>
-          <td class="sign-space">
-            <div class="signature-line"></div>
-            <div class="signature-name">ALKAMARIS EXPORTS(OPC)PVT LTD</div>
-          </td>
-          <td class="sign-space">
-            <div class="signature-line"></div>
-            <div class="signature-name">{{ $bcv['packer'] !== '' ? $bcv['packer'] : 'Default Packer Name Here' }}</div>
-          </td>
-        </tr>
-      </table>
+      <div class="customer-signature">
+        <div>For and on behalf of</div>
+        <div class="customer-signature-space"></div>
+        <div class="customer-signature-line"></div>
+        <div>{{ $bcv['customer'] }}</div>
+      </div>
 
       <!-- <div class="contact">
         If you have any questions about this purchase order, please contact<br>

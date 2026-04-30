@@ -90,9 +90,7 @@ class TransactionDocumentService
      */
     private function renderPreviewHtml(array $view): string
     {
-        $template = ($view['body_template'] ?? null) === 'bcv_lqd'
-            ? 'documents.transactions.bcv-lqd'
-            : 'documents.transactions.preview';
+        $template = 'documents.transactions.' . ($view['body_template'] ?? 'preview');
 
         return view($template, [
             'view' => $view,

@@ -93,6 +93,18 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('ORDER CONFIRMATION', $payload['preview_html']);
         $this->assertStringContainsString('Alkamaris Exports Pvt Ltd', $payload['preview_html']);
         $this->assertStringContainsString('LEADER FOOD SUPPLY INSTITUTION', $payload['preview_html']);
+        $this->assertStringContainsString('Comments or Special Instructions', $payload['preview_html']);
+        $this->assertStringContainsString('Shipment Date', $payload['preview_html']);
+        $this->assertStringContainsString('Packer', $payload['preview_html']);
+        $this->assertStringContainsString('<td class="comment-label">Destination</td>', $payload['preview_html']);
+        $this->assertStringContainsString('AQABA, JORDAN', $payload['preview_html']);
+        $this->assertStringContainsString('For and on behalf of', $payload['preview_html']);
+        $this->assertStringNotContainsString('For &amp; Behalf of', $payload['preview_html']);
+        $this->assertStringNotContainsString('Confirmation &amp; Accepted by', $payload['preview_html']);
+        $this->assertStringNotContainsString('Latest Shipment Date', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="comment-label">Customer</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="comment-label">Commission</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="comment-label">Note</td>', $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_uses_transaction_items(): void
@@ -192,6 +204,8 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('85,017.62', $payload['preview_html']);
         $this->assertStringContainsString('broker/agent', $payload['preview_html']);
         $this->assertStringContainsString('Rajahmundry', $payload['preview_html']);
+        $this->assertStringContainsString('ALKAMARIS EXPORTS(OPC)PVT LTD', $payload['preview_html']);
+        $this->assertStringContainsString('MOURYA AQUEX PRIVATE LIMITED', $payload['preview_html']);
         $this->assertStringNotContainsString('8/12', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
     }

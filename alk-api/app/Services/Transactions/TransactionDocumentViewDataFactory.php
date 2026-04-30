@@ -32,7 +32,7 @@ final class TransactionDocumentViewDataFactory
         return [
             'type' => $documentType,
             'label' => $label,
-            'body_template' => $documentType === 'bcv_lqd' ? 'bcv_lqd' : 'default',
+            'body_template' => $this->bodyTemplate($documentType),
             'file_stem' => Str::slug(($transaction->booking_no ?: 'transaction') . '-' . $documentType),
             'company' => 'Alkamaris',
             'header_company' => 'Alkamaris Exports Pvt Ltd',
@@ -69,6 +69,23 @@ final class TransactionDocumentViewDataFactory
             'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
             'bcv' => $this->bcvLqdData($transaction, $options),
         ];
+    }
+
+    private function bodyTemplate(string $documentType): string
+    {
+        return match ($documentType) {
+            'bcb_lqd' => 'bcb-lqd',
+            'bcv_lqd' => 'bcv-lqd',
+            'sales_contract_packer' => 'sales-contract-packer',
+            'appendix_packer' => 'appendix-packer',
+            'proforma_invoice' => 'proforma-invoice',
+            'specs' => 'specs',
+            's_a' => 's-a',
+            'lc_terms_vendor' => 'lc-terms-vendor',
+            'lc_terms' => 'lc-terms',
+            'delivery_order' => 'delivery-order',
+            default => 'preview',
+        };
     }
 
     /**
