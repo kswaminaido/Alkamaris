@@ -114,6 +114,7 @@ class TransactionDocumentService
     private function buildPdfBinary(string $previewHtml): string
     {
         return Pdf::loadHTML($previewHtml)
+            ->setOption('defaultMediaType', 'print')
             ->setPaper('a4', 'portrait')
             ->output();
     }

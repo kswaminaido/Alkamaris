@@ -2,7 +2,9 @@
 
 namespace App\Services\Transactions;
 
+use App\Enums\UserRole;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -61,7 +63,9 @@ final class TransactionDocumentViewDataFactory
             'show_glazing' => $this->stringOrFallback(Arr::get($options, 'show_glazing'), 'Size'),
             'articles' => $this->articles($options),
             'attachments' => $this->attachments($options),
-            'footer_note' => 'Alkamaris issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
+            'footer_note' => $documentType === 'bcv_lqd'
+                ? 'Alkamaris issues this Order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the buyer.'
+                : 'Alkamaris issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
             'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
             'bcv' => $this->bcvLqdData($transaction, $options),
         ];
@@ -90,16 +94,52 @@ final class TransactionDocumentViewDataFactory
             ->pluck('amount_value')
             ->filter(fn (mixed $value): bool => $value !== null);
         $totalAmount = $amountValues->isEmpty() ? null : $amountValues->sum();
+        $cartonValues = collect($productItems)
+            ->pluck('cartons_value')
+            ->filter(fn (mixed $value): bool => $value !== null);
+        $weightValues = collect($productItems)
+            ->pluck('weight_value')
+            ->filter(fn (mixed $value): bool => $value !== null);
+        $firstCurrency = $this->firstProductItemValue($productItems, 'amount_currency');
+        $firstCommission = collect($productItems)
+            ->pluck('commission')
+            ->first(fn (string $value): bool => $value !== '');
 
         return [
-            'date' => Carbon::now()->format('M d, Y'),
+            'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
+            'company_address_lines' => [
+                'ALKAMARIS EXPORTS (OPC) Pvt Ltd',
+                'RS 361/3,SV Raju Classic Building,Morampudi, Rajahmundry,',
+                'East Godavari Dist,Andhra Pradesh',
+                'India- 533107',
+                'Ph: 91-9182284173',
+            ],
+            'contact_line' => 'Manasa - accounts@alkamarisexports.com (+91-9182284173)',
+            'date' => $this->formatDotDate($transaction->issue_date ?: Carbon::now()),
             'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
+            'order_confirmation_no' => $this->displayText($transaction->booking_no),
             'fax' => '',
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
+            'packer_block' => $this->partyBlock(
+                $this->firstFilled($packer?->packer_name, $packer?->vendor),
+                UserRole::Vendor->value,
+                'GSTIN NO',
+                $packer?->packer_number,
+            ),
+            'customer_block' => $this->partyBlock(
+                $customer?->customer,
+                UserRole::Customer->value,
+                'TAX ID',
+                $customer?->buyer_number,
+            ),
             'items' => $productItems,
+            'groups' => $this->bcvLqdGroups($productItems),
+            'total_cartons' => $cartonValues->isEmpty() ? '' : $this->quantityOrBlank($cartonValues->sum()),
+            'total_weight' => $weightValues->isEmpty() ? '' : $this->weightOrBlank($weightValues->sum()),
             'total_amount' => $this->moneyOrBlank($totalAmount),
-            'total_amount_currency' => $this->currencyTotalLabel($this->firstProductItemValue($productItems, 'amount_currency')),
+            'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
+            'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency) . ' ' . $this->moneyOrBlank($totalAmount)),
             'price_basis' => $this->priceBasis($customer?->prices_customer_type, $logistics?->port ?: $logistics?->destination ?: $transaction->destination),
             'payment_terms' => $this->bcvPaymentTerms(
                 $customer?->payment_customer_type,
@@ -110,7 +150,12 @@ final class TransactionDocumentViewDataFactory
             'tolerance' => $this->displayText($customer?->tolerance),
             'latest_shipment_date' => $this->formatDisplayDate($shippingCustomer?->lsd_max ?: $shippingPacker?->lsd_max),
             'packer' => $this->upperText($packer?->packer_name),
-            'commission' => $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
+            'customer' => $this->upperText($customer?->customer),
+            'factory_approval_number' => $this->displayText($packer?->packer_number),
+            'commission' => $firstCommission !== null && $firstCommission !== ''
+                ? $firstCommission
+                : $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
+            'commission_note' => $this->commissionNote($firstCommission, $revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
             'destination' => $this->upperText($logistics?->destination ?: $transaction->destination),
         ];
     }
@@ -131,13 +176,66 @@ final class TransactionDocumentViewDataFactory
             'notes' => $this->displayText($item?->notes),
             'size' => $this->displayText($item?->size),
             'cartons' => $this->quantityOrBlank($quantity),
+            'cartons_value' => $quantity,
+            'weight' => $this->weightOrBlank($this->numberOrNull($item?->total_weight_value) ?? $this->numberOrNull($item?->lqd_qty)),
+            'weight_value' => $this->numberOrNull($item?->total_weight_value) ?? $this->numberOrNull($item?->lqd_qty),
             'price' => $this->decimalOrBlank($line['price'], 3),
             'amount' => $this->moneyOrBlank($line['amount']),
             'amount_value' => $line['amount'],
             'amount_currency' => $line['currency'],
             'price_header' => $this->priceHeader($line['currency'], $line['unit']),
             'amount_header' => $this->amountHeader($line['currency']),
+            'commission' => $this->itemCommissionText($item?->commission_from_packer, $item?->commission_from_packer_unit_slug),
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function bcvLqdGroups(array $items): array
+    {
+        return collect($items)
+            ->groupBy(fn (array $item): string => implode('|', [
+                $item['product'] ?? '',
+                $item['style'] ?? '',
+                $item['packing'] ?? '',
+                $item['notes'] ?? '',
+            ]))
+            ->values()
+            ->map(function ($group, int $index): array {
+                $first = $group->first();
+
+                return [
+                    'description' => $this->bcvDescription($first, $index + 1),
+                    'rows' => $group->values()->all(),
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     */
+    private function bcvDescription(array $item, int $number): string
+    {
+        $lines = [];
+        $product = $this->displayText($item['product'] ?? null);
+        $style = $this->displayText($item['style'] ?? null);
+        $packing = $this->displayText($item['packing'] ?? null);
+        $notes = $this->displayText($item['notes'] ?? null);
+
+        $title = trim($product . ($style !== '' ? ' ' . $style : ''));
+        if ($title !== '') {
+            $lines[] = "{$number}.{$title}.";
+        }
+
+        $packingLine = trim('Packing: ' . $packing . ($notes !== '' ? ', ' . $notes : ''));
+        if ($packing !== '' || $notes !== '') {
+            $lines[] = $packingLine;
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -288,6 +386,15 @@ final class TransactionDocumentViewDataFactory
         return number_format($number, $decimals, '.', ',');
     }
 
+    private function weightOrBlank(float|int|string|null $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        return number_format((float) $value, 2, '.', ',');
+    }
+
     private function firstNumber(mixed ...$values): ?float
     {
         foreach ($values as $value) {
@@ -340,6 +447,19 @@ final class TransactionDocumentViewDataFactory
 
         try {
             return Carbon::parse($value)->format('M d, Y');
+        } catch (\Throwable) {
+            return (string) $value;
+        }
+    }
+
+    private function formatDotDate(mixed $value): string
+    {
+        if (! $value) {
+            return '';
+        }
+
+        try {
+            return Carbon::parse($value)->format('d.m.Y');
         } catch (\Throwable) {
             return (string) $value;
         }
@@ -403,6 +523,32 @@ final class TransactionDocumentViewDataFactory
         return $formattedPercent !== '' ? "{$formattedPercent} % COMMISSION" : 'COMMISSION';
     }
 
+    private function itemCommissionText(mixed $rate, mixed $unit): string
+    {
+        $formattedRate = $this->decimalOrBlank($rate, 2);
+
+        if ($formattedRate === '' || $this->isZero((float) $rate)) {
+            return '';
+        }
+
+        $unitLabel = $this->displayUnit($unit);
+
+        return trim('US $ ' . $formattedRate . ($unitLabel !== '' ? '/' . Str::upper($unitLabel) : ''));
+    }
+
+    private function commissionNote(?string $itemCommission, mixed $enabled, mixed $percent): string
+    {
+        $commission = $itemCommission !== null && $itemCommission !== ''
+            ? $itemCommission
+            : ($enabled ? $this->commissionText($enabled, $percent) : '');
+
+        if ($commission === '' || Str::upper($commission) === 'NO COMMISSION') {
+            return '';
+        }
+
+        return "The above prices has included commission {$commission} payable to Alkamaris Exports (OPC) Pvt Ltd.";
+    }
+
     private function priceHeader(string $currency, string $unit): string
     {
         $label = $this->currencyRateLabel($currency);
@@ -444,5 +590,48 @@ final class TransactionDocumentViewDataFactory
         $text = trim((string) $value);
 
         return $text !== '' ? $text : $fallback;
+    }
+
+    private function firstFilled(mixed ...$values): string
+    {
+        foreach ($values as $value) {
+            $text = $this->displayText($value);
+
+            if ($text !== '') {
+                return $text;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array{name: string, lines: array<int, string>, registration: string}
+     */
+    private function partyBlock(mixed $name, string $role, string $registrationLabel, mixed $fallbackRegistration): array
+    {
+        $partyName = $this->displayText($name);
+        $user = $partyName !== ''
+            ? User::query()
+                ->where('role', $role)
+                ->where('name', $partyName)
+                ->first(['address', 'registration_number'])
+            : null;
+
+        $addressLines = collect(preg_split('/\r\n|\r|\n/', $this->displayText($user?->address)) ?: [])
+            ->map(fn (string $line): string => trim($line))
+            ->filter()
+            ->values()
+            ->all();
+
+        $registration = $this->displayText($fallbackRegistration) !== ''
+            ? $this->displayText($fallbackRegistration)
+            : $this->displayText($user?->registration_number);
+
+        return [
+            'name' => Str::upper($partyName),
+            'lines' => array_map(fn (string $line): string => Str::upper($line), $addressLines),
+            'registration' => $registration !== '' ? $registrationLabel . ': ' . Str::upper($registration) : '',
+        ];
     }
 }
