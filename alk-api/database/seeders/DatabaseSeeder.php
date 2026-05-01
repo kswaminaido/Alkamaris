@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
             'role' => UserRole::Admin->value,
             'phone_number' => '9999999999',
             'address' => 'Default seeded admin address',
-            'registration_number' => 'REG-ADMIN-00011',
+            'registration_number' => 'REG-ADMIN-00012',
             'password' => bcrypt('Password@123'),
         ]);
 
@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
             'role' => UserRole::Admin->value,
             'phone_number' => '9999999999',
             'address' => 'Default seeded admin address',
-            'registration_number' => 'REG-ADMIN-00011',
+            'registration_number' => 'REG-ADMIN-00013',
             'password' => bcrypt('Password@123'),
         ]);
 
