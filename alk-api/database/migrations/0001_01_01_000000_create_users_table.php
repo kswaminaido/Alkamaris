@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::create('users', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
-                $table->string('email')->unique();
+                $table->string('email', 191)->unique();
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('password');
                 $table->rememberToken();
@@ -25,7 +25,7 @@ return new class extends Migration
 
         if (!Schema::hasTable('password_reset_tokens')) {
             Schema::create('password_reset_tokens', function (Blueprint $table) {
-                $table->string('email')->primary();
+                $table->string('email', 191)->primary();
                 $table->string('token');
                 $table->timestamp('created_at')->nullable();
             });
