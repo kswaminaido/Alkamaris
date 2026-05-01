@@ -1,4 +1,6 @@
-export const COUNTRY_API_URL = 'http://localhost:8000/api/countries/options'
+import { API_BASE } from '../config/api'
+
+export const COUNTRY_API_URL = `${API_BASE}/countries/options`
 
 export const FALLBACK_COUNTRIES = [
   'India',

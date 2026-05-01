@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useGlobalLoading } from './GlobalLoadingContext'
+import { API_BASE } from '../config/api'
 
-const API_BASE = 'http://localhost:8000/api'
 const TOKEN_KEY = 'alkamaris_access_token'
 const DEFAULT_USER_TYPES = []
 const SESSION_EXPIRED_ERROR = 'SESSION_EXPIRED'
