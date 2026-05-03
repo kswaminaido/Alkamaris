@@ -251,10 +251,27 @@ final class TransactionService
 
     private function upsertOneToOne(int $transactionId, string $modelClass, array $payload): void
     {
+        // If updating logistics, capture previous bl_date to detect transition from null -> date
+        $previousBlDate = null;
+        if ($modelClass === TransactionLogistics::class) {
+            $previous = $modelClass::query()->where('transaction_id', $transactionId)->first();
+            $previousBlDate = $previous?->bl_date ?? null;
+        }
+
         $modelClass::query()->updateOrCreate(
             ['transaction_id' => $transactionId],
             $payload,
         );
+
+        // After upsert, if logistics bl_date changed from null to a date, update transaction status to Received (R)
+        if ($modelClass === TransactionLogistics::class) {
+            $current = $modelClass::query()->where('transaction_id', $transactionId)->first();
+            $currentBlDate = $current?->bl_date ?? null;
+
+            if ($previousBlDate === null && $currentBlDate !== null) {
+                Transaction::query()->where('id', $transactionId)->update(['status' => \App\Enums\TransactionStatus::Received->value]);
+            }
+        }
     }
 
     /**

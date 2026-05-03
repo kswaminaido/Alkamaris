@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
+import SummaryReportPage from './pages/SummaryReportPage'
 import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
 import TransactionCreatePage from './pages/TransactionCreatePage'
@@ -143,7 +144,7 @@ function AppShell() {
           path="/reports/summary"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Summary Report" allowedRoles={reportRoles} />
+              <SummaryReportPage />
             </RequireAuth>
           }
         />

@@ -688,8 +688,8 @@ function ShipTab({ transaction }) {
             <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row>
             <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row>
             <Row label="Service Type"><select name="logistics.service_type" defaultValue={logisticsValue('service_type', 'ALL WATER OR MLB')}>{OPTIONS.serviceType.map((o) => <option key={o}>{o}</option>)}</select></Row>
-            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '08/01/2026')} /></Row>
-            <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '263811951')} /></Row>
+            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '')} /></Row>
+            <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '')} /></Row>
             <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', 'VISAKHAPATNAM, IND')} /></Row>
             <Row label="Destination"><input name="logistics.destination" defaultValue={destination} /></Row>
             <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', 'MAERSK')} /></Row>
