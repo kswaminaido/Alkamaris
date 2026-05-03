@@ -33,6 +33,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
   const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
   const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
   const [mailModalOpen, setMailModalOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
 
   useEffect(() => {
@@ -357,24 +358,24 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
             </nav>
           </div>
           <div className="dashboard-topbar-profile-menu-wrap">
-            <Link
-              to="/profile"
+            <button
+              type="button"
               className="dashboard-topbar-profile"
-              aria-label="Open profile page"
+              aria-label="Open profile menu"
+              onClick={() => setProfileMenuOpen((v) => !v)}
             >
               <span className="dashboard-topbar-profile-name">{currentUser.name}</span>
               <span className="dashboard-topbar-profile-icon">
                 <ProfileIcon />
               </span>
-            </Link>
-            <button
-              type="button"
-              className="dashboard-topbar-logout-btn"
-              aria-label="Logout"
-              onClick={onLogout}
-            >
-              <SidebarIcon icon="logout" />
             </button>
+
+            {profileMenuOpen ? (
+              <div className="dashboard-topbar-profile-menu" role="menu">
+                <Link to="/profile" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Profile</Link>
+                <button type="button" className="dashboard-topbar-profile-menu-item" onClick={onLogout}>Logout</button>
+              </div>
+            ) : null}
           </div>
         </header>
 
