@@ -81,6 +81,8 @@ const ATTACHMENT_OPTIONS = [
 function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDuplicate, onTransactionChange }) {
   const [tab, setTab] = useState('home')
   const [itemsModalOpen, setItemsModalOpen] = useState(false)
+  const [lcModalOpen, setLcModalOpen] = useState(false)
+  const [lcValue, setLcValue] = useState(transaction?.lc_days ?? '')
   const [saving, setSaving] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [message, setMessage] = useState('')
@@ -320,6 +322,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
               saving={saving}
               duplicating={duplicating}
               onOpenItems={() => setItemsModalOpen(true)}
+              onOpenLc={() => { setLcValue(transaction?.lc_days ?? ''); setLcModalOpen(true) }}
               onDuplicate={handleDuplicate}
               onPrint={handlePrint}
               onSave={() => handleSave(false)}
@@ -362,6 +365,32 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           authFetch={authFetch}
           onClose={() => setItemsModalOpen(false)}
           onTransactionChange={onTransactionChange}
+        />
+      ) : null}
+      {lcModalOpen ? (
+        <LcTermsModal
+          transaction={transaction}
+          value={lcValue}
+          onChange={(v) => setLcValue(v)}
+          onClose={() => setLcModalOpen(false)}
+          onSubmit={async (selected) => {
+            if (!onSave) return
+            setSaving(true)
+            setError('')
+            try {
+              const result = await onSave(transaction.id, { transaction: { lc_days: selected, booking_no: transaction.booking_no, booking_mode: transaction.booking_mode ?? 'trade_commission' } })
+              if (!result?.ok) {
+                const message = result?.error ?? 'Unable to save L/C terms.'
+                setError(message)
+                showToast(message, 'error')
+                return
+              }
+              showToast('L/C terms saved')
+              setLcModalOpen(false)
+            } finally {
+              setSaving(false)
+            }
+          }}
         />
       ) : null}
       {toast ? <Toast text={toast.text} tone={toast.tone} /> : null}
@@ -726,13 +755,13 @@ function ShipTab({ transaction }) {
   )
 }
 
-function BottomActions({ saving, duplicating, onOpenItems, onDuplicate, onPrint, onSave, onSaveQuit }) {
+function BottomActions({ saving, duplicating, onOpenItems, onOpenLc, onDuplicate, onPrint, onSave, onSaveQuit }) {
   return (
     <div className="txe-bottom-actions">
       <div className="txe-bottom-tabs">
         <button type="button" onClick={onOpenItems}>Items</button>
         <button type="button">Special Notes</button>
-        <button type="button">L/C Terms</button>
+        <button type="button" onClick={() => { if (typeof onOpenLc === 'function') onOpenLc() }}>L/C Terms</button>
       </div>
       <div className="txe-bottom-buttons">
         <button type="button" onClick={onDuplicate} disabled={saving || duplicating}>{duplicating ? 'Duplicating...' : 'Duplicate'}</button>
@@ -919,6 +948,50 @@ function PrintDialog({
   )
 }
 
+function LcTermsModal({ transaction, value, onChange, onClose, onSubmit }) {
+  const options = [30, 45, 60, 90]
+  const [selected, setSelected] = useState(value ?? '')
+
+  useEffect(() => {
+    setSelected(value ?? '')
+  }, [value])
+
+  return (
+    <div className="txe-print-overlay" role="dialog" aria-modal="true" aria-label="L/C Terms">
+      <div className="txe-print-modal" style={{ width: '50%' }}>
+        <div className="txe-print-header">
+          <div>
+            <h3>Set L/C Terms</h3>
+            <span>Choose L/C term days</span>
+          </div>
+          <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
+        </div>
+
+        <div className="txe-print-content">
+          <div className="txe-print-form">
+            <div className="txe-print-topgrid">
+              <div><span>Transaction</span><strong>{transaction.booking_no}</strong></div>
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: 'block', marginBottom: 6 }}>L/C term days</label>
+              <select value={selected ?? ''} onChange={(e) => { setSelected(e.target.value); if (onChange) onChange(e.target.value) }}>
+                <option value="">Select</option>
+                {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginTop: 18 }}>
+              <button type="button" className='btn btn-primary' onClick={() => { if (onSubmit) onSubmit(selected) }}>Save</button>
+              <button type="button" className='btn btn-secondary' onClick={onClose} style={{ marginLeft: 8 }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SectionCard({ title, side, tone = 'blue', children }) {
   return (
     <section className={`txe-card txe-${tone}`}>
@@ -1016,7 +1089,7 @@ function buildInitialPrintSelections() {
     specs: false,
     s_a: false,
     lc_terms_vendor: false,
-    lc_terms: false,
+    lc_days: false,
     delivery_order: false,
   }
 }

@@ -75,6 +75,15 @@ final class TransactionService
     public function update(Transaction $transaction, array $validated): Transaction
     {
         return DB::transaction(function () use ($transaction, $validated): Transaction {
+            // If lc_days is provided and changed, set lc_set_at to today
+            if (isset($validated['transaction']['lc_days'])) {
+                $newLcDays = $validated['transaction']['lc_days'];
+                $currentLcDays = $transaction->lc_days ?? null;
+                if (($currentLcDays === null || (string) $currentLcDays !== (string) $newLcDays) && $newLcDays !== null && $newLcDays !== '') {
+                    $validated['transaction']['lc_set_at'] = CarbonImmutable::now()->toDateString();
+                }
+            }
+
             $transaction->update($validated['transaction']);
 
             $this->syncDetails($transaction, $validated);

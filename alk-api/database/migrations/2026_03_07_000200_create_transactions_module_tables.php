@@ -25,6 +25,8 @@ return new class extends Migration
             $table->decimal('net_margin', 14, 2)->nullable();
             $table->foreignId('created_by_user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('status', ['I', 'P', 'S', 'R', 'U', 'T'])->default('U');
+            $table->date('lc_set_at')->nullable();
+            $table->integer('lc_days')->default(0);
             $table->timestamps();
         });
 

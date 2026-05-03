@@ -18,7 +18,7 @@ enum UserRole: string
     {
         return array_map(
             static fn(self $role): string => $role->value,
-            array_values(array_filter(self::cases(), static fn(self $role): bool => $role !== self::Vendor)),
+            self::cases(),
         );
     }
 
