@@ -1651,9 +1651,10 @@ select:focus {
 
 .search-filters {
   display: flex;
-  gap: 4px;
-  align-items: center;
-  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   padding: 0;
 }
 
@@ -1661,6 +1662,13 @@ select:focus {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .filter-group label {
@@ -1671,14 +1679,15 @@ select:focus {
 
 .filter-group input,
 .filter-group select {
-  min-width: 150px;
+  min-width: 140px;
   padding: 0.5rem;
   border: 1px solid var(--field-border);
   border-radius: 4px;
   font-size: 0.875rem;
 }
 
-.transactions-toolbar input {
+.transactions-toolbar input,
+.transactions-toolbar select {
   max-width: 320px;
   border-radius: 0;
   border: 1px solid #d0d5dd;

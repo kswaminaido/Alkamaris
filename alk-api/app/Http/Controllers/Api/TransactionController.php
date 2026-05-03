@@ -47,6 +47,22 @@ class TransactionController extends Controller
             $query->where('booking_no', 'like', "%{$bookingNo}%");
         }
 
+        if ($vendor = request('vendor')) {
+            $query->whereHas('generalInfoPacker', function ($q) use ($vendor) {
+                $q->where('vendor', 'like', "%{$vendor}%");
+            });
+        }
+
+        if ($customer = request('customer')) {
+            $query->whereHas('generalInfoCustomer', function ($q) use ($customer) {
+                $q->where('customer', 'like', "%{$customer}%");
+            });
+        }
+
+        if ($status = request('status')) {
+            $query->where('status', $status);
+        }
+
         if ($fromDate = request('from_date')) {
             $query->whereDate('updated_at', '>=', $fromDate);
         }

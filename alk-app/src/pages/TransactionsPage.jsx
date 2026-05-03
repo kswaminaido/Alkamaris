@@ -5,6 +5,7 @@ import TransactionEditModal from '../components/transactions/TransactionEditModa
 import { useAuth } from '../context/AuthContext'
 
 const PAGE_SIZE = 10
+const EXPORT_PAGE_SIZE = 1000
 const MAX_VISIBLE_PAGES = 5
 
 const statusOptions = [
@@ -14,6 +15,24 @@ const statusOptions = [
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
   { value: 'T', label: 'Tally' },
+]
+
+const csvColumns = [
+  { label: 'Code', value: (transaction) => transaction.booking_no },
+  { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
+  { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
+  { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
+  { label: 'SC Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
+  { label: 'SC Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
+  { label: 'Packer Inv.', value: (transaction) => transaction.general_info_packer?.packer_name },
+  { label: "Buyer's PO/Contract", value: (transaction) => transaction.general_info_customer?.buyer_number },
+  { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
+  { label: 'ETA', value: (transaction) => displayDate(transaction.shipping_details_packer?.req_eta) },
+  { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
+  { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
+  { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
+  { label: 'Destination', value: (transaction) => transaction.destination },
+  { label: 'Date Modified', value: (transaction) => displayDate(transaction.updated_at) },
 ]
 
 function getStatusLabel(value) {
@@ -26,6 +45,7 @@ function TransactionsPage() {
   const { currentUser, authFetch, logout } = useAuth()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
@@ -49,16 +69,7 @@ function TransactionsPage() {
     setLoading(true)
     setError('')
     try {
-      const params = new URLSearchParams()
-      params.append('page', targetPage)
-      params.append('per_page', PAGE_SIZE)
-      if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
-      if (filters.vendor) params.append('vendor', filters.vendor)
-      if (filters.customer) params.append('customer', filters.customer)
-      if (filters.status) params.append('status', filters.status)
-      if (filters.fromDate) params.append('from_date', filters.fromDate)
-      if (filters.toDate) params.append('to_date', filters.toDate)
-
+      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE)
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
@@ -90,6 +101,57 @@ function TransactionsPage() {
       toDate: '',
     })
     setPage(1)
+  }
+
+  async function exportCsv() {
+    if (totalRecords === 0 || exporting) return
+
+    setExporting(true)
+    setError('')
+    try {
+      let rowsToExport = []
+      let targetPage = 1
+      let lastExportPage = 1
+
+      do {
+        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE)
+        const response = await authFetch(`/transactions?${params.toString()}`)
+        const payload = await response.json()
+        if (!response.ok) {
+          setError(payload?.message ?? 'Unable to export transactions.')
+          return
+        }
+
+        rowsToExport = [...rowsToExport, ...(payload?.data ?? [])]
+        lastExportPage = payload?.pagination?.last_page ?? 1
+        targetPage += 1
+      } while (targetPage <= lastExportPage)
+
+      if (rowsToExport.length === 0) return
+
+      downloadTransactionsCsv(rowsToExport)
+    } catch {
+      setError('Unable to export transactions.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  function downloadTransactionsCsv(rowsToExport) {
+    const rows = [
+      csvColumns.map((column) => column.label),
+      ...rowsToExport.map((transaction) => csvColumns.map((column) => column.value(transaction) ?? '-')),
+    ]
+    const csv = rows.map((row) => row.map(formatCsvCell).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
   }
 
   async function duplicateTransaction(transactionId) {
@@ -274,14 +336,19 @@ function TransactionsPage() {
 
               <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
-                <input
+                <select
                   id="status-filter"
-                  type="text"
                   value={searchFilters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
-                  placeholder="Search by status"
                   disabled={loading}
-                />
+                >
+                  <option value="">All Status</option>
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="filter-group">
@@ -308,9 +375,14 @@ function TransactionsPage() {
 
               <div className="filter-group" style={{ marginLeft: 'auto' }}>
                 <label>&nbsp;</label>
-                <button type="button" className="secondary-btn" onClick={clearFilters} disabled={loading}>
-                  Clear
-                </button>
+                <div className="filter-actions">
+                  <button type="button" className="secondary-btn" onClick={clearFilters} disabled={loading}>
+                    Clear
+                  </button>
+                  <button type="button" className="secondary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
+                    {exporting ? 'Exporting...' : 'Export'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -412,6 +484,24 @@ function displayDate(value) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleDateString('en-GB')
+}
+
+function buildTransactionParams(filters, targetPage, perPage) {
+  const params = new URLSearchParams()
+  params.append('page', targetPage)
+  params.append('per_page', perPage)
+  if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
+  if (filters.vendor) params.append('vendor', filters.vendor)
+  if (filters.customer) params.append('customer', filters.customer)
+  if (filters.status) params.append('status', filters.status)
+  if (filters.fromDate) params.append('from_date', filters.fromDate)
+  if (filters.toDate) params.append('to_date', filters.toDate)
+  return params
+}
+
+function formatCsvCell(value) {
+  const text = String(value ?? '')
+  return `"${text.replaceAll('"', '""')}"`
 }
 
 export default TransactionsPage

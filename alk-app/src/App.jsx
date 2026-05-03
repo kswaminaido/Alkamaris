@@ -27,6 +27,7 @@ function App() {
 
 function AppShell() {
   const { isGlobalLoading, loadingLabel } = useGlobalLoading()
+  const reportRoles = ['admin', 'accounts']
 
   return (
     <>
@@ -142,7 +143,7 @@ function AppShell() {
           path="/reports/summary"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Summary Report" />
+              <ModulePlaceholderPage title="Summary Report" allowedRoles={reportRoles} />
             </RequireAuth>
           }
         />
@@ -150,7 +151,7 @@ function AppShell() {
           path="/reports/packer-sales"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Packer Sales" />
+              <ModulePlaceholderPage title="Packer Sales" allowedRoles={reportRoles} />
             </RequireAuth>
           }
         />
@@ -158,7 +159,7 @@ function AppShell() {
           path="/reports/payment-status"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Payment Status" />
+              <ModulePlaceholderPage title="Payment Status" allowedRoles={reportRoles} />
             </RequireAuth>
           }
         />
