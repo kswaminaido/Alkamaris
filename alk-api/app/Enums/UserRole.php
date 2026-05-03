@@ -6,7 +6,6 @@ enum UserRole: string
 {
     case Admin = 'admin';
     case Sales = 'sales';
-    case Vendor = 'vendor';
     case Packer = 'packer';
     case Customer = 'customer';
     case Logistics = 'logistics';
@@ -19,7 +18,7 @@ enum UserRole: string
     {
         return array_map(
             static fn(self $role): string => $role->value,
-            self::cases(),
+            array_values(array_filter(self::cases(), static fn(self $role): bool => $role !== self::Vendor)),
         );
     }
 
@@ -29,8 +28,10 @@ enum UserRole: string
     public static function registrableValues(): array
     {
         return [
-            self::Vendor->value,
+            self::Packer->value,
             self::Customer->value,
+            self::Accounts->value,
+            self::Logistics->value,
         ];
     }
 }

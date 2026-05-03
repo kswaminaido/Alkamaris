@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transactions\StoreTransactionRequest;
 use App\Http\Requests\Transactions\UpdateTransactionRequest;
@@ -35,7 +36,7 @@ class TransactionController extends Controller
             $query->whereHas('generalInfoCustomer', function ($q) use ($user) {
                 $q->where('customer', $user->name);
             });
-        } elseif ($user->role->value === 'vendor') {
+        } elseif (in_array($user->role->value, [UserRole::Packer->value], true)) {
             $query->whereHas('generalInfoPacker', function ($q) use ($user) {
                 $q->where('vendor', $user->name);
             });

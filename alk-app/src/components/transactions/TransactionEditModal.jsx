@@ -59,7 +59,7 @@ const PRINT_DOCUMENTS = [
   { type: 'proforma_invoice', label: 'Print Proforma Inv' },
   { type: 'specs', label: 'Print Specs' },
   { type: 's_a', label: 'Print S/A' },
-  { type: 'lc_terms_vendor', label: 'Print L/C Terms (Vendor)' },
+  { type: 'lc_terms_vendor', label: 'Print L/C Terms (Packer)' },
   { type: 'lc_terms', label: 'Print L/C Terms' },
   { type: 'delivery_order', label: 'Print Delivery Order' },
 ]
@@ -430,7 +430,7 @@ function HomeTab({ transaction }) {
         </SectionCard>
 
         <SectionCard title="GENERAL INFO" side="PACKER" tone="blue">
-          <Row label="Vendor"><input name="general_info_packer.vendor" defaultValue={packer.vendor ?? ''} /></Row>
+          <Row label="Packer"><input name="general_info_packer.vendor" defaultValue={packer.vendor ?? ''} /></Row>
           <Row label="Packer's"><div className="txe-inline"><select name="general_info_packer.packer_name" defaultValue={packer.packer_name ?? ''}><option value="">Select</option>{packer.packer_name ? <option value={packer.packer_name}>{packer.packer_name}</option> : null}</select><input name="general_info_packer.packer_number" defaultValue={packer.packer_number ?? ''} placeholder="#" /></div></Row>
           <Row label="Packed By"><input defaultValue={packer.packed_by ?? ''} /></Row>
           <Row label="Prices Packer"><div className="txe-inline"><select name="general_info_packer.prices_packer_type" defaultValue={packer.prices_packer_type ?? 'CFR'}>{withCurrent(['CFR', 'FOB'], packer.prices_packer_type || 'CFR').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.prices_packer_rate" defaultValue={packer.prices_packer_rate ?? ''} /></div></Row>
@@ -562,7 +562,7 @@ function ItemsModal({ transaction, onClose }) {
   const totalSellingPrice = rows.reduce((sum, row) => sum + (row.totalSellingPriceValue ?? 0), 0)
   const totalBuyingPrice = rows.reduce((sum, row) => sum + (row.totalBuyingPriceValue ?? 0), 0)
   const totalWeight = rows.reduce((sum, row) => sum + (row.weightValue ?? 0), 0)
-  const vendor = transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? ''
+  const packer = transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? ''
   const customer = transaction.general_info_customer?.customer ?? ''
   const etaDate = transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta ?? ''
   const lsdDate = transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min ?? ''
@@ -578,7 +578,7 @@ function ItemsModal({ transaction, onClose }) {
           <div className="txe-items-summary">
             <div className="txe-items-summary-grid">
               <label><span>Transaction ID</span><input readOnly value={transaction.booking_no || ''} /></label>
-              <label><span>Vendor</span><input readOnly value={vendor} /></label>
+              <label><span>Packer</span><input readOnly value={packer} /></label>
               <label><span>Book Date</span><input readOnly value={formatDate(transaction.issue_date)} /></label>
               <label><span>Customer</span><input readOnly value={customer} /></label>
               <label><span>ETA Date</span><input readOnly value={formatDate(etaDate)} /></label>

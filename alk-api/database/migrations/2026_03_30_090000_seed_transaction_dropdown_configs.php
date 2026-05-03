@@ -27,7 +27,7 @@ return new class extends Migration
             'customer_payment_term' => ['Advance', '30 Days', '60 Days'],
             'transaction_tolerance' => ['+/- 1%', '+/- 2%', '+/- 5%'],
             'packer_name' => ['Packer One', 'Packer Two', 'Packer Three'],
-            'packer_packed_by' => ['Factory', 'Third Party', 'Vendor'],
+            'packer_packed_by' => ['Factory', 'Third Party', 'Packer'],
             'packer_price_type' => ['USD/MT', 'INR/MT', 'SGD/MT'],
             'packer_payment_type' => ['LC', 'TT', 'CAD'],
             'packer_payment_term' => ['Advance', '30 Days', '60 Days'],

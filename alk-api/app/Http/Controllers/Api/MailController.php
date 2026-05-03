@@ -57,7 +57,7 @@ class MailController extends Controller
                 ->map(fn($info, $index) => [
                     'id' => $index,
                     'name' => $info->vendor ?? 'Unknown',
-                    'email' => $this->getVendorEmail($info->vendor),
+                    'email' => $this->getPackerEmail($info->vendor),
                 ])
                 ->values()
                 ->all();
@@ -71,7 +71,7 @@ class MailController extends Controller
         $validated = $request->validate([
             'from' => ['required', 'email'],
             'recipients' => ['required', 'array', 'min:1'],
-            'recipient_type' => ['required', 'in:customers,vendors'],
+            'recipient_type' => ['required', 'in:customers,packers,vendors'],
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
         ]);
@@ -144,7 +144,7 @@ class MailController extends Controller
                 ->unique(fn($info) => $info->vendor)
                 ->values()
                 ->slice(0, count($recipientIds))
-                ->map(fn($info) => $this->getVendorEmail($info->vendor))
+                ->map(fn($info) => $this->getPackerEmail($info->vendor))
                 ->filter()
                 ->values()
                 ->all();
@@ -164,16 +164,15 @@ class MailController extends Controller
         return strtolower(str_replace(' ', '.', $customer)) . '@example.com';
     }
 
-    private function getVendorEmail(?string $vendor): ?string
+    private function getPackerEmail(?string $packer): ?string
     {
-        // This is a placeholder - implement based on your system's vendor email storage
-        // You might fetch from a vendors table or configuration
-        if (!$vendor) {
+        // This is a placeholder - implement based on your system's packer email storage.
+        if (!$packer) {
             return null;
         }
 
         // For demonstration, return a default email
         // In production, you'd look this up from your database
-        return strtolower(str_replace(' ', '.', $vendor)) . '@example.com';
+        return strtolower(str_replace(' ', '.', $packer)) . '@example.com';
     }
 }

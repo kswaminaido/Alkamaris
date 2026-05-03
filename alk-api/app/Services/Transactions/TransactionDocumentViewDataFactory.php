@@ -140,7 +140,7 @@ final class TransactionDocumentViewDataFactory
             'attention' => $this->displayText($customer?->attention),
             'packer_block' => $this->partyBlock(
                 $this->firstFilled($packer?->packer_name, $packer?->vendor),
-                UserRole::Vendor->value,
+                UserRole::Packer->value,
                 'GSTIN NO',
                 $packer?->packer_number,
             ),

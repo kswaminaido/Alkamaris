@@ -7,40 +7,40 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class VendorSeeder extends Seeder
+class PackerSeeder extends Seeder
 {
     public function run(): void
     {
-        $vendors = [
+        $packers = [
             [
-                'name' => 'Vendor Prime Seafood',
+                'name' => 'Packer Prime Seafood',
                 'phone_number' => '9000002001',
-                'email' => 'vendor.prime@example.com',
+                'email' => 'packer.prime@example.com',
                 'address' => 'Visakhapatnam, India',
-                'registration_number' => 'VEN-PRIME-001',
+                'registration_number' => 'PACK-PRIME-001',
             ],
             [
-                'name' => 'Vendor Delta Marine',
+                'name' => 'Packer Delta Marine',
                 'phone_number' => '9000002002',
-                'email' => 'vendor.delta@example.com',
+                'email' => 'packer.delta@example.com',
                 'address' => 'Mangalore, India',
-                'registration_number' => 'VEN-DELTA-002',
+                'registration_number' => 'PACK-DELTA-002',
             ],
             [
-                'name' => 'Vendor Nova Packers',
+                'name' => 'Packer Nova Packers',
                 'phone_number' => '9000002003',
-                'email' => 'vendor.nova@example.com',
+                'email' => 'packer.nova@example.com',
                 'address' => 'Tuticorin, India',
-                'registration_number' => 'VEN-NOVA-003',
+                'registration_number' => 'PACK-NOVA-003',
             ],
         ];
 
-        foreach ($vendors as $vendor) {
+        foreach ($packers as $packer) {
             User::query()->updateOrCreate(
-                ['email' => $vendor['email']],
+                ['email' => $packer['email']],
                 [
-                    ...$vendor,
-                    'role' => UserRole::Vendor->value,
+                    ...$packer,
+                    'role' => UserRole::Packer->value,
                     'password' => Hash::make('Password@123'),
                 ],
             );

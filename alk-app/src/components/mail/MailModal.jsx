@@ -4,7 +4,7 @@ import './MailModal.css'
 function MailModal({ isOpen, authFetch, onClose }) {
   const [step, setStep] = useState('filters') // filters, list, compose
   const [customers, setCustomers] = useState([])
-  const [vendors, setVendors] = useState([])
+  const [packers, setPackers] = useState([])
   const [selectedRecipients, setSelectedRecipients] = useState([])
   const [filtering, setFiltering] = useState(false)
   const [sending, setSending] = useState(false)
@@ -44,9 +44,9 @@ function MailModal({ isOpen, authFetch, onClose }) {
 
       if (filters.recipientType === 'customers') {
         setCustomers(payload?.data ?? [])
-        setVendors([])
+        setPackers([])
       } else {
-        setVendors(payload?.data ?? [])
+        setPackers(payload?.data ?? [])
         setCustomers([])
       }
       setSelectedRecipients([])
@@ -172,7 +172,7 @@ function MailModal({ isOpen, authFetch, onClose }) {
 
   if (!isOpen) return null
 
-  const recipients = filters.recipientType === 'customers' ? customers : vendors
+  const recipients = filters.recipientType === 'customers' ? customers : packers
 
   return (
     <div className="mail-modal-overlay" onClick={() => step === 'filters' && onClose()}>
@@ -206,7 +206,7 @@ function MailModal({ isOpen, authFetch, onClose }) {
                     disabled={filtering}
                   >
                     <option value="customers">Customers</option>
-                    <option value="vendors">Vendors</option>
+                    <option value="packers">Packers</option>
                   </select>
                 </div>
 
@@ -290,7 +290,7 @@ function MailModal({ isOpen, authFetch, onClose }) {
           <div className="mail-modal-content">
             <div className="mail-list-container">
               <h3>
-                {uploadedFile ? 'Email Addresses' : filters.recipientType === 'customers' ? 'Customers' : 'Vendors'} (
+                {uploadedFile ? 'Email Addresses' : filters.recipientType === 'customers' ? 'Customers' : 'Packers'} (
                 {recipients.length})
               </h3>
               <div className="mail-recipients-list">

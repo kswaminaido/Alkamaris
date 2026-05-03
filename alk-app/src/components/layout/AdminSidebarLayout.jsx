@@ -20,9 +20,10 @@ const navActions = [
   { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
 ]
 
-function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLogout, authFetch }) {
+function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, authFetch }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
     const savedValue = window.localStorage.getItem(SIDEBAR_STATE_KEY)
@@ -230,59 +231,61 @@ function AdminSidebarLayout({ currentUser, title, activeKey = '', children, onLo
             </NavLink>
           </div>
 
-          <div className="position-relative">
-            <button
-              type="button"
-              className={`sidebar-link w-100 ${reportSubmenuOpen ? 'active' : ''}`}
-              onClick={() => {
-                setReportSubmenuOpen((open) => !open)
-                setTransactionSubmenuOpen(false)
-              }}
-              aria-expanded={reportSubmenuOpen}
-            >
-              <SidebarIcon icon="reports" />
-              <span className="sidebar-link-text">Report</span>
-              <span className="sidebar-link-end">
-                <ChevronIcon className={`sidebar-chevron transition-rotate ${reportSubmenuOpen ? 'rotate-90' : ''}`} />
-              </span>
-            </button>
-            {reportSubmenuOpen && (
-              <div className="sidebar-submenu-panel shadow rounded border">
-                <nav className="list-group list-group-flush">
-                  <NavLink
-                    to="/reports/summary"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    Summary Report
-                  </NavLink>
-                  <NavLink
-                    to="/reports/vendor-sales"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    Vendor Sales
-                  </NavLink>
-                  <NavLink
-                    to="/reports/payment-status"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    Payment Status
-                  </NavLink>
-                </nav>
-              </div>
-            )}
-          </div>
+          {canViewReports && (
+            <div className="position-relative">
+              <button
+                type="button"
+                className={`sidebar-link w-100 ${reportSubmenuOpen ? 'active' : ''}`}
+                onClick={() => {
+                  setReportSubmenuOpen((open) => !open)
+                  setTransactionSubmenuOpen(false)
+                }}
+                aria-expanded={reportSubmenuOpen}
+              >
+                <SidebarIcon icon="reports" />
+                <span className="sidebar-link-text">Report</span>
+                <span className="sidebar-link-end">
+                  <ChevronIcon className={`sidebar-chevron transition-rotate ${reportSubmenuOpen ? 'rotate-90' : ''}`} />
+                </span>
+              </button>
+              {reportSubmenuOpen && (
+                <div className="sidebar-submenu-panel shadow rounded border">
+                  <nav className="list-group list-group-flush">
+                    <NavLink
+                      to="/reports/summary"
+                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                      onClick={() => {
+                        closeMobileMenu()
+                        closeSidebarSubmenus()
+                      }}
+                    >
+                      Summary Report
+                    </NavLink>
+                    <NavLink
+                      to="/reports/packer-sales"
+                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                      onClick={() => {
+                        closeMobileMenu()
+                        closeSidebarSubmenus()
+                      }}
+                    >
+                      Packer Sales
+                    </NavLink>
+                    <NavLink
+                      to="/reports/payment-status"
+                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
+                      onClick={() => {
+                        closeMobileMenu()
+                        closeSidebarSubmenus()
+                      }}
+                    >
+                      Payment Status
+                    </NavLink>
+                  </nav>
+                </div>
+              )}
+            </div>
+          )}
 
           <button type="button" className="sidebar-link sidebar-link-button sidebar-link-spaced" disabled>
             <SidebarIcon icon="help" />

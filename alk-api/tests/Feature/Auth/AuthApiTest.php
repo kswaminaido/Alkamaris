@@ -23,14 +23,14 @@ final class AuthApiTest extends TestCase
         );
     }
 
-    public function test_vendor_can_register(): void
+    public function test_packer_can_register(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Test User',
             'phone_number' => '9876543210',
             'email' => 'test@example.com',
             'address' => 'Test address',
-            'user_type' => UserRole::Vendor->value,
+            'user_type' => UserRole::Packer->value,
             'registration_number' => 'REG-1001',
             'password' => 'Password@123',
             'password_confirmation' => 'Password@123',
@@ -48,7 +48,7 @@ final class AuthApiTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
-            'role' => UserRole::Vendor->value,
+            'role' => UserRole::Packer->value,
             'registration_number' => 'REG-1001',
         ]);
     }
@@ -170,7 +170,7 @@ final class AuthApiTest extends TestCase
     public function test_authenticated_user_can_update_profile(): void
     {
         $user = User::factory()->create([
-            'role' => UserRole::Vendor,
+            'role' => UserRole::Packer,
             'email' => 'before@example.com',
             'registration_number' => 'REG-1001',
         ]);

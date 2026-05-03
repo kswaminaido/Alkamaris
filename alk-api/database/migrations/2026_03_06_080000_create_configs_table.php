@@ -22,7 +22,7 @@ return new class extends Migration
 
         DB::table('configs')->insert([
             'type' => 'roles',
-            'data' => json_encode(UserRole::values(), JSON_THROW_ON_ERROR),
+            'data' => json_encode(UserRole::registrableValues(), JSON_THROW_ON_ERROR),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

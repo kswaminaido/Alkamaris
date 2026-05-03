@@ -4,11 +4,13 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions, normalizeOptions } from '../utils/dropdownData'
 
+const PACKER_ROLE_VALUES = ['packer']
+
 function DataPage() {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
   const [configMap, setConfigMap] = useState({})
-  const [usersByRole, setUsersByRole] = useState({ customer: [], vendor: [] })
+  const [usersByRole, setUsersByRole] = useState({ customer: [], packer: [] })
   const [drafts, setDrafts] = useState({})
   const [previewSelection, setPreviewSelection] = useState({})
   const [loading, setLoading] = useState(false)
@@ -70,7 +72,7 @@ function DataPage() {
     try {
       const [configResponse, usersResponse] = await Promise.all([
         authFetch('/configs'),
-        authFetch('/users?roles=customer,vendor&per_page=100'),
+        authFetch('/users?roles=customer,packer,vendor&per_page=100'),
       ])
 
       const [configPayload, usersPayload] = await Promise.all([
@@ -81,7 +83,7 @@ function DataPage() {
       const nextConfigMap = configResponse.ok ? buildConfigMap(configPayload?.data) : {}
       const nextUsersByRole = {
         customer: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'customer')) : [],
-        vendor: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'vendor')) : [],
+        packer: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'packer')) : [],
       }
 
       setConfigMap(nextConfigMap)
@@ -430,7 +432,7 @@ function ReadonlyOptionBrowser({ fieldKey, options, selectedValue, onChangeSelec
 
 function sourceLabel(field) {
   if (field.source === 'config') return 'Config'
-  if (field.source === 'users') return `${field.role === 'vendor' ? 'Vendor' : 'Customer'} Users`
+  if (field.source === 'users') return `${field.role === 'packer' ? 'Packer' : 'Customer'} Users`
   return 'Resource'
 }
 

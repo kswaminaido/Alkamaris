@@ -147,10 +147,10 @@ function AppShell() {
           }
         />
         <Route
-          path="/reports/vendor-sales"
+          path="/reports/packer-sales"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Vendor Sales" />
+              <ModulePlaceholderPage title="Packer Sales" />
             </RequireAuth>
           }
         />

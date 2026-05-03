@@ -249,13 +249,13 @@ function TransactionsPage() {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="vendor-filter">Vendor</label>
+                <label htmlFor="vendor-filter">Packer</label>
                 <input
                   id="vendor-filter"
                   type="text"
                   value={searchFilters.vendor}
                   onChange={(e) => handleFilterChange('vendor', e.target.value)}
-                  placeholder="Search by vendor"
+                  placeholder="Search by packer"
                   disabled={loading}
                 />
               </div>
@@ -324,7 +324,7 @@ function TransactionsPage() {
               <tr>
                 <th>Code</th>
                 <th>Date</th>
-                <th>Vendor</th>
+                <th>Packer</th>
                 <th>Customer</th>
                 <th>SC Inv. to Packer</th>
                 <th>SC Inv. to Customer</th>

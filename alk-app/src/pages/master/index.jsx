@@ -57,7 +57,7 @@ function MasterData() {
           phone_number: editingUser.phone_number,
           address: editingUser.address,
           registration_number: editingUser.registration_number,
-          role: editingUser.role,
+          user_type: editingUser.role,
         }),
       })
       if (response.ok) {
@@ -161,7 +161,7 @@ function MasterData() {
                   <option value="">All Roles</option>
                   <option value="admin">Admin</option>
                   <option value="sales">Sales</option>
-                  <option value="vendor">Vendor</option>
+                  <option value="packer">Packer</option>
                   <option value="customer">Customer</option>
                 </select>
               </div>
@@ -225,7 +225,7 @@ function MasterData() {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.phone_number}</td>
-                  <td>{user.role}</td>
+                  <td>{formatRole(user.role)}</td>
                   <td>{user.registration_number}</td>
                   <td>
                     <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
@@ -330,7 +330,7 @@ function MasterData() {
                   >
                     <option value="admin">Admin</option>
                     <option value="sales">Sales</option>
-                    <option value="vendor">Vendor</option>
+                    <option value="packer">Packer</option>
                     <option value="customer">Customer</option>
                   </select>
                 </div>
@@ -350,3 +350,9 @@ function MasterData() {
 }
 
 export default MasterData
+
+function formatRole(role) {
+  if (role === 'packer' || role === 'vendor') return 'Packer'
+  if (!role) return ''
+  return role.charAt(0).toUpperCase() + role.slice(1)
+}

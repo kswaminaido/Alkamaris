@@ -17,6 +17,15 @@ final class RegisterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('user_type')) {
+            $this->merge([
+                'user_type' => strtolower(trim((string) $this->input('user_type'))),
+            ]);
+        }
+    }
+
     /**
      * @return array<string, array<int, string|Password>>
      */
