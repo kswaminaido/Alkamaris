@@ -4,6 +4,7 @@ import RequireAuth from './components/routing/RequireAuth'
 import { AuthProvider } from './context/AuthContext'
 import { GlobalLoadingProvider, useGlobalLoading } from './context/GlobalLoadingContext'
 import MasterData from './pages/master/index'
+import AdminMailPage from './pages/AdminMailPage'
 import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
@@ -129,6 +130,14 @@ function AppShell() {
           element={
             <RequireAuth>
               <MasterData />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/mail"
+          element={
+            <RequireAuth>
+              <AdminMailPage />
             </RequireAuth>
           }
         />

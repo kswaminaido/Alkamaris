@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import MailModal from '../mail/MailModal'
 
 const SIDEBAR_STATE_KEY = 'alk-dashboard-sidebar-open'
 const navActions = [
@@ -32,7 +31,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
   const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
-  const [mailModalOpen, setMailModalOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
 
@@ -73,7 +71,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
       return
     }
     if (action.key === 'mail') {
-      setMailModalOpen(true)
+      navigate('/admin/mail')
       return
     }
     if (action.key === 'master_list') {
@@ -312,6 +310,19 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
             <span className="sidebar-link-text">Master List</span>
             <span className="sidebar-link-end" />
           </NavLink>
+
+          <NavLink
+            to="/admin/mail"
+            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+            onClick={() => {
+              closeMobileMenu()
+              closeSidebarSubmenus()
+            }}
+          >
+            <SidebarIcon icon="mail" />
+            <span className="sidebar-link-text">Mail</span>
+            <span className="sidebar-link-end" />
+          </NavLink>
         </nav>
 
         <div className="dashboard-sidebar-footer">
@@ -381,8 +392,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
 
         <main className="dashboard-page-content">{children}</main>
       </div>
-
-      <MailModal isOpen={mailModalOpen} authFetch={authFetch} onClose={() => setMailModalOpen(false)} />
     </section>
   )
 }
@@ -436,6 +445,13 @@ function SidebarIcon({ icon }) {
           <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
           <path d="M10 17l5-5-5-5" />
           <path d="M15 12H3" />
+        </svg>
+      )
+    case 'mail':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6h16v12H4z" />
+          <path d="m4 7 8 6 8-6" />
         </svg>
       )
     default:

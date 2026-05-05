@@ -181,9 +181,10 @@ export function AuthProvider({ children }) {
   }
 
   async function authFetch(path, options = {}) {
+    const hasFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
     const headers = {
       Accept: 'application/json',
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.body && !hasFormDataBody ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers ?? {}),
     }
 
