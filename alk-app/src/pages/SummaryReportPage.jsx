@@ -10,11 +10,6 @@ const MAX_VISIBLE_PAGES = 5
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
-  { value: 'P', label: 'Pending' },
-  { value: 'S', label: 'Shipped' },
-  { value: 'R', label: 'Received' },
-  { value: 'U', label: 'Unshipped' },
-  { value: 'T', label: 'Tally' },
 ]
 
 const csvColumns = [
@@ -22,17 +17,7 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
-  { label: 'SC Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
-  { label: 'SC Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
-  { label: 'Packer Inv.', value: (transaction) => transaction.general_info_packer?.packer_name },
-  { label: "Buyer's PO/Contract", value: (transaction) => transaction.general_info_customer?.buyer_number },
-  { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
-  { label: 'ETA', value: (transaction) => displayDate(transaction.shipping_details_packer?.req_eta) },
-  { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
-  { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
-  { label: 'Destination', value: (transaction) => transaction.destination },
-  { label: 'Date Modified', value: (transaction) => displayDate(transaction.updated_at) },
 ]
 
 function getStatusLabel(value) {
@@ -40,7 +25,7 @@ function getStatusLabel(value) {
   return option ? option.label : value
 }
 
-function TransactionsPage() {
+function SummaryReportPage() {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
   const [transactions, setTransactions] = useState([])
@@ -53,7 +38,7 @@ function TransactionsPage() {
     bookingNo: '',
     vendor: '',
     customer: '',
-    status: '',
+    status: 'I',
     fromDate: '',
     toDate: '',
   })
@@ -70,17 +55,17 @@ function TransactionsPage() {
     setError('')
     try {
       const params = buildTransactionParams(filters, targetPage, PAGE_SIZE)
-      const response = await authFetch(`/transactions?${params.toString()}`)
+      const response = await authFetch(`/summary-reports?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
-        setError(payload?.message ?? 'Unable to load transactions.')
+        setError(payload?.message ?? 'Unable to load summary reports.')
         return
       }
       setTransactions(payload?.data ?? [])
       setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
       setPage(targetPage)
     } catch {
-      setError('Unable to load transactions.')
+      setError('Unable to load summary reports.')
     } finally {
       setLoading(false)
     }
@@ -92,14 +77,7 @@ function TransactionsPage() {
   }
 
   function clearFilters() {
-    setSearchFilters({
-      bookingNo: '',
-      vendor: '',
-      customer: '',
-      status: '',
-      fromDate: '',
-      toDate: '',
-    })
+    setSearchFilters({ bookingNo: '', vendor: '', customer: '', status: 'I', fromDate: '', toDate: '' })
     setPage(1)
   }
 
@@ -115,10 +93,10 @@ function TransactionsPage() {
 
       do {
         const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE)
-        const response = await authFetch(`/transactions?${params.toString()}`)
+        const response = await authFetch(`/summary-reports?${params.toString()}`)
         const payload = await response.json()
         if (!response.ok) {
-          setError(payload?.message ?? 'Unable to export transactions.')
+          setError(payload?.message ?? 'Unable to export summary reports.')
           return
         }
 
@@ -131,7 +109,7 @@ function TransactionsPage() {
 
       downloadTransactionsCsv(rowsToExport)
     } catch {
-      setError('Unable to export transactions.')
+      setError('Unable to export summary reports.')
     } finally {
       setExporting(false)
     }
@@ -147,7 +125,7 @@ function TransactionsPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
+    link.download = `summary-reports-${new Date().toISOString().slice(0, 10)}.csv`
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -292,11 +270,11 @@ function TransactionsPage() {
   if (!currentUser) return null
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
+    <AdminSidebarLayout currentUser={currentUser} title="Summary Report" activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>
-            <h5>Transaction &gt; All Transaction</h5>
+            <h5>Reports &gt; Summary Report</h5>
             <div className="search-filters">
               <div className="filter-group">
                 <label htmlFor="booking-no-filter">Transaction Id / Code:</label>
@@ -336,18 +314,8 @@ function TransactionsPage() {
 
               <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
-                <select
-                  id="status-filter"
-                  value={searchFilters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                  disabled={loading}
-                >
-                  <option value="">All Status</option>
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                <select id="status-filter" value={searchFilters.status} disabled>
+                  <option value="I">Invoice</option>
                 </select>
               </div>
 
@@ -398,16 +366,7 @@ function TransactionsPage() {
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
-                <th>SC Inv. to Packer</th>
-                <th>SC Inv. to Customer</th>
-                <th>Packer Inv.</th>
-                <th>Buyer&apos;s PO/Contract</th>
-                <th>ETD</th>
-                <th>ETA</th>
-                <th>LSD</th>
                 <th>Status</th>
-                <th>SH Date</th>
-                <th>Destination</th>
                 <th>Date Modified</th>
                 <th>Duplicate</th>
               </tr>
@@ -415,13 +374,13 @@ function TransactionsPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={16} style={{ textAlign: 'center' }}>
-                    Loading transactions, please wait...
+                  <td colSpan={7} style={{ textAlign: 'center' }}>
+                    Loading summary report, please wait...
                   </td>
                 </tr>
               )}
               {!loading && visibleRows.length === 0 && (
-                <tr><td colSpan={16}>No transactions found.</td></tr>
+                <tr><td colSpan={7}>No transactions found.</td></tr>
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
@@ -429,16 +388,7 @@ function TransactionsPage() {
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
-                  <td>{transaction.revenue_packer?.description ?? '-'}</td>
-                  <td>{transaction.revenue_customer?.description ?? '-'}</td>
-                  <td>{transaction.general_info_packer?.packer_name ?? '-'}</td>
-                  <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
-                  <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
-                  <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
-                  <td>{transaction.destination ?? '-'}</td>
                   <td>{displayDate(transaction.updated_at)}</td>
                   <td>
                     <button
@@ -504,4 +454,4 @@ function formatCsvCell(value) {
   return `"${text.replaceAll('"', '""')}"`
 }
 
-export default TransactionsPage
+export default SummaryReportPage

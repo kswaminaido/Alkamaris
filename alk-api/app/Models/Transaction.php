@@ -24,12 +24,15 @@ class Transaction extends Model
         'container_secondary',
         'certified',
         'net_margin',
+        'lc_days',
+        'lc_set_at',
         'status',
         'created_by_user_id',
     ];
 
     protected $casts = [
         'issue_date' => 'date',
+        'lc_set_at' => 'date',
         'certified' => 'boolean',
         'net_margin' => 'decimal:2',
         'status' => TransactionStatus::class,

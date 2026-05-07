@@ -35,11 +35,13 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::delete('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'destroy']);
     Route::post('transactions/{transaction}/items/{item}/duplicate', [TransactionItemController::class, 'duplicate']);
     Route::post('transactions/{transaction}/items/{item}/move', [TransactionItemController::class, 'move']);
+    Route::get('mail/options', [MailController::class, 'options']);
+    Route::get('mail/recipients', [MailController::class, 'recipients']);
+    Route::post('mail/send', [MailController::class, 'send']);
 });
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('transactions', TransactionController::class)->only(['index', 'show', 'store', 'update']);
+    Route::get('summary-reports', [TransactionController::class, 'summaryReports']);
     Route::post('transactions/{transaction}/duplicate', [TransactionController::class, 'duplicate']);
-    Route::get('mail/recipients', [MailController::class, 'recipients']);
-    Route::post('mail/send', [MailController::class, 'send']);
 });

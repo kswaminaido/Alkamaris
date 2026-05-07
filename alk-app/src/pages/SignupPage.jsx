@@ -39,16 +39,13 @@ function SignupPage() {
   useEffect(() => {
     setForm((previous) => ({
       ...previous,
-      user_type: previous.user_type || userTypeOptions[0] || 'vendor',
+      user_type: previous.user_type || userTypeOptions[0] || 'packer',
     }))
   }, [userTypeOptions])
 
   async function handleSubmit(event) {
     event.preventDefault()
-    const ok = await register(form)
-    if (ok) {
-      navigate('/dashboard', { replace: true })
-    }
+    await register(form)
   }
 
   function onFieldChange(field, value) {

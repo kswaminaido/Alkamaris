@@ -4,10 +4,12 @@ import RequireAuth from './components/routing/RequireAuth'
 import { AuthProvider } from './context/AuthContext'
 import { GlobalLoadingProvider, useGlobalLoading } from './context/GlobalLoadingContext'
 import MasterData from './pages/master/index'
+import AdminMailPage from './pages/AdminMailPage'
 import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
+import SummaryReportPage from './pages/SummaryReportPage'
 import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
 import TransactionCreatePage from './pages/TransactionCreatePage'
@@ -27,6 +29,7 @@ function App() {
 
 function AppShell() {
   const { isGlobalLoading, loadingLabel } = useGlobalLoading()
+  const reportRoles = ['admin', 'accounts']
 
   return (
     <>
@@ -131,6 +134,14 @@ function AppShell() {
           }
         />
         <Route
+          path="/admin/mail"
+          element={
+            <RequireAuth>
+              <AdminMailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/data"
           element={
             <RequireAuth>
@@ -142,15 +153,15 @@ function AppShell() {
           path="/reports/summary"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Summary Report" />
+              <SummaryReportPage />
             </RequireAuth>
           }
         />
         <Route
-          path="/reports/vendor-sales"
+          path="/reports/packer-sales"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Vendor Sales" />
+              <ModulePlaceholderPage title="Packer Sales" allowedRoles={reportRoles} />
             </RequireAuth>
           }
         />
@@ -158,7 +169,7 @@ function AppShell() {
           path="/reports/payment-status"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Payment Status" />
+              <ModulePlaceholderPage title="Payment Status" allowedRoles={reportRoles} />
             </RequireAuth>
           }
         />

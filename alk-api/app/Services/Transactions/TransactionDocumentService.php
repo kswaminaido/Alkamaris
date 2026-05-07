@@ -20,7 +20,7 @@ class TransactionDocumentService
         'proforma_invoice' => 'Print Proforma Inv',
         'specs' => 'Print Specs',
         's_a' => 'Print S/A',
-        'lc_terms_vendor' => 'Print L/C Terms (Vendor)',
+        'lc_terms_vendor' => 'Print L/C Terms (Packer)',
         'lc_terms' => 'Print L/C Terms',
         'delivery_order' => 'Print Delivery Order',
     ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Transactions;
 
+use App\Enums\TransactionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,7 +29,7 @@ final class TransactionResource extends JsonResource
             'container_secondary' => $this->container_secondary,
             'certified' => $this->certified,
             'net_margin' => $this->net_margin,
-            'status' => $this->status->value,
+            'status' => $this->status?->value ?? TransactionStatus::Unshipped->value,
             'created_by_user_id' => $this->created_by_user_id,
             'created_at' => optional($this->created_at)->toJSON(),
             'updated_at' => optional($this->updated_at)->toJSON(),

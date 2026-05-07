@@ -76,7 +76,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
           <div className="txe-items-summary">
             <div className="txe-items-summary-grid">
               <InfoField label="Transaction ID" value={transaction.booking_no} />
-              <InfoField label="Vendor" value={transaction.general_info_packer?.vendor} />
+              <InfoField label="Packer" value={transaction.general_info_packer?.vendor} />
               <InfoField label="Book Date" value={displayDate(transaction.issue_date)} />
               <InfoField label="Customer" value={transaction.general_info_customer?.customer} />
               <InfoField label="ETA Date" value={displayDate(transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta)} />
@@ -331,7 +331,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
         <div className="txe-item-editor-body">
           <div className="txe-item-editor-summary">
             <InfoField label="TransactionID" value={transaction.booking_no} />
-            <InfoField label="Vendor" value={transaction.general_info_packer?.vendor} />
+            <InfoField label="Packer" value={transaction.general_info_packer?.vendor} />
             <InfoField label="Customer" value={transaction.general_info_customer?.customer} />
           </div>
 

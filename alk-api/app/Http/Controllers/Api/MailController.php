@@ -2,178 +2,177 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\GeneralInfoCustomer;
-use App\Models\GeneralInfoPacker;
+use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Models\TransactionItem;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MailController extends Controller
 {
+    public function options(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'products' => TransactionItem::query()
+                    ->whereNotNull('product')
+                    ->where('product', '<>', '')
+                    ->distinct()
+                    ->orderBy('product')
+                    ->pluck('product')
+                    ->values(),
+            ],
+        ]);
+    }
+
     public function recipients(Request $request): JsonResponse
     {
-        $type = $request->string('type', 'customers');
-        $fromDate = $request->date('from_date');
-        $toDate = $request->date('to_date');
+        $filters = $request->validate([
+            'scol' => ['nullable', 'boolean'],
+            'exhibition' => ['nullable', 'boolean'],
+            'defaultMail' => ['nullable', 'boolean'],
+            'taxiMail' => ['nullable', 'boolean'],
+            'product' => ['nullable', 'string', 'max:255'],
+            'continents' => ['nullable', 'array'],
+            'continents.*' => ['string', 'max:100'],
+            'countries' => ['nullable', 'array'],
+            'countries.*' => ['string', 'max:100'],
+            'style' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'in:all_exhibition,scol'],
+            'rating' => ['nullable', 'string', 'max:50'],
+            'years' => ['nullable', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        $customerUsers = User::query()
+            ->where('role', 'customer')
+            ->get(['id', 'name', 'email', 'address', 'created_at'])
+            ->keyBy(fn (User $user): string => Str::lower(trim($user->name)));
 
         $query = Transaction::query()
-            ->distinct()
-            ->orderBy('id');
+            ->with(['generalInfoCustomer:transaction_id,customer', 'items:transaction_id,product,style'])
+            ->whereHas('generalInfoCustomer', fn ($q) => $q->whereNotNull('customer')->where('customer', '<>', ''));
 
-        if ($fromDate) {
-            $query->whereDate('created_at', '>=', $fromDate);
+        if (! empty($filters['countries'])) {
+            $query->whereIn('country', $filters['countries']);
         }
 
-        if ($toDate) {
-            $query->whereDate('created_at', '<=', $toDate);
+        if (! empty($filters['product'])) {
+            $product = $filters['product'];
+            $query->whereHas('items', fn ($q) => $q->where('product', 'like', "%{$product}%"));
         }
 
-        if ($type === 'customers') {
-            $query->with('generalInfoCustomer:transaction_id,customer')
-                ->whereHas('generalInfoCustomer');
-
-            $recipients = $query->get()
-                ->map(fn($transaction) => $transaction->generalInfoCustomer)
-                ->filter(fn($info) => $info !== null)
-                ->unique(fn($info) => $info->customer)
-                ->values()
-                ->map(fn($info, $index) => [
-                    'id' => $index,
-                    'name' => $info->customer ?? 'Unknown',
-                    'email' => $this->getCustomerEmail($info->customer),
-                ])
-                ->values()
-                ->all();
-        } else {
-            $query->with('generalInfoPacker:transaction_id,vendor')
-                ->whereHas('generalInfoPacker');
-
-            $recipients = $query->get()
-                ->map(fn($transaction) => $transaction->generalInfoPacker)
-                ->filter(fn($info) => $info !== null)
-                ->unique(fn($info) => $info->vendor)
-                ->values()
-                ->map(fn($info, $index) => [
-                    'id' => $index,
-                    'name' => $info->vendor ?? 'Unknown',
-                    'email' => $this->getVendorEmail($info->vendor),
-                ])
-                ->values()
-                ->all();
+        if (! empty($filters['style'])) {
+            $style = $filters['style'];
+            $query->whereHas('items', fn ($q) => $q->where('style', 'like', "%{$style}%"));
         }
 
-        return response()->json(['data' => $recipients]);
+        if (! empty($filters['years'])) {
+            $query->where('created_at', '>=', now()->subYears((int) $filters['years']));
+        }
+
+        $recipients = $query
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy(fn (Transaction $transaction): string => trim((string) $transaction->generalInfoCustomer?->customer))
+            ->map(function ($transactions, string $customerName) use ($customerUsers): array {
+                $first = $transactions->first();
+                $user = $customerUsers->get(Str::lower($customerName));
+
+                return [
+                    'id' => md5($customerName . '|' . ($user?->email ?? '')),
+                    'name' => $customerName,
+                    'email' => $user?->email,
+                    'country' => $first?->country,
+                    'products' => $transactions
+                        ->flatMap(fn (Transaction $transaction) => $transaction->items->pluck('product'))
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all(),
+                    'last_booking_at' => optional($first?->created_at)->format('Y-m-d'),
+                    'source' => 'SCOL',
+                ];
+            })
+            ->values();
+
+        if (($filters['scol'] ?? false) && empty($filters['product']) && empty($filters['style']) && empty($filters['countries'])) {
+            $existingEmails = $recipients->pluck('email')->filter()->map(fn (string $email): string => Str::lower($email))->all();
+            $customerUsers->values()->each(function (User $user) use (&$recipients, $existingEmails): void {
+                if (! in_array(Str::lower($user->email), $existingEmails, true)) {
+                    $recipients->push([
+                        'id' => (string) $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'country' => $user->address,
+                        'products' => [],
+                        'last_booking_at' => optional($user->created_at)->format('Y-m-d'),
+                        'source' => 'SCOL',
+                    ]);
+                }
+            });
+        }
+
+        return response()->json(['data' => $recipients->sortBy('name')->values()]);
     }
 
     public function send(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'from' => ['required', 'email'],
             'recipients' => ['required', 'array', 'min:1'],
-            'recipient_type' => ['required', 'in:customers,vendors'],
+            'recipients.*' => ['required', 'email'],
+            'title' => ['nullable', 'string', 'max:255'],
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'body_html' => ['nullable', 'boolean'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:10240'],
         ]);
 
-        try {
-            $recipients = $this->getRecipientEmails(
-                $validated['recipients'],
-                $validated['recipient_type'],
-            );
+        $recipients = collect($validated['recipients'])->unique()->values();
+        $html = $this->buildHtmlMail(
+            $validated['title'] ?? '',
+            $validated['body'],
+            (bool) ($validated['body_html'] ?? false),
+        );
+        $attachments = $request->file('attachments', []);
 
-            if (empty($recipients)) {
-                return response()->json(
-                    ['message' => 'No valid recipients found'],
-                    400,
-                );
-            }
+        foreach ($recipients as $email) {
+            Mail::html($html, function ($message) use ($email, $validated, $attachments): void {
+                $message->to($email)->subject($validated['subject']);
 
-            foreach ($recipients as $email) {
-                Mail::raw($validated['body'], function ($message) use ($email, $validated) {
-                    $message->to($email)
-                        ->from($validated['from'])
-                        ->subject($validated['subject']);
-                });
-            }
-
-            return response()->json(
-                ['message' => 'Emails sent successfully to ' . count($recipients) . ' recipient(s)'],
-                200,
-            );
-        } catch (\Exception $e) {
-            return response()->json(
-                ['message' => 'Error sending emails: ' . $e->getMessage()],
-                500,
-            );
+                foreach ($attachments as $attachment) {
+                    $message->attach(
+                        $attachment->getRealPath(),
+                        ['as' => $attachment->getClientOriginalName(), 'mime' => $attachment->getMimeType()],
+                    );
+                }
+            });
         }
+
+        return response()->json([
+            'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s).',
+        ]);
     }
 
-    /**
-     * @param array<int> $recipientIds
-     * @param string $type
-     * @return array<string>
-     */
-    private function getRecipientEmails(array $recipientIds, string $type): array
+    private function buildHtmlMail(string $title, string $body, bool $bodyIsHtml): string
     {
-        $recipients = Transaction::query()
-            ->distinct()
-            ->orderBy('id');
+        $titleHtml = trim($title) !== '' ? '<h2>' . e($title) . '</h2>' : '';
+        $bodyHtml = $bodyIsHtml ? $this->cleanComposeHtml($body) : nl2br(e($body));
 
-        if ($type === 'customers') {
-            $recipients->with('generalInfoCustomer:transaction_id,customer')
-                ->whereHas('generalInfoCustomer');
-
-            return $recipients->get()
-                ->map(fn($transaction) => $transaction->generalInfoCustomer)
-                ->filter(fn($info) => $info !== null)
-                ->unique(fn($info) => $info->customer)
-                ->values()
-                ->slice(0, count($recipientIds))
-                ->map(fn($info) => $this->getCustomerEmail($info->customer))
-                ->filter()
-                ->values()
-                ->all();
-        } else {
-            $recipients->with('generalInfoPacker:transaction_id,vendor')
-                ->whereHas('generalInfoPacker');
-
-            return $recipients->get()
-                ->map(fn($transaction) => $transaction->generalInfoPacker)
-                ->filter(fn($info) => $info !== null)
-                ->unique(fn($info) => $info->vendor)
-                ->values()
-                ->slice(0, count($recipientIds))
-                ->map(fn($info) => $this->getVendorEmail($info->vendor))
-                ->filter()
-                ->values()
-                ->all();
-        }
+        return '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#111827;">'
+            . $titleHtml
+            . '<div>' . $bodyHtml . '</div>'
+            . '</div>';
     }
 
-    private function getCustomerEmail(?string $customer): ?string
+    private function cleanComposeHtml(string $html): string
     {
-        // This is a placeholder - implement based on your system's customer email storage
-        // You might fetch from a customers table or configuration
-        if (!$customer) {
-            return null;
-        }
+        $withoutScripts = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html) ?? '';
+        $withoutEventHandlers = preg_replace('/\son[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $withoutScripts) ?? '';
 
-        // For demonstration, return a default email
-        // In production, you'd look this up from your database
-        return strtolower(str_replace(' ', '.', $customer)) . '@example.com';
-    }
-
-    private function getVendorEmail(?string $vendor): ?string
-    {
-        // This is a placeholder - implement based on your system's vendor email storage
-        // You might fetch from a vendors table or configuration
-        if (!$vendor) {
-            return null;
-        }
-
-        // For demonstration, return a default email
-        // In production, you'd look this up from your database
-        return strtolower(str_replace(' ', '.', $vendor)) . '@example.com';
+        return $withoutEventHandlers;
     }
 }

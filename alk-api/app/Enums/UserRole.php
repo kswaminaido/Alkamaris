@@ -6,7 +6,6 @@ enum UserRole: string
 {
     case Admin = 'admin';
     case Sales = 'sales';
-    case Vendor = 'vendor';
     case Packer = 'packer';
     case Customer = 'customer';
     case Logistics = 'logistics';
@@ -29,8 +28,10 @@ enum UserRole: string
     public static function registrableValues(): array
     {
         return [
-            self::Vendor->value,
+            self::Packer->value,
             self::Customer->value,
+            self::Accounts->value,
+            self::Logistics->value,
         ];
     }
 }

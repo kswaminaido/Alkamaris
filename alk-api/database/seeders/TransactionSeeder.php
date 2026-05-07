@@ -71,7 +71,7 @@ class TransactionSeeder extends Seeder
         }
 
         $customerUsers = User::query()->where('role', UserRole::Customer->value)->pluck('name');
-        $vendorUsers = User::query()->where('role', UserRole::Vendor->value)->pluck('name');
+        $packerUsers = User::query()->where('role', UserRole::Packer->value)->pluck('name');
 
         for ($i = 1; $i <= 60; $i++) {
             $bookingNo = 'SIF'.str_pad((string) (2602000 + $i), 7, '0', STR_PAD_LEFT);
@@ -118,10 +118,10 @@ class TransactionSeeder extends Seeder
 
             GeneralInfoPacker::query()->create([
                 'transaction_id' => $transaction->id,
-                'vendor' => $vendorUsers->random(),
+                'vendor' => $packerUsers->random(),
                 'packer_name' => fake()->company(),
                 'packer_number' => (string) rand(1000, 9999),
-                'packed_by' => fake()->randomElement(['Factory', 'Vendor']),
+                'packed_by' => fake()->randomElement(['Factory', 'Packer']),
                 'prices_packer_type' => fake()->randomElement(['USD/MT', 'INR/MT']),
                 'prices_packer_rate' => rand(200, 3000) / 10,
                 'payment_packer_term' => fake()->randomElement(['Advance', '30 Days']),

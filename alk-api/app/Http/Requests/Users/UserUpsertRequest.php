@@ -17,6 +17,15 @@ abstract class UserUpsertRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('user_type')) {
+            $this->merge([
+                'user_type' => strtolower(trim((string) $this->input('user_type'))),
+            ]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -86,10 +95,7 @@ abstract class UserUpsertRequest extends FormRequest
     private function allowedRoles(?User $user): array
     {
         return array_values(array_unique(array_filter([
-            ...array_intersect(
-                Config::optionsByType('roles'),
-                UserRole::values(),
-            ),
+            ...UserRole::values(),
             is_string($user?->role) ? $user?->role : $user?->role?->value,
         ])));
     }

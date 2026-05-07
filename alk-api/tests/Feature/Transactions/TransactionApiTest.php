@@ -18,7 +18,7 @@ final class TransactionApiTest extends TestCase
         CarbonImmutable::setTestNow('2026-03-29 08:00:00');
 
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
-        $salesPerson = User::factory()->create(['role' => UserRole::Vendor->value]);
+        $salesPerson = User::factory()->create(['role' => UserRole::Packer->value]);
         $token = $admin->createToken('admin-token')->plainTextToken;
 
         $response = $this

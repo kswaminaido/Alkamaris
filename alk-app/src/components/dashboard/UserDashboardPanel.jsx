@@ -4,7 +4,7 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
       <article className="dashboard-panel">
         <h2>{dashboardTitle}</h2>
         <p>
-          Welcome, <strong>{currentUser.name}</strong> ({currentUser.role})
+          Welcome, <strong>{currentUser.name}</strong> ({formatRole(currentUser.role)})
         </p>
 
         <div className="dashboard-cards">
@@ -16,9 +16,9 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
             </section>
           )}
 
-          {currentUser.role === 'vendor' && (
+          {(currentUser.role === 'packer' || currentUser.role === 'vendor') && (
             <section className="dash-card">
-              <h3>Vendor Workspace</h3>
+              <h3>Packer Workspace</h3>
               <p>Track your profile, registration details, and account information.</p>
               <code>GET /api/auth/me</code>
             </section>
@@ -38,3 +38,8 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
 }
 
 export default UserDashboardPanel
+
+function formatRole(role) {
+  if (role === 'packer' || role === 'vendor') return 'packer'
+  return role
+}

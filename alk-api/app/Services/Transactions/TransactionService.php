@@ -75,6 +75,15 @@ final class TransactionService
     public function update(Transaction $transaction, array $validated): Transaction
     {
         return DB::transaction(function () use ($transaction, $validated): Transaction {
+            // If lc_days is provided and changed, set lc_set_at to today
+            if (isset($validated['transaction']['lc_days'])) {
+                $newLcDays = $validated['transaction']['lc_days'];
+                $currentLcDays = $transaction->lc_days ?? null;
+                if (($currentLcDays === null || (string) $currentLcDays !== (string) $newLcDays) && $newLcDays !== null && $newLcDays !== '') {
+                    $validated['transaction']['lc_set_at'] = CarbonImmutable::now()->toDateString();
+                }
+            }
+
             $transaction->update($validated['transaction']);
 
             $this->syncDetails($transaction, $validated);
@@ -251,10 +260,27 @@ final class TransactionService
 
     private function upsertOneToOne(int $transactionId, string $modelClass, array $payload): void
     {
+        // If updating logistics, capture previous bl_date to detect transition from null -> date
+        $previousBlDate = null;
+        if ($modelClass === TransactionLogistics::class) {
+            $previous = $modelClass::query()->where('transaction_id', $transactionId)->first();
+            $previousBlDate = $previous?->bl_date ?? null;
+        }
+
         $modelClass::query()->updateOrCreate(
             ['transaction_id' => $transactionId],
             $payload,
         );
+
+        // After upsert, if logistics bl_date changed from null to a date, update transaction status to Received (R)
+        if ($modelClass === TransactionLogistics::class) {
+            $current = $modelClass::query()->where('transaction_id', $transactionId)->first();
+            $currentBlDate = $current?->bl_date ?? null;
+
+            if ($previousBlDate === null && $currentBlDate !== null) {
+                Transaction::query()->where('id', $transactionId)->update(['status' => \App\Enums\TransactionStatus::Received->value]);
+            }
+        }
     }
 
     /**

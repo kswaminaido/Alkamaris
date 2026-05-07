@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
-function ModulePlaceholderPage({ title, activeKey = '' }) {
+function ModulePlaceholderPage({ title, activeKey = '', allowedRoles = ['admin'] }) {
   const navigate = useNavigate()
   const { currentUser, logout, authFetch } = useAuth()
 
@@ -11,7 +11,7 @@ function ModulePlaceholderPage({ title, activeKey = '' }) {
     navigate('/', { replace: true })
   }
 
-  if (!currentUser || currentUser.role !== 'admin') return null
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) return null
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={title} activeKey={activeKey} onLogout={handleLogout} authFetch={authFetch}>

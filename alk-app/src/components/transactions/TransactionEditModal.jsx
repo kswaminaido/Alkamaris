@@ -59,7 +59,7 @@ const PRINT_DOCUMENTS = [
   { type: 'proforma_invoice', label: 'Print Proforma Inv' },
   { type: 'specs', label: 'Print Specs' },
   { type: 's_a', label: 'Print S/A' },
-  { type: 'lc_terms_vendor', label: 'Print L/C Terms (Vendor)' },
+  { type: 'lc_terms_vendor', label: 'Print L/C Terms (Packer)' },
   { type: 'lc_terms', label: 'Print L/C Terms' },
   { type: 'delivery_order', label: 'Print Delivery Order' },
 ]
@@ -81,6 +81,8 @@ const ATTACHMENT_OPTIONS = [
 function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDuplicate, onTransactionChange }) {
   const [tab, setTab] = useState('home')
   const [itemsModalOpen, setItemsModalOpen] = useState(false)
+  const [lcModalOpen, setLcModalOpen] = useState(false)
+  const [lcValue, setLcValue] = useState(transaction?.lc_days ?? '')
   const [saving, setSaving] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [message, setMessage] = useState('')
@@ -320,6 +322,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
               saving={saving}
               duplicating={duplicating}
               onOpenItems={() => setItemsModalOpen(true)}
+              onOpenLc={() => { setLcValue(transaction?.lc_days ?? ''); setLcModalOpen(true) }}
               onDuplicate={handleDuplicate}
               onPrint={handlePrint}
               onSave={() => handleSave(false)}
@@ -362,6 +365,32 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
           authFetch={authFetch}
           onClose={() => setItemsModalOpen(false)}
           onTransactionChange={onTransactionChange}
+        />
+      ) : null}
+      {lcModalOpen ? (
+        <LcTermsModal
+          transaction={transaction}
+          value={lcValue}
+          onChange={(v) => setLcValue(v)}
+          onClose={() => setLcModalOpen(false)}
+          onSubmit={async (selected) => {
+            if (!onSave) return
+            setSaving(true)
+            setError('')
+            try {
+              const result = await onSave(transaction.id, { transaction: { lc_days: selected, booking_no: transaction.booking_no, booking_mode: transaction.booking_mode ?? 'trade_commission' } })
+              if (!result?.ok) {
+                const message = result?.error ?? 'Unable to save L/C terms.'
+                setError(message)
+                showToast(message, 'error')
+                return
+              }
+              showToast('L/C terms saved')
+              setLcModalOpen(false)
+            } finally {
+              setSaving(false)
+            }
+          }}
         />
       ) : null}
       {toast ? <Toast text={toast.text} tone={toast.tone} /> : null}
@@ -430,7 +459,7 @@ function HomeTab({ transaction }) {
         </SectionCard>
 
         <SectionCard title="GENERAL INFO" side="PACKER" tone="blue">
-          <Row label="Vendor"><input name="general_info_packer.vendor" defaultValue={packer.vendor ?? ''} /></Row>
+          <Row label="Packer"><input name="general_info_packer.vendor" defaultValue={packer.vendor ?? ''} /></Row>
           <Row label="Packer's"><div className="txe-inline"><select name="general_info_packer.packer_name" defaultValue={packer.packer_name ?? ''}><option value="">Select</option>{packer.packer_name ? <option value={packer.packer_name}>{packer.packer_name}</option> : null}</select><input name="general_info_packer.packer_number" defaultValue={packer.packer_number ?? ''} placeholder="#" /></div></Row>
           <Row label="Packed By"><input defaultValue={packer.packed_by ?? ''} /></Row>
           <Row label="Prices Packer"><div className="txe-inline"><select name="general_info_packer.prices_packer_type" defaultValue={packer.prices_packer_type ?? 'CFR'}>{withCurrent(['CFR', 'FOB'], packer.prices_packer_type || 'CFR').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.prices_packer_rate" defaultValue={packer.prices_packer_rate ?? ''} /></div></Row>
@@ -562,7 +591,7 @@ function ItemsModal({ transaction, onClose }) {
   const totalSellingPrice = rows.reduce((sum, row) => sum + (row.totalSellingPriceValue ?? 0), 0)
   const totalBuyingPrice = rows.reduce((sum, row) => sum + (row.totalBuyingPriceValue ?? 0), 0)
   const totalWeight = rows.reduce((sum, row) => sum + (row.weightValue ?? 0), 0)
-  const vendor = transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? ''
+  const packer = transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? ''
   const customer = transaction.general_info_customer?.customer ?? ''
   const etaDate = transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta ?? ''
   const lsdDate = transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min ?? ''
@@ -578,7 +607,7 @@ function ItemsModal({ transaction, onClose }) {
           <div className="txe-items-summary">
             <div className="txe-items-summary-grid">
               <label><span>Transaction ID</span><input readOnly value={transaction.booking_no || ''} /></label>
-              <label><span>Vendor</span><input readOnly value={vendor} /></label>
+              <label><span>Packer</span><input readOnly value={packer} /></label>
               <label><span>Book Date</span><input readOnly value={formatDate(transaction.issue_date)} /></label>
               <label><span>Customer</span><input readOnly value={customer} /></label>
               <label><span>ETA Date</span><input readOnly value={formatDate(etaDate)} /></label>
@@ -688,8 +717,8 @@ function ShipTab({ transaction }) {
             <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row>
             <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row>
             <Row label="Service Type"><select name="logistics.service_type" defaultValue={logisticsValue('service_type', 'ALL WATER OR MLB')}>{OPTIONS.serviceType.map((o) => <option key={o}>{o}</option>)}</select></Row>
-            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '08/01/2026')} /></Row>
-            <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '263811951')} /></Row>
+            <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '')} /></Row>
+            <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '')} /></Row>
             <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', 'VISAKHAPATNAM, IND')} /></Row>
             <Row label="Destination"><input name="logistics.destination" defaultValue={destination} /></Row>
             <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', 'MAERSK')} /></Row>
@@ -726,13 +755,13 @@ function ShipTab({ transaction }) {
   )
 }
 
-function BottomActions({ saving, duplicating, onOpenItems, onDuplicate, onPrint, onSave, onSaveQuit }) {
+function BottomActions({ saving, duplicating, onOpenItems, onOpenLc, onDuplicate, onPrint, onSave, onSaveQuit }) {
   return (
     <div className="txe-bottom-actions">
       <div className="txe-bottom-tabs">
         <button type="button" onClick={onOpenItems}>Items</button>
         <button type="button">Special Notes</button>
-        <button type="button">L/C Terms</button>
+        <button type="button" onClick={() => { if (typeof onOpenLc === 'function') onOpenLc() }}>L/C Terms</button>
       </div>
       <div className="txe-bottom-buttons">
         <button type="button" onClick={onDuplicate} disabled={saving || duplicating}>{duplicating ? 'Duplicating...' : 'Duplicate'}</button>
@@ -919,6 +948,50 @@ function PrintDialog({
   )
 }
 
+function LcTermsModal({ transaction, value, onChange, onClose, onSubmit }) {
+  const options = [30, 45, 60, 90]
+  const [selected, setSelected] = useState(value ?? '')
+
+  useEffect(() => {
+    setSelected(value ?? '')
+  }, [value])
+
+  return (
+    <div className="txe-print-overlay" role="dialog" aria-modal="true" aria-label="L/C Terms">
+      <div className="txe-print-modal" style={{ width: '50%' }}>
+        <div className="txe-print-header">
+          <div>
+            <h3>Set L/C Terms</h3>
+            <span>Choose L/C term days</span>
+          </div>
+          <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
+        </div>
+
+        <div className="txe-print-content">
+          <div className="txe-print-form">
+            <div className="txe-print-topgrid">
+              <div><span>Transaction</span><strong>{transaction.booking_no}</strong></div>
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <label style={{ display: 'block', marginBottom: 6 }}>L/C term days</label>
+              <select value={selected ?? ''} onChange={(e) => { setSelected(e.target.value); if (onChange) onChange(e.target.value) }}>
+                <option value="">Select</option>
+                {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginTop: 18 }}>
+              <button type="button" className='btn btn-primary' onClick={() => { if (onSubmit) onSubmit(selected) }}>Save</button>
+              <button type="button" className='btn btn-secondary' onClick={onClose} style={{ marginLeft: 8 }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SectionCard({ title, side, tone = 'blue', children }) {
   return (
     <section className={`txe-card txe-${tone}`}>
@@ -1016,7 +1089,7 @@ function buildInitialPrintSelections() {
     specs: false,
     s_a: false,
     lc_terms_vendor: false,
-    lc_terms: false,
+    lc_days: false,
     delivery_order: false,
   }
 }

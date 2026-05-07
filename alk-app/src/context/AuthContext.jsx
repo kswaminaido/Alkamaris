@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
     if (!currentUser?.role) return 'User Dashboard'
     if (currentUser.role === 'admin') return 'Admin Dashboard'
     if (currentUser.role === 'sales') return 'Sales Dashboard'
-    if (currentUser.role === 'vendor') return 'Vendor Dashboard'
+    if (currentUser.role === 'packer' || currentUser.role === 'vendor') return 'Packer Dashboard'
     return 'Customer Dashboard'
   }, [currentUser])
 
@@ -149,17 +149,7 @@ export function AuthProvider({ children }) {
         return false
       }
 
-      const accessToken = body?.data?.access_token ?? ''
-      const user = normalizeUser(body?.data?.user ?? null)
-      if (!accessToken || !user) {
-        setError('Registration response is incomplete.')
-        return false
-      }
-
-      localStorage.setItem(TOKEN_KEY, accessToken)
-      setToken(accessToken)
-      setCurrentUser(user)
-      setMessage('Registration successful.')
+      setMessage(body?.message ?? 'Registration successful.')
       return true
     } catch {
       setError('Unable to connect to the API.')
@@ -191,9 +181,10 @@ export function AuthProvider({ children }) {
   }
 
   async function authFetch(path, options = {}) {
+    const hasFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
     const headers = {
       Accept: 'application/json',
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.body && !hasFormDataBody ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers ?? {}),
     }
 

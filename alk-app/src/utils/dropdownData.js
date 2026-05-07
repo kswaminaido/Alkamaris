@@ -32,9 +32,9 @@ export const DROPDOWN_FIELD_GROUPS = [
     key: 'general_packer',
     title: 'General Info - Packer',
     fields: [
-      { key: 'general_info_packer.vendor', label: 'Vendor', source: 'users', role: 'vendor', fallback: [], pages: ['New Booking'] },
+      { key: 'general_info_packer.vendor', label: 'Packer', source: 'users', role: 'packer', fallback: [], pages: ['New Booking'] },
       { key: 'general_info_packer.packer_name', label: 'Packer Name', source: 'config', type: 'packer_name', fallback: ['Packer One', 'Packer Two', 'Packer Three'], pages: ['New Booking'] },
-      { key: 'general_info_packer.packed_by', label: 'Packed By', source: 'config', type: 'packer_packed_by', fallback: ['Factory', 'Third Party', 'Vendor'], pages: ['New Booking'] },
+      { key: 'general_info_packer.packed_by', label: 'Packed By', source: 'config', type: 'packer_packed_by', fallback: ['Factory', 'Third Party', 'Packer'], pages: ['New Booking'] },
       { key: 'general_info_packer.prices_packer_type', label: 'Prices Packer Type', source: 'config', type: 'packer_price_type', fallback: ['USD/MT', 'INR/MT', 'SGD/MT'], pages: ['New Booking'] },
       { key: 'general_info_packer.payment_packer_type', label: 'Payment Packer Type', source: 'config', type: 'packer_payment_type', fallback: ['LC', 'TT', 'CAD'], pages: ['New Booking'] },
       { key: 'general_info_packer.payment_packer_term', label: 'Payment Packer Term', source: 'config', type: 'packer_payment_term', fallback: ['Advance', '30 Days', '60 Days'], pages: ['New Booking'] },
