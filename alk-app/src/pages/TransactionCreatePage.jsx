@@ -125,7 +125,7 @@ function TransactionCreatePage() {
 
   async function loadBookingParties() {
     try {
-      const response = await authFetch('/users?roles=customer,packer,vendor&per_page=100')
+      const response = await authFetch('/users?roles=customer,packer&per_page=100')
       const payload = await response.json()
 
       if (response.ok && payload?.data) {

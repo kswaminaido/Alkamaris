@@ -72,7 +72,7 @@ function DataPage() {
     try {
       const [configResponse, usersResponse] = await Promise.all([
         authFetch('/configs'),
-        authFetch('/users?roles=customer,packer,vendor&per_page=100'),
+        authFetch('/users?roles=customer,packer&per_page=100'),
       ])
 
       const [configPayload, usersPayload] = await Promise.all([
