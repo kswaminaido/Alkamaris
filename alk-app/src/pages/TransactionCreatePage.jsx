@@ -6,6 +6,9 @@ import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../utils
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../utils/countries'
 
 const PACKER_ROLE_VALUES = ['packer', 'vendor']
+const NEW_BOOKING_ROLES = ['admin', 'logistics']
+const BOOKING_PREFIX = 'AME'
+const BOOKING_SEQUENCE_PAD = 3
 
 function getTodayInputValue() {
   const now = new Date()
@@ -13,13 +16,16 @@ function getTodayInputValue() {
   return local.toISOString().slice(0, 10)
 }
 
-function generateBookingNo(dateValue = getTodayInputValue()) {
+function getFinancialYearSuffix(dateValue = getTodayInputValue()) {
   const date = new Date(`${dateValue}T00:00:00`)
   const safeDate = Number.isNaN(date.getTime()) ? new Date() : date
-  const month = String(safeDate.getMonth() + 1).padStart(2, '0')
-  const year = String(safeDate.getFullYear()).slice(-2)
-  const suffix = String(Math.floor(Math.random() * 1000000)).padStart(6, '0')
-  return `ALK${month}${year}${suffix}`
+  const financialYear = safeDate.getMonth() >= 3 ? safeDate.getFullYear() : safeDate.getFullYear() - 1
+  return String(financialYear).slice(-2)
+}
+
+function generateBookingNo(dateValue = getTodayInputValue(), nextTransactionId = 1) {
+  const sequence = String(Math.max(1, Number(nextTransactionId) || 1)).padStart(BOOKING_SEQUENCE_PAD, '0')
+  return `${BOOKING_PREFIX}${getFinancialYearSuffix(dateValue)}${sequence}`
 }
 
 function buildInitialForm() {
@@ -74,6 +80,7 @@ function TransactionCreatePage() {
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES)
   const [customers, setCustomers] = useState([])
   const [packers, setPackers] = useState([])
+  const [salesPeople, setSalesPeople] = useState([])
   const [dropdownConfigMap, setDropdownConfigMap] = useState({})
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -93,16 +100,17 @@ function TransactionCreatePage() {
 
   useEffect(() => {
     if (!currentUser) return
-    if (currentUser.role !== 'admin') {
+    if (!canAccessNewBooking(currentUser)) {
       navigate('/dashboard', { replace: true })
       return
     }
 
     const mode = searchParams.get('mode')
     const bookingMode = mode === 'trade_commission' || mode === 'qc_services' ? mode : 'trade_commission'
+    const defaultIssueDate = getTodayInputValue()
 
     setForm((previous) => {
-      const issueDate = previous.transaction.issue_date || getTodayInputValue()
+      const issueDate = previous.transaction.issue_date || defaultIssueDate
 
       return {
         ...previous,
@@ -111,13 +119,14 @@ function TransactionCreatePage() {
           booking_mode: bookingMode,
           booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
           issue_date: issueDate,
-          sales_person_id: currentUser.id ?? '',
+          sales_person_id: previous.transaction.sales_person_id || currentUser.id || '',
           product_origin: previous.transaction.product_origin || 'India (Singapore)',
         },
       }
     })
 
     loadBookingParties()
+    loadNextBookingNo(defaultIssueDate)
     loadCountries()
     loadDropdownConfigs()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,26 +134,59 @@ function TransactionCreatePage() {
 
   async function loadBookingParties() {
     try {
-      const response = await authFetch('/users?roles=customer,packer,vendor&per_page=100')
+      const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
       const payload = await response.json()
 
       if (response.ok && payload?.data) {
         const customers = payload.data.filter(user => user.role === 'customer')
         const packers = payload.data.filter(user => PACKER_ROLE_VALUES.includes(user.role))
+        const salesUsers = payload.data.filter(user => ['sales', 'admin', 'logistics'].includes(user.role))
         setCustomers(extractUserNames(customers))
         setPackers(extractUserNames(packers))
+        setSalesPeople(extractSalesPersonOptions(salesUsers, currentUser))
       } else {
         setCustomers([])
         setPackers([])
+        setSalesPeople(extractSalesPersonOptions([], currentUser))
       }
     } catch {
       setCustomers([])
       setPackers([])
+      setSalesPeople(extractSalesPersonOptions([], currentUser))
     }
   }
 
   async function loadCountries() {
     setCountries(await fetchCountryOptions())
+  }
+
+  async function loadNextBookingNo(issueDate = getTodayInputValue()) {
+    try {
+      const response = await authFetch('/transactions?per_page=1')
+      const payload = await response.json()
+      const latestTransactionId = Number(payload?.data?.[0]?.id ?? 0)
+      const nextBookingNo = generateBookingNo(issueDate, latestTransactionId + 1)
+
+      setForm((previous) => {
+        const currentIssueDate = previous.transaction.issue_date || issueDate
+        const initialBookingNo = generateBookingNo(currentIssueDate)
+        const currentBookingNo = previous.transaction.booking_no
+
+        if (currentBookingNo && currentBookingNo !== initialBookingNo) {
+          return previous
+        }
+
+        return {
+          ...previous,
+          transaction: {
+            ...previous.transaction,
+            booking_no: nextBookingNo,
+          },
+        }
+      })
+    } catch {
+      // Keep the local fallback when the latest transaction cannot be loaded.
+    }
   }
 
   async function loadDropdownConfigs() {
@@ -178,9 +220,9 @@ function TransactionCreatePage() {
     setError('')
 
     const payload = JSON.parse(JSON.stringify(form))
-    payload.transaction.booking_no = payload.transaction.booking_no || generateBookingNo(payload.transaction.issue_date)
+    payload.transaction.booking_no = (payload.transaction.booking_no ?? '').trim()
     payload.transaction.issue_date = getTodayInputValue()
-    payload.transaction.sales_person_id = currentUser?.id ?? null
+    payload.transaction.sales_person_id = payload.transaction.sales_person_id || currentUser?.id || null
     payload.transaction.product_origin = payload.transaction.product_origin || 'India (Singapore)'
     payload.transaction.certified = payload.transaction.certified === 'Yes'
 
@@ -202,7 +244,7 @@ function TransactionCreatePage() {
     }
   }
 
-  if (!currentUser || currentUser.role !== 'admin') return null
+  if (!canAccessNewBooking(currentUser)) return null
 
   return (
     <AdminSidebarLayout
@@ -215,7 +257,7 @@ function TransactionCreatePage() {
       <form className="transaction-page" onSubmit={onSubmit}>
         <section className="txn-panel txn-top">
           <h5>TRANSACTION DETAILS</h5>
-          <TxHeader form={form} setValue={setValue} currentUser={currentUser} optionsFor={optionsFor} />
+          <TxHeader form={form} setValue={setValue} salesPeople={salesPeople} optionsFor={optionsFor} />
         </section>
         <section className="txn-double-grid">
           <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} customers={customers} optionsFor={optionsFor} /></TxnColumn>
@@ -238,18 +280,17 @@ function TransactionCreatePage() {
   )
 }
 
-function TxHeader({ form, setValue, currentUser, optionsFor }) {
-  const salesPersonName = currentUser?.name || currentUser?.email || ''
+function TxHeader({ form, setValue, salesPeople, optionsFor }) {
   const productOriginOptions = mergeCountryOptions(optionsFor('transaction.product_origin'), 'India (Singapore)')
   const destinationOptions = optionsFor('transaction.destination')
 
   return (
     <div className="txn-grid cols-4">
-      <Field label="Booking No."><input value={form.transaction.booking_no} disabled className="txn-readonly" /></Field>
+      <Field label="Booking No."><input value={form.transaction.booking_no} onChange={(e) => setValue('transaction', 'booking_no', e.target.value)} required /></Field>
       <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} disabled className="txn-readonly" /></Field>
       <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} /></Field>
       <Field label="Country"><Select value={form.transaction.country} list={optionsFor('transaction.country')} onChange={(value) => setValue('transaction', 'country', value)} /></Field>
-      <Field label="Sales Person"><input value={salesPersonName} disabled className="txn-readonly" /></Field>
+      <Field label="Sales Person"><SalesPersonSelect value={form.transaction.sales_person_id} list={salesPeople} onChange={(value) => setValue('transaction', 'sales_person_id', value)} /></Field>
       <Field label="Product Origin"><Select value={form.transaction.product_origin} list={productOriginOptions} onChange={(value) => setValue('transaction', 'product_origin', value)} /></Field>
       <Field label="Type"><Select value={form.transaction.type} list={optionsFor('transaction.type')} onChange={(value) => setValue('transaction', 'type', value)} /></Field>
       <Field label="Container">
@@ -289,11 +330,31 @@ function extractUserNames(users) {
   )]
 }
 
+function extractSalesPersonOptions(users, currentUser) {
+  const userMap = new Map()
+
+  for (const user of [currentUser, ...(Array.isArray(users) ? users : [])]) {
+    if (!user?.id) continue
+    const label = [user.name, user.email].find((value) => typeof value === 'string' && value.trim()) ?? `User #${user.id}`
+    userMap.set(String(user.id), {
+      id: String(user.id),
+      label,
+    })
+  }
+
+  return [...userMap.values()]
+}
+
+function canAccessNewBooking(user) {
+  return NEW_BOOKING_ROLES.includes(user?.role)
+}
+
 function TxnColumn({ title, side, children }) { return (<div className="txn-col"><SectionHeader title={title} side={side} />{children}</div>) }
 function SectionHeader({ title, side }) { return (<div className="txn-section-title"><h5>{title}</h5>{side && <span>{side}</span>}</div>) }
 function Field({ label, children }) { return (<label><span>{label}</span>{children}</label>) }
 function Row({ label, children }) { return (<div className="txn-row"><label className="txn-label">{label}</label><div className="txn-controls">{children}</div></div>) }
 function Select({ value, list, onChange }) { return (<select value={value} onChange={(e) => onChange(e.target.value)}><option value="">Select</option>{list.map((o) => <option key={o} value={o}>{o}</option>)}</select>) }
+function SalesPersonSelect({ value, list, onChange }) { return (<select value={value ?? ''} onChange={(e) => onChange(e.target.value)} required><option value="">Select</option>{list.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}</select>) }
 function SearchableSelect({ value, list, onChange }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)

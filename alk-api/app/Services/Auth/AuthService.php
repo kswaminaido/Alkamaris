@@ -22,6 +22,7 @@ final class AuthService implements AuthServiceInterface
                 'address' => $data->address,
                 'registration_number' => $data->registrationNumber,
                 'role' => $data->userType,
+                'is_active' => false,
                 'password' => $data->password,
             ]),
         );
@@ -36,7 +37,7 @@ final class AuthService implements AuthServiceInterface
             ->where('email', $data->email)
             ->first();
 
-        if (! $user || ! Hash::check($data->password, $user->password)) {
+        if (! $user || ! Hash::check($data->password, $user->password) || ! $user->is_active) {
             return null;
         }
 

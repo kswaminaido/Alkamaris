@@ -45,7 +45,7 @@
 .top-nav {
   height: 70px;
   padding: 0 2.4rem;
-  background: var(--brand-purple);
+  /* background: var(--brand-purple); */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -68,7 +68,6 @@
 .nav-link-btn {
   border: 0;
   background: transparent;
-  color: #ffffff;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;

@@ -15,17 +15,16 @@ final class TransactionApiTest extends TestCase
 
     public function test_admin_can_create_transaction_with_nested_details(): void
     {
-        CarbonImmutable::setTestNow('2026-03-29 08:00:00');
+        CarbonImmutable::setTestNow('2026-05-11 08:00:00');
 
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
-        $salesPerson = User::factory()->create(['role' => UserRole::Packer->value]);
+        $salesPerson = User::factory()->create(['role' => UserRole::Sales->value]);
         $token = $admin->createToken('admin-token')->plainTextToken;
 
         $response = $this
             ->withHeader('Authorization', "Bearer {$token}")
             ->postJson('/api/transactions', [
                 'transaction' => [
-                    'booking_no' => 'TRX-1001',
                     'booking_mode' => 'trade_commission',
                     'issue_date' => '2026-03-10',
                     'sales_person_id' => $salesPerson->id,
@@ -77,9 +76,10 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertCreated()
+            ->assertJsonPath('data.booking_no', 'AME26001')
             ->assertJsonPath('data.general_info_customer.customer', 'Leader Food')
-            ->assertJsonPath('data.issue_date', '2026-03-29')
-            ->assertJsonPath('data.sales_person_id', $admin->id)
+            ->assertJsonPath('data.issue_date', '2026-05-11')
+            ->assertJsonPath('data.sales_person_id', $salesPerson->id)
             ->assertJsonPath('data.product_origin', 'India (Singapore)')
             ->assertJsonPath('data.notes.by_sales', 'Priority shipment')
             ->assertJsonPath('data.logistics.mother_vessel', 'VARADA V.081W')
@@ -89,13 +89,10 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.note_entries.0.note_key', 'eta')
             ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
 
-        $bookingNo = $response->json('data.booking_no');
-
-        $this->assertMatchesRegularExpression('/^ALK0326\d{6}$/', $bookingNo);
         $this->assertDatabaseHas('transactions', [
-            'booking_no' => $bookingNo,
-            'issue_date' => '2026-03-29 00:00:00',
-            'sales_person_id' => $admin->id,
+            'booking_no' => 'AME26001',
+            'issue_date' => '2026-05-11 00:00:00',
+            'sales_person_id' => $salesPerson->id,
             'created_by_user_id' => $admin->id,
         ]);
         $this->assertDatabaseHas('transaction_logistics', [
@@ -106,6 +103,47 @@ final class TransactionApiTest extends TestCase
             'discharge' => 'Montreal discharge',
             'at' => 'Terminal 1',
             'sc_inv_to_customer' => 'SC-1001',
+        ]);
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_logistics_can_create_transaction(): void
+    {
+        CarbonImmutable::setTestNow('2026-05-11 08:00:00');
+
+        $logisticsUser = User::factory()->create(['role' => UserRole::Logistics->value]);
+        $salesPerson = User::factory()->create(['role' => UserRole::Sales->value]);
+        Transaction::query()->create([
+            'booking_no' => 'AME26001',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $logisticsUser->id,
+        ]);
+        $token = $logisticsUser->createToken('logistics-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/transactions', [
+                'transaction' => [
+                    'booking_mode' => 'trade_commission',
+                    'sales_person_id' => $salesPerson->id,
+                    'destination' => 'Amman',
+                    'certified' => true,
+                ],
+                'general_info_customer' => [
+                    'customer' => 'Leader Food',
+                ],
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.booking_no', 'AME26002')
+            ->assertJsonPath('data.sales_person_id', $salesPerson->id);
+
+        $this->assertDatabaseHas('transactions', [
+            'booking_no' => 'AME26002',
+            'sales_person_id' => $salesPerson->id,
+            'created_by_user_id' => $logisticsUser->id,
         ]);
 
         CarbonImmutable::setTestNow();

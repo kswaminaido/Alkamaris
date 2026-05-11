@@ -50,6 +50,7 @@ final class AuthApiTest extends TestCase
             'email' => 'test@example.com',
             'role' => UserRole::Packer->value,
             'registration_number' => 'REG-1001',
+            'is_active' => false,
         ]);
     }
 
@@ -98,6 +99,7 @@ final class AuthApiTest extends TestCase
         User::factory()->create([
             'email' => 'test@example.com',
             'password' => 'Password@123',
+            'is_active' => true,
         ]);
 
         $response = $this->postJson('/api/auth/login', [
@@ -116,11 +118,32 @@ final class AuthApiTest extends TestCase
             ]);
     }
 
+    public function test_inactive_user_cannot_login_with_valid_credentials(): void
+    {
+        User::factory()->create([
+            'email' => 'inactive@example.com',
+            'password' => 'Password@123',
+            'is_active' => false,
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'inactive@example.com',
+            'password' => 'Password@123',
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
     public function test_user_cannot_login_with_invalid_credentials(): void
     {
         User::factory()->create([
             'email' => 'test@example.com',
             'password' => 'Password@123',
+            'is_active' => true,
         ]);
 
         $response = $this->postJson('/api/auth/login', [
