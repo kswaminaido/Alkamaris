@@ -376,10 +376,10 @@ function TransactionsPage() {
               <div className="filter-group" style={{ marginLeft: 'auto' }}>
                 <label>&nbsp;</label>
                 <div className="filter-actions">
-                  <button type="button" className="secondary-btn" onClick={clearFilters} disabled={loading}>
+                  <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
                     Clear
                   </button>
-                  <button type="button" className="secondary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
+                  <button type="button" className="primary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
                     {exporting ? 'Exporting...' : 'Export'}
                   </button>
                 </div>

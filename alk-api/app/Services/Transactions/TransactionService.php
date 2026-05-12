@@ -121,9 +121,18 @@ final class TransactionService
     private function syncDetails(Transaction $transaction, array $validated): void
     {
         $this->syncOneToOneRelations($transaction->id, $validated);
-        $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
-        $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
-        $this->replaceItems($transaction->id, $validated['items'] ?? []);
+
+        if (array_key_exists('expense_lines', $validated)) {
+            $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
+        }
+
+        if (array_key_exists('note_entries', $validated)) {
+            $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
+        }
+
+        if (array_key_exists('items', $validated)) {
+            $this->replaceItems($transaction->id, $validated['items'] ?? []);
+        }
     }
 
     /**

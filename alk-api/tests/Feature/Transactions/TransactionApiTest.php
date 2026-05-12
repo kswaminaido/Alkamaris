@@ -202,6 +202,41 @@ final class TransactionApiTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_update_transaction_status_without_replacing_nested_rows(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-STATUS',
+            'booking_mode' => 'trade_commission',
+            'status' => 'U',
+            'created_by_user_id' => $admin->id,
+        ]);
+        $transaction->items()->create(['product' => 'Keep Item', 'sort_order' => 0]);
+        $transaction->expenseLines()->create([
+            'section' => 'charges',
+            'line_key' => 'keep-line',
+            'sort_order' => 0,
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$transaction->id}", [
+                'transaction' => [
+                    'booking_no' => 'TRX-STATUS',
+                    'booking_mode' => 'trade_commission',
+                    'status' => 'T',
+                ],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.status', 'T')
+            ->assertJsonPath('data.items.0.product', 'Keep Item')
+            ->assertJsonPath('data.expense_lines.0.line_key', 'keep-line');
+    }
+
     public function test_admin_can_duplicate_transaction(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
