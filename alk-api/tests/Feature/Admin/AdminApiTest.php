@@ -69,4 +69,44 @@ final class AdminApiTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_logistics_can_read_booking_reference_data_but_cannot_modify_admin_resources(): void
+    {
+        Config::query()->create([
+            'type' => 'container_types',
+            'data' => ['20GP', '40HC'],
+        ]);
+        User::factory()->create([
+            'name' => 'Customer One',
+            'role' => UserRole::Customer->value,
+        ]);
+
+        $logisticsUser = User::factory()->create(['role' => UserRole::Logistics->value]);
+        $token = $logisticsUser->createToken('logistics_token')->plainTextToken;
+
+        $usersResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/users?roles=customer,packer,vendor&per_page=100');
+
+        $usersResponse
+            ->assertOk()
+            ->assertJsonFragment(['name' => 'Customer One']);
+
+        $configsResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/configs');
+
+        $configsResponse
+            ->assertOk()
+            ->assertJsonFragment(['type' => 'container_types']);
+
+        $storeResponse = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/configs', [
+                'type' => 'departments',
+                'data' => ['sales', 'support'],
+            ]);
+
+        $storeResponse->assertForbidden();
+    }
 }

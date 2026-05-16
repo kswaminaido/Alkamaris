@@ -4,6 +4,21 @@ import SignupPanel from '../components/auth/SignupPanel'
 import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 
+const DEFAULT_SIGNUP_USER_TYPE = 'packer'
+
+function initialSignupForm(userType = '') {
+  return {
+    name: '',
+    phone_number: '',
+    email: '',
+    address: '',
+    user_type: userType,
+    registration_number: '',
+    password: '',
+    password_confirmation: '',
+  }
+}
+
 function SignupPage() {
   const navigate = useNavigate()
   const {
@@ -15,16 +30,8 @@ function SignupPage() {
     userTypeOptions,
     clearFeedback,
   } = useAuth()
-  const [form, setForm] = useState({
-    name: '',
-    phone_number: '',
-    email: '',
-    address: '',
-    user_type: userTypeOptions[0],
-    registration_number: '',
-    password: '',
-    password_confirmation: '',
-  })
+  const [form, setForm] = useState(() => initialSignupForm(userTypeOptions[0] ?? ''))
+
   useEffect(() => {
     if (currentUser) {
       navigate('/dashboard', { replace: true })
@@ -39,13 +46,16 @@ function SignupPage() {
   useEffect(() => {
     setForm((previous) => ({
       ...previous,
-      user_type: previous.user_type || userTypeOptions[0] || 'packer',
+      user_type: previous.user_type || userTypeOptions[0] || DEFAULT_SIGNUP_USER_TYPE,
     }))
   }, [userTypeOptions])
 
   async function handleSubmit(event) {
     event.preventDefault()
-    await register(form)
+    const registered = await register(form)
+    if (registered) {
+      setForm(initialSignupForm(userTypeOptions[0] || DEFAULT_SIGNUP_USER_TYPE))
+    }
   }
 
   function onFieldChange(field, value) {

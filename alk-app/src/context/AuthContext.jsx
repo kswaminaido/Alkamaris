@@ -36,6 +36,8 @@ export function AuthProvider({ children }) {
     if (!currentUser?.role) return 'User Dashboard'
     if (currentUser.role === 'admin') return 'Admin Dashboard'
     if (currentUser.role === 'sales') return 'Sales Dashboard'
+    if (currentUser.role === 'logistics') return 'Logistics Dashboard'
+    if (currentUser.role === 'accounts') return 'Accounts Dashboard'
     if (currentUser.role === 'packer' || currentUser.role === 'vendor') return 'Packer Dashboard'
     return 'Customer Dashboard'
   }, [currentUser])
