@@ -11,12 +11,9 @@ const STATUS_OPTIONS = [
   { value: 'P', label: 'Pending' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
+  { value: 'U', label: 'Unshipped' },
+  { value: 'T', label: 'Tally' },
 ]
-
-function getStatusLabel(status) {
-  const option = STATUS_OPTIONS.find(o => o.value === status)
-  return option ? option.label : 'Unknown'
-}
 
 let transactionItemOptionsCache = null
 let transactionItemOptionsPromise = null
@@ -25,6 +22,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
   const [editingItem, setEditingItem] = useState(null)
   const [feedback, setFeedback] = useState({ message: '', error: '' })
   const [busyKey, setBusyKey] = useState('')
+  const [savingStatus, setSavingStatus] = useState(false)
 
   const items = transaction.items ?? []
   const totals = useMemo(() => ({
@@ -37,6 +35,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
     setEditingItem(null)
     setFeedback({ message: '', error: '' })
     setBusyKey('')
+    setSavingStatus(false)
   }, [transaction.id])
 
   async function handleAction(key, requestFactory, successMessage) {
@@ -61,6 +60,41 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
     }
   }
 
+  async function handleStatusChange(event) {
+    const status = event.target.value
+    setSavingStatus(true)
+    setFeedback({ message: '', error: '' })
+
+    try {
+      const response = await authFetch(`/transactions/${transaction.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          transaction: {
+            booking_no: transaction.booking_no,
+            booking_mode: transaction.booking_mode ?? 'trade_commission',
+            status,
+          },
+        }),
+      })
+      const body = await response.json()
+
+      if (!response.ok) {
+        const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
+        setFeedback({ message: '', error: firstValidationMessage ?? body?.message ?? 'Unable to update status.' })
+        return
+      }
+
+      if (body?.data) {
+        onTransactionChange(body.data)
+      }
+      setFeedback({ message: 'Status updated.', error: '' })
+    } catch {
+      setFeedback({ message: '', error: 'Unable to update status.' })
+    } finally {
+      setSavingStatus(false)
+    }
+  }
+
   return (
     <div className="txe-items-overlay" role="dialog" aria-modal="true" aria-label="Transaction items">
       <div className="txe-items-modal">
@@ -69,7 +103,10 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
             <div className="txe-items-title">Transaction Items</div>
             <div className="txe-items-breadcrumb">Transaction &gt; All Transaction &gt; Items Detail</div>
           </div>
-          <div className="txe-items-status">Linked to booking <strong>{transaction.booking_no || '-'}</strong></div>
+          <div className="txe-items-topbar-actions">
+            <div className="txe-items-status">Linked to booking <strong>{transaction.booking_no || '-'}</strong></div>
+            <button type="button" className="txe-items-close-btn" onClick={onClose} aria-label="Close transaction items">x</button>
+          </div>
         </div>
 
         <div className="txe-items-body">
@@ -81,7 +118,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
               <InfoField label="Customer" value={transaction.general_info_customer?.customer} />
               <InfoField label="ETA Date" value={displayDate(transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta)} />
               <InfoField label="LSD" value={displayDate(transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min)} />
-              <InfoField label="Status" value={getStatusLabel(transaction.status) ?? 'Unknown'} />
+              <StatusField value={transaction.status ?? 'U'} saving={savingStatus} onChange={handleStatusChange} />
             </div>
             <div className="txe-items-summary-actions">
               <button type="button" onClick={() => setEditingItem({})}>Add</button>
@@ -416,6 +453,17 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
 
 function InfoField({ label, value }) {
   return <label><span>{label}</span><input readOnly value={value || ''} /></label>
+}
+
+function StatusField({ value, saving, onChange }) {
+  return (
+    <label>
+      <span>Status</span>
+      <select value={value} onChange={onChange} disabled={saving} aria-label="Transaction status">
+        {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+  )
 }
 
 function EditorField({ label, children }) {

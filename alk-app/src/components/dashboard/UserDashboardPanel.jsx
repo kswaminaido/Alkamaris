@@ -31,6 +31,14 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
               <code>GET /api/auth/me</code>
             </section>
           )}
+
+          {currentUser.role === 'logistics' && (
+            <section className="dash-card">
+              <h3>Logistics Workspace</h3>
+              <p>Create new bookings and review booking-related account information.</p>
+              <code>POST /api/transactions</code>
+            </section>
+          )}
         </div>
       </article>
     </section>

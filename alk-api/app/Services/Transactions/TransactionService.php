@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\DB;
 
 final class TransactionService
 {
+    private const BOOKING_PREFIX = 'AME';
+    private const BOOKING_SEQUENCE_PAD = 3;
+
     /**
      * @var array<int, string>
      */
@@ -118,9 +121,18 @@ final class TransactionService
     private function syncDetails(Transaction $transaction, array $validated): void
     {
         $this->syncOneToOneRelations($transaction->id, $validated);
-        $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
-        $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
-        $this->replaceItems($transaction->id, $validated['items'] ?? []);
+
+        if (array_key_exists('expense_lines', $validated)) {
+            $this->replaceExpenseLines($transaction->id, $validated['expense_lines'] ?? []);
+        }
+
+        if (array_key_exists('note_entries', $validated)) {
+            $this->replaceNoteEntries($transaction->id, $validated['note_entries'] ?? []);
+        }
+
+        if (array_key_exists('items', $validated)) {
+            $this->replaceItems($transaction->id, $validated['items'] ?? []);
+        }
     }
 
     /**
@@ -204,14 +216,14 @@ final class TransactionService
             ...$transactionData,
             'booking_no' => $bookingNo,
             'issue_date' => $issueDate,
-            'sales_person_id' => $actor->id,
+            'sales_person_id' => $transactionData['sales_person_id'] ?? $actor->id,
             'product_origin' => $productOrigin !== '' ? $productOrigin : 'India (Singapore)',
         ];
     }
 
     private function resolveCreateBookingNo(string $requestedBookingNo, string $issueDate): string
     {
-        if ($requestedBookingNo !== '' && preg_match('/^ALK\d{4}\d{6}$/', $requestedBookingNo) === 1) {
+        if ($requestedBookingNo !== '') {
             $exists = Transaction::query()->where('booking_no', $requestedBookingNo)->exists();
 
             if (! $exists) {
@@ -224,14 +236,23 @@ final class TransactionService
 
     private function generateBookingNo(string $issueDate): string
     {
-        $prefix = 'ALK'.CarbonImmutable::parse($issueDate)->format('my');
+        $prefix = self::BOOKING_PREFIX.$this->financialYearSuffix($issueDate);
+        $nextTransactionId = ((int) Transaction::query()->max('id')) + 1;
 
         do {
-            $suffix = str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
-            $candidate = $prefix.$suffix;
+            $candidate = $prefix.str_pad((string) $nextTransactionId, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
+            $nextTransactionId++;
         } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
         return $candidate;
+    }
+
+    private function financialYearSuffix(string $issueDate): string
+    {
+        $date = CarbonImmutable::parse($issueDate);
+        $financialYear = $date->month >= 4 ? $date->year : $date->year - 1;
+
+        return substr((string) $financialYear, -2);
     }
 
     private function cloneOneToOne(mixed $sourceRecord, string $modelClass, int $newTransactionId): void
