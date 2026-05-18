@@ -1,17 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
 import TransactionItemsModal from './TransactionItemsModal'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../../utils/countries'
+import { APP_ENV } from '../../config/api'
 
-const OPTIONS = {
+const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
+const LOCAL_OPTIONS = {
   salesPeople: ['Chaipat', 'Keerthana Gubbala', 'Nina', 'Sahil'],
   type: ['Trade', 'Service'],
-  yesNo: ['Yes', 'No'],
   container: ['20 ft', '40 ft'],
   load: ['Full Load', 'Part Load'],
   currency: ['US($)', 'EUR', 'INR'],
   payment: ['T/T', 'L/C', 'CAD'],
   tolerance: ['+/- 0.5%', '+/- 1%', '+/- 2%'],
   serviceType: ['ALL WATER OR MLB', 'FOB', 'CIF'],
+}
+
+const OPTIONS = {
+  salesPeople: IS_LOCAL_ENV ? LOCAL_OPTIONS.salesPeople : [],
+  type: IS_LOCAL_ENV ? LOCAL_OPTIONS.type : [],
+  yesNo: ['Yes', 'No'],
+  container: IS_LOCAL_ENV ? LOCAL_OPTIONS.container : [],
+  load: IS_LOCAL_ENV ? LOCAL_OPTIONS.load : [],
+  currency: IS_LOCAL_ENV ? LOCAL_OPTIONS.currency : [],
+  payment: IS_LOCAL_ENV ? LOCAL_OPTIONS.payment : [],
+  tolerance: IS_LOCAL_ENV ? LOCAL_OPTIONS.tolerance : [],
+  serviceType: IS_LOCAL_ENV ? LOCAL_OPTIONS.serviceType : [],
 }
 
 const STATUS_OPTIONS = [
@@ -67,6 +80,7 @@ const PRINT_DOCUMENTS = [
 const PRINT_YES_NO_OPTIONS = ['NO', 'YES']
 const PRINT_GLAZING_OPTIONS = ['Size', 'NO', 'YES']
 const PRINT_TEMPLATE_OPTIONS = ['India Private']
+const PRICE_TERMS = ['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']
 
 const ATTACHMENT_OPTIONS = [
   'Health Certificate',
@@ -112,7 +126,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
     setDocumentPreviews([])
     setPrintDialogOpen(false)
     setItemsModalOpen(false)
-  }, [transaction])
+  }, [transaction?.id])
 
   useEffect(() => {
     let active = true
@@ -307,7 +321,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
         <div className="txn-edit-header">
           <div className="txn-edit-header-copy">
             <span className="txn-edit-eyebrow">Transaction Details</span>
-            <h2>Transaction# {transaction.booking_no || 'SIN2605802'}</h2>
+            <h2>Transaction# {displayValue(transaction.booking_no)}</h2>
           </div>
           <button type="button" className="txn-edit-close" onClick={onClose} aria-label="Close transaction details">x</button>
         </div>
@@ -407,26 +421,27 @@ function HeaderCard({ transaction, countryOptions }) {
   const country = transaction.country ?? ''
   const destination = transaction.destination ?? ''
   const container = transaction.container_primary ?? ''
+  const containerSecondary = transaction.container_secondary ?? ''
   const certified = transaction.certified ? 'Yes' : 'No'
-  const originOptions = mergeCountryOptions(countryOptions, 'India (Singapore)', origin || 'INDIA')
+  const originOptions = mergeCountryOptions(countryOptions, origin)
   const countrySelectOptions = mergeCountryOptions(countryOptions, country)
-  const destinationOptions = mergeCountryOptions(countryOptions, destination || 'Jordan')
+  const destinationOptions = mergeCountryOptions(countryOptions, destination)
 
   return (
     <div className="txe-card txe-header-card">
       <div className="txe-grid-4">
-        <LabelField label="Booking No."><input name="transaction.booking_no" defaultValue={transaction.booking_no || 'SIN2605802'} /></LabelField>
+        <LabelField label="Booking No."><input name="transaction.booking_no" defaultValue={transaction.booking_no ?? ''} /></LabelField>
         <LabelField label="Issue Date"><input name="transaction.issue_date" defaultValue={issueDate} /></LabelField>
         <LabelField label="Status"><select name="transaction.status" defaultValue={transaction.status ?? 'P'}>{STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></LabelField>
-        <LabelField label="Last Modified By"><input defaultValue={salesPersonName || 'Keerthana Gubbala'} /></LabelField>
+        <LabelField label="Last Modified By"><input defaultValue={salesPersonName} /></LabelField>
 
-        <LabelField label="Sales Person"><select defaultValue={salesPersonName || 'Chaipat'}>{withCurrent(OPTIONS.salesPeople, salesPersonName || 'Chaipat').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
-        <LabelField label="Product Origin"><select name="transaction.product_origin" defaultValue={origin || 'India (Singapore)'}>{originOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
-        <LabelField label="Type"><select name="transaction.type" defaultValue={type || 'Trade'}>{withCurrent(OPTIONS.type, type || 'Trade').map((o) => <option key={o}>{o}</option>)}</select></LabelField>
-        <LabelField label="Container"><div className="txe-inline"><select name="transaction.container_primary" defaultValue={container || '40 ft'}>{withCurrent(OPTIONS.container, container || '40 ft').map((o) => <option key={o}>{o}</option>)}</select><select name="transaction.container_secondary" defaultValue="Full Load">{OPTIONS.load.map((o) => <option key={o}>{o}</option>)}</select></div></LabelField>
+        <LabelField label="Sales Person"><select defaultValue={salesPersonName}><option value="">Select</option>{withCurrent(OPTIONS.salesPeople, salesPersonName).map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Product Origin"><select name="transaction.product_origin" defaultValue={origin || ''}><option value="">Select</option>{originOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Type"><select name="transaction.type" defaultValue={type}><option value="">Select</option>{withCurrent(OPTIONS.type, type).map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Container"><div className="txe-inline"><select name="transaction.container_primary" defaultValue={container}><option value="">Select</option>{withCurrent(OPTIONS.container, container).map((o) => <option key={o}>{o}</option>)}</select><select name="transaction.container_secondary" defaultValue={containerSecondary}><option value="">Select</option>{withCurrent(OPTIONS.load, containerSecondary).map((o) => <option key={o}>{o}</option>)}</select></div></LabelField>
 
         <LabelField label="Country"><select name="transaction.country" defaultValue={country || ''}><option value="">Select</option>{countrySelectOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
-        <LabelField label="Destination"><select name="transaction.destination" defaultValue={destination || 'Jordan'}>{destinationOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
+        <LabelField label="Destination"><select name="transaction.destination" defaultValue={destination}><option value="">Select</option>{destinationOptions.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Certified"><select name="transaction.certified" defaultValue={certified}>{OPTIONS.yesNo.map((o) => <option key={o}>{o}</option>)}</select></LabelField>
         <LabelField label="Net Margin"><input name="transaction.net_margin" defaultValue={transaction.net_margin ?? ''} /></LabelField>
         <LabelField label="Last Modified On"><input defaultValue={updatedAt} /></LabelField>
@@ -449,38 +464,38 @@ function HomeTab({ transaction }) {
       <div className="txe-two">
         <SectionCard title="GENERAL INFO" side="CUSTOMER" tone="blue">
           <Row label="Customer"><input name="general_info_customer.customer" defaultValue={customer.customer ?? ''} /></Row>
-          <Row label="Attn"><select defaultValue={customer.attention ?? ''}>{withCurrent(['MR. YOUSEF AZIZ', 'MR. RAHUL'], customer.attention).map((o) => <option key={o}>{o}</option>)}</select></Row>
-          <Row label="Buyer's"><div className="txe-inline"><select name="general_info_customer.buyer" defaultValue={customer.buyer ?? ''}><option value="">Select an ...</option>{customer.buyer ? <option value={customer.buyer}>{customer.buyer}</option> : null}</select><input name="general_info_customer.buyer_number" defaultValue={customer.buyer_number ?? ''} placeholder="#" /></div></Row>
-          <Row label="End Customer"><input defaultValue={customer.end_customer ?? ''} /></Row>
-          <Row label="Prices Customer"><div className="txe-inline"><select name="general_info_customer.prices_customer_type" defaultValue={customer.prices_customer_type ?? 'CFR'}>{withCurrent(['CFR', 'FOB'], customer.prices_customer_type || 'CFR').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_customer.prices_customer_rate" defaultValue={customer.prices_customer_rate ?? ''} /></div></Row>
-          <Row label="Payment Customer"><div className="txe-inline"><select name="general_info_customer.payment_customer_type" defaultValue={customer.payment_customer_type ?? 'T/T'}>{withCurrent(OPTIONS.payment, customer.payment_customer_type || 'T/T').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_customer.payment_customer_advance_percent" defaultValue={customer.payment_customer_advance_percent ?? ''} /></div></Row>
+          <Row label="Attn"><input name="general_info_customer.attention" defaultValue={customer.attention ?? ''} list="txe-attn-options" /><datalist id="txe-attn-options">{withCurrent(localOnly(['MR. YOUSEF AZIZ', 'MR. RAHUL']), customer.attention).map((o) => <option key={o} value={o} />)}</datalist></Row>
+          <Row label="PO"><div className="txe-inline"><select name="general_info_customer.buyer" defaultValue={customer.buyer ?? ''}><option value="">Select an ...</option>{customer.buyer ? <option value={customer.buyer}>{customer.buyer}</option> : null}</select><input name="general_info_customer.buyer_number" defaultValue={customer.buyer_number ?? ''} placeholder="#" /></div></Row>
+          <Row label="End Customer"><input name="general_info_customer.end_customer" defaultValue={customer.end_customer ?? ''} /></Row>
+          <Row label="Prices Customer"><div className="txe-inline"><select name="general_info_customer.prices_customer_type" defaultValue={customer.prices_customer_type ?? ''}><option value="">Select</option>{withCurrent(PRICE_TERMS, customer.prices_customer_type).map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_customer.prices_customer_rate" defaultValue={customer.prices_customer_rate ?? ''} /></div></Row>
+          <Row label="Payment Customer"><div className="txe-inline"><select name="general_info_customer.payment_customer_type" defaultValue={customer.payment_customer_type ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.payment, customer.payment_customer_type).map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_customer.payment_customer_advance_percent" defaultValue={customer.payment_customer_advance_percent ?? ''} /></div></Row>
           <Row label="Description"><textarea name="general_info_customer.description" rows="2" defaultValue={customer.description ?? ''} /></Row>
-          <Row label="Tolerance"><select defaultValue={customer.tolerance ?? '+/- 1%'}>{withCurrent(OPTIONS.tolerance, customer.tolerance || '+/- 1%').map((o) => <option key={o}>{o}</option>)}</select></Row>
+          <Row label="Tolerance"><select name="general_info_customer.tolerance" defaultValue={customer.tolerance ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.tolerance, customer.tolerance).map((o) => <option key={o}>{o}</option>)}</select></Row>
         </SectionCard>
 
         <SectionCard title="GENERAL INFO" side="PACKER" tone="blue">
           <Row label="Packer"><input name="general_info_packer.vendor" defaultValue={packer.vendor ?? ''} /></Row>
-          <Row label="Packer's"><div className="txe-inline"><select name="general_info_packer.packer_name" defaultValue={packer.packer_name ?? ''}><option value="">Select</option>{packer.packer_name ? <option value={packer.packer_name}>{packer.packer_name}</option> : null}</select><input name="general_info_packer.packer_number" defaultValue={packer.packer_number ?? ''} placeholder="#" /></div></Row>
-          <Row label="Packed By"><input defaultValue={packer.packed_by ?? ''} /></Row>
-          <Row label="Prices Packer"><div className="txe-inline"><select name="general_info_packer.prices_packer_type" defaultValue={packer.prices_packer_type ?? 'CFR'}>{withCurrent(['CFR', 'FOB'], packer.prices_packer_type || 'CFR').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.prices_packer_rate" defaultValue={packer.prices_packer_rate ?? ''} /></div></Row>
-          <Row label="Payment Packer"><div className="txe-inline"><select name="general_info_packer.payment_packer_type" defaultValue={packer.payment_packer_type ?? 'T/T'}>{withCurrent(OPTIONS.payment, packer.payment_packer_type || 'T/T').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.payment_packer_advance_percent" defaultValue={packer.payment_packer_advance_percent ?? ''} /></div></Row>
+          <Row label="PI"><div className="txe-inline"><select name="general_info_packer.packer_name" defaultValue={packer.packer_name ?? ''}><option value="">Select</option>{packer.packer_name ? <option value={packer.packer_name}>{packer.packer_name}</option> : null}</select><input name="general_info_packer.packer_number" defaultValue={packer.packer_number ?? ''} placeholder="#" /></div></Row>
+          <Row label="Packed By"><input name="general_info_packer.packed_by" defaultValue={packer.packed_by ?? ''} /></Row>
+          <Row label="Prices Packer"><div className="txe-inline"><select name="general_info_packer.prices_packer_type" defaultValue={packer.prices_packer_type ?? ''}><option value="">Select</option>{withCurrent(PRICE_TERMS, packer.prices_packer_type).map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.prices_packer_rate" defaultValue={packer.prices_packer_rate ?? ''} /></div></Row>
+          <Row label="Payment Packer"><div className="txe-inline"><select name="general_info_packer.payment_packer_type" defaultValue={packer.payment_packer_type ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.payment, packer.payment_packer_type).map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.payment_packer_advance_percent" defaultValue={packer.payment_packer_advance_percent ?? ''} /></div></Row>
           <Row label="Description"><textarea name="general_info_packer.description" rows="2" defaultValue={packer.description ?? ''} /></Row>
-          <Row label="Tolerance"><div className="txe-inline"><select name="general_info_packer.tolerance" defaultValue={packer.tolerance ?? '+/- 1%'}>{withCurrent(OPTIONS.tolerance, packer.tolerance || '+/- 1%').map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.total_lqd_price" defaultValue={packer.total_lqd_price ?? ''} /></div></Row>
+          <Row label="Tolerance"><div className="txe-inline"><select name="general_info_packer.tolerance" defaultValue={packer.tolerance ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.tolerance, packer.tolerance).map((o) => <option key={o}>{o}</option>)}</select><input name="general_info_packer.total_lqd_price" defaultValue={packer.total_lqd_price ?? ''} /></div></Row>
         </SectionCard>
       </div>
 
       <div className="txe-two">
         <SectionCard title="REVENUE" side="CUSTOMER" tone="blue">
-          <Row label="Total Selling Value"><div className="txe-inline"><input name="revenue_customer.total_selling_value" defaultValue={revenueCustomer.total_selling_value ?? ''} /><select name="revenue_customer.total_selling_currency" defaultValue={revenueCustomer.total_selling_currency ?? 'US($)'}>{withCurrent(OPTIONS.currency, revenueCustomer.total_selling_currency || 'US($)').map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Total Selling Value"><div className="txe-inline"><input name="revenue_customer.total_selling_value" defaultValue={revenueCustomer.total_selling_value ?? ''} /><select name="revenue_customer.total_selling_currency" defaultValue={revenueCustomer.total_selling_currency ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.currency, revenueCustomer.total_selling_currency).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Commission"><div className="txe-inline"><label><input type="radio" name="revenue_customer.commission_enabled" value="Yes" defaultChecked={!!revenueCustomer.commission_enabled} /> Yes</label><label><input type="radio" name="revenue_customer.commission_enabled" value="No" defaultChecked={!revenueCustomer.commission_enabled} /> No</label><input name="revenue_customer.commission_percent" defaultValue={revenueCustomer.commission_percent ?? ''} placeholder="Percent" /></div></Row>
-          <Row label="Amount"><div className="txe-inline"><input name="revenue_customer.amount" defaultValue={revenueCustomer.amount ?? ''} /><select name="revenue_customer.amount_currency" defaultValue={revenueCustomer.amount_currency ?? 'US($)'}>{withCurrent(OPTIONS.currency, revenueCustomer.amount_currency || 'US($)').map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Amount"><div className="txe-inline"><input name="revenue_customer.amount" defaultValue={revenueCustomer.amount ?? ''} /><select name="revenue_customer.amount_currency" defaultValue={revenueCustomer.amount_currency ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.currency, revenueCustomer.amount_currency).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Description"><textarea name="revenue_customer.description" rows="2" defaultValue={revenueCustomer.description ?? ''} /></Row>
         </SectionCard>
 
         <SectionCard title="REVENUE" side="PACKER" tone="blue">
-          <Row label="Total Buying Value"><div className="txe-inline"><input name="revenue_packer.total_buying_value" defaultValue={revenuePacker.total_buying_value ?? ''} /><select name="revenue_packer.total_buying_currency" defaultValue={revenuePacker.total_buying_currency ?? 'US($)'}>{withCurrent(OPTIONS.currency, revenuePacker.total_buying_currency || 'US($)').map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Total Buying Value"><div className="txe-inline"><input name="revenue_packer.total_buying_value" defaultValue={revenuePacker.total_buying_value ?? ''} /><select name="revenue_packer.total_buying_currency" defaultValue={revenuePacker.total_buying_currency ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.currency, revenuePacker.total_buying_currency).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Commission"><div className="txe-inline"><label><input type="radio" name="revenue_packer.commission_enabled" value="Yes" defaultChecked={!!revenuePacker.commission_enabled} /> Yes</label><label><input type="radio" name="revenue_packer.commission_enabled" value="No" defaultChecked={!revenuePacker.commission_enabled} /> No</label><input name="revenue_packer.commission_percent" defaultValue={revenuePacker.commission_percent ?? ''} placeholder="Percent" /></div></Row>
-          <Row label="Amount"><div className="txe-inline"><input name="revenue_packer.amount" defaultValue={revenuePacker.amount ?? ''} /><select name="revenue_packer.amount_currency" defaultValue={revenuePacker.amount_currency ?? 'US($)'}>{withCurrent(OPTIONS.currency, revenuePacker.amount_currency || 'US($)').map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Amount"><div className="txe-inline"><input name="revenue_packer.amount" defaultValue={revenuePacker.amount ?? ''} /><select name="revenue_packer.amount_currency" defaultValue={revenuePacker.amount_currency ?? ''}><option value="">Select</option>{withCurrent(OPTIONS.currency, revenuePacker.amount_currency).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Description"><textarea name="revenue_packer.description" rows="2" defaultValue={revenuePacker.description ?? ''} /></Row>
         </SectionCard>
       </div>
@@ -519,7 +534,7 @@ function HomeTab({ transaction }) {
           <div>
             <Row label="By Logistic"><textarea name="note.by_logistic" rows="2" /></Row>
             <Row label="By Packaging"><textarea name="note.by_packaging" rows="2" /></Row>
-            <Row label="For Packer"><textarea name="note.for_packer" rows="2" defaultValue={notes.for_packer ?? 'Consignee: Leader food supply institution'} /></Row>
+            <Row label="For Packer"><textarea name="note.for_packer" rows="2" defaultValue={notes.for_packer ?? localFallback('Consignee: Leader food supply institution')} /></Row>
           </div>
         </div>
       </SectionCard>
@@ -540,46 +555,46 @@ function DollarTab({ transaction }) {
     <div className="txe-stack">
       <div className="txe-two">
         <SectionCard title="Expenses" side="TRANSPORTATION & CUSTOMS" tone="pink">
-          <Row label="Trucking"><div className="txe-inline"><input name="expense.trucking.amount" defaultValue={getExpenseValue(transaction, 'trucking', 'amount')} /><select name="expense.trucking.currency" defaultValue={getExpenseValue(transaction, 'trucking', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'trucking', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Freight"><div className="txe-inline"><input name="expense.freight.amount" defaultValue={getExpenseValue(transaction, 'freight', 'amount')} /><select name="expense.freight.currency" defaultValue={getExpenseValue(transaction, 'freight', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'freight', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Local Charges"><div className="txe-inline"><input name="expense.local_charges.amount" defaultValue={getExpenseValue(transaction, 'local_charges', 'amount')} /><select name="expense.local_charges.currency" defaultValue={getExpenseValue(transaction, 'local_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'local_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Custom Clearance"><div className="txe-inline"><input name="expense.custom_clearance.amount" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'amount')} /><select name="expense.custom_clearance.currency" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'custom_clearance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Trucking"><div className="txe-inline"><input name="expense.trucking.amount" defaultValue={getExpenseValue(transaction, 'trucking', 'amount')} /><select name="expense.trucking.currency" defaultValue={getExpenseValue(transaction, 'trucking', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'trucking', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Freight"><div className="txe-inline"><input name="expense.freight.amount" defaultValue={getExpenseValue(transaction, 'freight', 'amount')} /><select name="expense.freight.currency" defaultValue={getExpenseValue(transaction, 'freight', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'freight', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Local Charges"><div className="txe-inline"><input name="expense.local_charges.amount" defaultValue={getExpenseValue(transaction, 'local_charges', 'amount')} /><select name="expense.local_charges.currency" defaultValue={getExpenseValue(transaction, 'local_charges', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'local_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Custom Clearance"><div className="txe-inline"><input name="expense.custom_clearance.amount" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'amount')} /><select name="expense.custom_clearance.currency" defaultValue={getExpenseValue(transaction, 'custom_clearance', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'custom_clearance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="INSURANCE" tone="pink">
-          <Row label="Marine Insurance"><div className="txe-inline"><input name="expense.marine_insurance.amount" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'amount')} /><select name="expense.marine_insurance.currency" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'marine_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Rejection Insurance"><div className="txe-inline"><input name="expense.rejection_insurance.amount" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'amount')} /><select name="expense.rejection_insurance.currency" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rejection_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Credit Insurance"><div className="txe-inline"><input name="expense.credit_insurance.amount" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'amount')} /><select name="expense.credit_insurance.currency" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'credit_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="War risk charges"><div className="txe-inline"><input name="expense.war_risk_charges.amount" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'amount')} /><select name="expense.war_risk_charges.currency" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'war_risk_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Marine Insurance"><div className="txe-inline"><input name="expense.marine_insurance.amount" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'amount')} /><select name="expense.marine_insurance.currency" defaultValue={getExpenseValue(transaction, 'marine_insurance', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'marine_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Rejection Insurance"><div className="txe-inline"><input name="expense.rejection_insurance.amount" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'amount')} /><select name="expense.rejection_insurance.currency" defaultValue={getExpenseValue(transaction, 'rejection_insurance', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rejection_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Credit Insurance"><div className="txe-inline"><input name="expense.credit_insurance.amount" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'amount')} /><select name="expense.credit_insurance.currency" defaultValue={getExpenseValue(transaction, 'credit_insurance', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'credit_insurance', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="War risk charges"><div className="txe-inline"><input name="expense.war_risk_charges.amount" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'amount')} /><select name="expense.war_risk_charges.currency" defaultValue={getExpenseValue(transaction, 'war_risk_charges', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'war_risk_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
       </div>
 
       <div className="txe-two">
         <SectionCard title="EXPENSES" side="DOCUMENTATION / BANK CHARGES" tone="pink">
-          <Row label="Legalization Docs"><div className="txe-inline"><input name="expense.legalization_docs.amount" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'amount')} /><select name="expense.legalization_docs.currency" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'legalization_docs', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Bank Charges"><div className="txe-inline"><input name="expense.bank_charges.amount" defaultValue={getExpenseValue(transaction, 'bank_charges', 'amount') ?? '0.00'} /><select name="expense.bank_charges.currency" defaultValue={getExpenseValue(transaction, 'bank_charges', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'bank_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Legalization Docs"><div className="txe-inline"><input name="expense.legalization_docs.amount" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'amount')} /><select name="expense.legalization_docs.currency" defaultValue={getExpenseValue(transaction, 'legalization_docs', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'legalization_docs', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Bank Charges"><div className="txe-inline"><input name="expense.bank_charges.amount" defaultValue={getExpenseValue(transaction, 'bank_charges', 'amount') ?? localFallback('0.00')} /><select name="expense.bank_charges.currency" defaultValue={getExpenseValue(transaction, 'bank_charges', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'bank_charges', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="PACKAGING" tone="pink">
-          <Row label="Packaging material"><div className="txe-inline"><input name="expense.packaging_material.amount" defaultValue={getExpenseValue(transaction, 'packaging_material', 'amount')} /><select name="expense.packaging_material.currency" defaultValue={getExpenseValue(transaction, 'packaging_material', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'packaging_material', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Printing cylinder"><div className="txe-inline"><input name="expense.printing_cylinder.amount" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'amount')} /><select name="expense.printing_cylinder.currency" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'printing_cylinder', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Packaging material"><div className="txe-inline"><input name="expense.packaging_material.amount" defaultValue={getExpenseValue(transaction, 'packaging_material', 'amount')} /><select name="expense.packaging_material.currency" defaultValue={getExpenseValue(transaction, 'packaging_material', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'packaging_material', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Printing cylinder"><div className="txe-inline"><input name="expense.printing_cylinder.amount" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'amount')} /><select name="expense.printing_cylinder.currency" defaultValue={getExpenseValue(transaction, 'printing_cylinder', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'printing_cylinder', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
       </div>
 
       <div className="txe-two">
         <SectionCard title="Expenses" side="INSPECTION / LAB TEST" tone="pink">
-          <Row label="Inspection Amt."><div className="txe-inline"><input name="expense.inspection_amt.amount" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'amount')} /><select name="expense.inspection_amt.currency" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'inspection_amt', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Loading Supervision"><div className="txe-inline"><input name="expense.loading_supervision.amount" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'amount')} /><select name="expense.loading_supervision.currency" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'loading_supervision', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Lab Test"><div className="txe-inline"><input name="expense.lab_test.amount" defaultValue={getExpenseValue(transaction, 'lab_test', 'amount')} /><select name="expense.lab_test.currency" defaultValue={getExpenseValue(transaction, 'lab_test', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'lab_test', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Inspection Amt."><div className="txe-inline"><input name="expense.inspection_amt.amount" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'amount')} /><select name="expense.inspection_amt.currency" defaultValue={getExpenseValue(transaction, 'inspection_amt', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'inspection_amt', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Loading Supervision"><div className="txe-inline"><input name="expense.loading_supervision.amount" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'amount')} /><select name="expense.loading_supervision.currency" defaultValue={getExpenseValue(transaction, 'loading_supervision', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'loading_supervision', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Lab Test"><div className="txe-inline"><input name="expense.lab_test.amount" defaultValue={getExpenseValue(transaction, 'lab_test', 'amount')} /><select name="expense.lab_test.currency" defaultValue={getExpenseValue(transaction, 'lab_test', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'lab_test', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
 
         <SectionCard title="EXPENSES" side="REBATE / CLAIM" tone="pink">
-          <Row label="Rebate to Customer"><div className="txe-inline"><input name="expense.rebate_customer.amount" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'amount') ?? '2,000.00'} /><select name="expense.rebate_customer.currency" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_customer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Rebate to Customer"><div className="txe-inline"><input name="expense.rebate_customer.amount" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'amount') ?? localFallback('2,000.00')} /><select name="expense.rebate_customer.currency" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_customer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Description"><input name="expense.rebate_customer.description" defaultValue={getExpenseValue(transaction, 'rebate_customer', 'description')} /></Row>
-          <Row label="Rebate to Packer"><div className="txe-inline"><input name="expense.rebate_packer.amount" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'amount') ?? '0.00'} /><select name="expense.rebate_packer.currency" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_packer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Rebate to Packer"><div className="txe-inline"><input name="expense.rebate_packer.amount" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'amount') ?? localFallback('0.00')} /><select name="expense.rebate_packer.currency" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'rebate_packer', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
           <Row label="Description"><input name="expense.rebate_packer.description" defaultValue={getExpenseValue(transaction, 'rebate_packer', 'description')} /></Row>
-          <Row label="Claim"><div className="txe-inline"><input name="expense.claim.amount" defaultValue={getExpenseValue(transaction, 'claim', 'amount')} /><select name="expense.claim.currency" defaultValue={getExpenseValue(transaction, 'claim', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'claim', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
-          <Row label="Others"><div className="txe-inline"><input name="expense.others.amount" defaultValue={getExpenseValue(transaction, 'others', 'amount')} /><select name="expense.others.currency" defaultValue={getExpenseValue(transaction, 'others', 'currency') ?? OPTIONS.currency[0]}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'others', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Claim"><div className="txe-inline"><input name="expense.claim.amount" defaultValue={getExpenseValue(transaction, 'claim', 'amount')} /><select name="expense.claim.currency" defaultValue={getExpenseValue(transaction, 'claim', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'claim', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
+          <Row label="Others"><div className="txe-inline"><input name="expense.others.amount" defaultValue={getExpenseValue(transaction, 'others', 'amount')} /><select name="expense.others.currency" defaultValue={getExpenseValue(transaction, 'others', 'currency') ?? ''}>{withCurrent(OPTIONS.currency, getExpenseValue(transaction, 'others', 'currency')).map((o) => <option key={o}>{o}</option>)}</select></div></Row>
         </SectionCard>
       </div>
     </div>
@@ -692,7 +707,7 @@ function ShipTab({ transaction }) {
   const logistics = transaction.logistics ?? {}
   const logisticsValue = (key, fallback = '') => logistics[key] ?? fallback
   const logisticsDate = (key, fallback = '') => formatDate(logistics[key]) || fallback
-  const destination = logisticsValue('destination', 'MONTREAL, CANADA')
+  const destination = logisticsValue('destination', localFallback('MONTREAL, CANADA'))
 
   return (
     <div className="txe-stack">
@@ -703,28 +718,28 @@ function ShipTab({ transaction }) {
             <Row label="Plan ETA"><input name="logistics.plan_eta" defaultValue={logisticsDate('plan_eta')} /></Row>
             <Row label="Packaging Date"><div className="txe-inline txe-inline-3"><input name="logistics.packaging_date_inner" defaultValue={logisticsDate('packaging_date_inner')} placeholder="Inner" /><input name="logistics.packaging_date_outer" defaultValue={logisticsDate('packaging_date_outer')} placeholder="Outter" /><input name="logistics.packaging_date_approved" defaultValue={logisticsDate('packaging_date_approved')} placeholder="Approved" /></div></Row>
             <Row label="Feeder Vessel"><input name="logistics.feeder_vessel" defaultValue={logisticsValue('feeder_vessel')} /></Row>
-            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue={logisticsValue('mother_vessel', 'VARADA V.081W')} /></Row>
-            <Row label="Container #"><input name="logistics.container_no" defaultValue={logisticsValue('container_no', 'MNBU9177027')} /></Row>
-            <Row label="Seal #"><input name="logistics.seal_no" defaultValue={logisticsValue('seal_no', 'ML-IN2683329')} /></Row>
+            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue={logisticsValue('mother_vessel', localFallback('VARADA V.081W'))} /></Row>
+            <Row label="Container #"><input name="logistics.container_no" defaultValue={logisticsValue('container_no', localFallback('MNBU9177027'))} /></Row>
+            <Row label="Seal #"><input name="logistics.seal_no" defaultValue={logisticsValue('seal_no', localFallback('ML-IN2683329'))} /></Row>
             <Row label="LC #"><input name="logistics.lc_no" defaultValue={logisticsValue('lc_no')} /></Row>
             <Row label="Temperature Recorder No"><input name="logistics.temperature_recorder_no" defaultValue={logisticsValue('temperature_recorder_no')} /></Row>
             <Row label="Temperature Recorder Location ROW NO"><input name="logistics.temperature_recorder_location_row_no" defaultValue={logisticsValue('temperature_recorder_location_row_no')} /></Row>
           </div>
           <div>
-            <Row label="ETD Date"><input name="logistics.etd_date" defaultValue={logisticsDate('etd_date', '08/01/2026')} /></Row>
-            <Row label="ETA Date"><input name="logistics.eta_date" defaultValue={logisticsDate('eta_date', '26/02/2026')} /></Row>
+            <Row label="ETD Date"><input name="logistics.etd_date" defaultValue={logisticsDate('etd_date', localFallback('08/01/2026'))} /></Row>
+            <Row label="ETA Date"><input name="logistics.eta_date" defaultValue={logisticsDate('eta_date', localFallback('26/02/2026'))} /></Row>
             <Row label="QC Inspection Date"><input name="logistics.qc_inspection_date" defaultValue={logisticsDate('qc_inspection_date')} /></Row>
             <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row>
             <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row>
-            <Row label="Service Type"><select name="logistics.service_type" defaultValue={logisticsValue('service_type', 'ALL WATER OR MLB')}>{OPTIONS.serviceType.map((o) => <option key={o}>{o}</option>)}</select></Row>
+            <Row label="Service Type"><select name="logistics.service_type" defaultValue={logisticsValue('service_type')}><option value="">Select</option>{withCurrent(OPTIONS.serviceType, logistics.service_type).map((o) => <option key={o}>{o}</option>)}</select></Row>
             <Row label="B/L Date"><input name="logistics.bl_date" defaultValue={logisticsDate('bl_date', '')} /></Row>
             <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '')} /></Row>
-            <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', 'VISAKHAPATNAM, IND')} /></Row>
+            <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', localFallback('VISAKHAPATNAM, IND'))} /></Row>
             <Row label="Destination"><input name="logistics.destination" defaultValue={destination} /></Row>
-            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', 'MAERSK')} /></Row>
+            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', localFallback('MAERSK'))} /></Row>
             <Row label="SC Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row>
-            <Row label="Packer Inv Date"><input name="logistics.packer_inv_date" defaultValue={logisticsDate('packer_inv_date', '26/12/2025')} /></Row>
-            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', 'MAA/286/2025-26')} /></Row>
+            <Row label="Packer Inv Date"><input name="logistics.packer_inv_date" defaultValue={logisticsDate('packer_inv_date', localFallback('26/12/2025'))} /></Row>
+            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', localFallback('MAA/286/2025-26'))} /></Row>
           </div>
         </div>
       </SectionCard>
@@ -739,7 +754,7 @@ function ShipTab({ transaction }) {
           <div>
             <Row label="By Logistic"><textarea name="note.ship_by_logistic" rows="2" /></Row>
             <Row label="By Packaging"><textarea name="note.ship_by_packaging" rows="2" /></Row>
-            <Row label="For Packer"><textarea name="note.ship_for_packer" rows="2" defaultValue={notes.for_packer ?? 'Consignee: Leader food supply institution'} /></Row>
+            <Row label="For Packer"><textarea name="note.ship_for_packer" rows="2" defaultValue={notes.for_packer ?? localFallback('Consignee: Leader food supply institution')} /></Row>
           </div>
         </div>
       </SectionCard>
@@ -788,11 +803,11 @@ function PrintDialog({
   onDownloadSpecificDocument,
   onPrintDocument,
 }) {
-  const transactionId = transaction.booking_no || 'SIF2502056'
-  const transactionDate = formatDate(transaction.issue_date) || '13/10/2025'
+  const transactionId = displayValue(transaction.booking_no)
+  const transactionDate = formatDate(transaction.issue_date) || localFallback('13/10/2025')
   const status = transaction.transaction_status ?? 'I'
-  const lastModifiedBy = transaction.updated_by?.name ?? transaction.sales_person?.name ?? transaction.created_by?.name ?? 'Noree Naknava'
-  const lastModifiedDate = formatDate(transaction.updated_at) || '31/03/2026'
+  const lastModifiedBy = transaction.updated_by?.name ?? transaction.sales_person?.name ?? transaction.created_by?.name ?? localFallback('Noree Naknava')
+  const lastModifiedDate = formatDate(transaction.updated_at) || localFallback('31/03/2026')
 
   return (
     <div className="txe-print-overlay" role="dialog" aria-modal="true" aria-label="Print documents">
@@ -808,8 +823,8 @@ function PrintDialog({
         <div className="txe-print-content">
           <div className="txe-print-form">
             <div className="txe-print-topgrid">
-              <div><span>Transaction ID</span><strong>{transaction.booking_no || 'SIN2605802'}</strong></div>
-              <div><span>Transaction Date</span><strong>{formatDate(transaction.issue_date) || '24/01/2026'}</strong></div>
+              <div><span>Transaction ID</span><strong>{displayValue(transaction.booking_no)}</strong></div>
+              <div><span>Transaction Date</span><strong>{formatDate(transaction.issue_date) || localFallback('24/01/2026')}</strong></div>
               <div><span>Status</span><strong>{getStatusLabel(transaction.status) ?? 'Unknown'}</strong></div>
             </div>
 
@@ -1153,6 +1168,19 @@ function withCurrent(list, current) {
   return list.includes(current) ? list : [current, ...list]
 }
 
+function localOnly(values) {
+  return IS_LOCAL_ENV ? values : []
+}
+
+function localFallback(value) {
+  return IS_LOCAL_ENV ? value : ''
+}
+
+function displayValue(value) {
+  const text = normalizeText(value)
+  return text ?? localFallback('-')
+}
+
 function formatDate(value) {
   if (!value) return ''
   const date = new Date(value)
@@ -1191,12 +1219,48 @@ function formatUnitAmount(value) {
 }
 
 function buildItemDetailRows(transaction) {
+  const items = Array.isArray(transaction.items) ? transaction.items : []
+
+  if (items.length > 0) {
+    return items.map((item, index) => {
+      const weightValue = normalizeNumber(item.total_weight_value) ?? 0
+      const sellingPriceValue = normalizeNumber(item.selling_unit_price) ?? 0
+      const totalSellingPriceValue = normalizeNumber(item.selling_total) ?? 0
+      const buyingPriceValue = normalizeNumber(item.buying_unit_price) ?? 0
+      const totalBuyingPriceValue = normalizeNumber(item.buying_total) ?? 0
+
+      return {
+        no: index + 1,
+        product: item.product ?? '',
+        style: item.style ?? '',
+        code: item.media ?? item.item_code ?? item.customer_lot_no ?? '',
+        packing: item.packing ?? '',
+        brand: item.brand ?? '',
+        size: item.size ?? '',
+        weight: weightValue ? formatAmount(weightValue) : '',
+        weightValue,
+        qty: item.qty_booking ?? item.qty_value ?? '',
+        sellingPrice: sellingPriceValue ? formatUnitAmount(sellingPriceValue) : '',
+        sellingPriceValue,
+        totalSellingPrice: totalSellingPriceValue ? formatAmount(totalSellingPriceValue) : '',
+        totalSellingPriceValue,
+        buyingPrice: buyingPriceValue ? formatUnitAmount(buyingPriceValue) : '',
+        buyingPriceValue,
+        totalBuyingPriceValue,
+      }
+    })
+  }
+
+  if (!IS_LOCAL_ENV) {
+    return []
+  }
+
   const revenueCustomer = transaction.revenue_customer ?? {}
   const revenuePacker = transaction.revenue_packer ?? {}
   const customer = transaction.general_info_customer ?? {}
   const packer = transaction.general_info_packer ?? {}
   const weightValue = normalizeNumber(packer.total_lqd_price) ?? normalizeNumber(transaction.net_margin) ?? 0
-  const qtyValue = normalizeText(customer.buyer_number) ?? normalizeText(packer.packer_number) ?? '-'
+  const qtyValue = normalizeText(customer.buyer_number) ?? normalizeText(packer.packer_number) ?? localFallback('-')
   const sellingPriceValue = normalizeNumber(revenueCustomer.amount) ?? normalizeNumber(revenueCustomer.total_selling_value) ?? 0
   const totalSellingPriceValue = normalizeNumber(revenueCustomer.total_selling_value) ?? sellingPriceValue
   const buyingPriceValue = normalizeNumber(revenuePacker.amount) ?? normalizeNumber(revenuePacker.total_buying_value) ?? 0
@@ -1204,13 +1268,13 @@ function buildItemDetailRows(transaction) {
 
   return [{
     no: 1,
-    product: transaction.category ?? revenueCustomer.description ?? 'Transaction Item',
-    style: customer.description ?? packer.description ?? '-',
-    code: transaction.booking_no ?? '-',
-    packing: transaction.container_secondary ?? '-',
-    brand: packer.vendor ?? packer.packer_name ?? '-',
-    size: transaction.container_primary ?? '-',
-    weight: weightValue ? formatAmount(weightValue) : '-',
+    product: transaction.category ?? revenueCustomer.description ?? localFallback('Transaction Item'),
+    style: customer.description ?? packer.description ?? localFallback('-'),
+    code: transaction.booking_no ?? localFallback('-'),
+    packing: transaction.container_secondary ?? localFallback('-'),
+    brand: packer.vendor ?? packer.packer_name ?? localFallback('-'),
+    size: transaction.container_primary ?? localFallback('-'),
+    weight: weightValue ? formatAmount(weightValue) : localFallback('-'),
     weightValue,
     qty: qtyValue,
     sellingPrice: formatUnitAmount(sellingPriceValue),
@@ -1333,27 +1397,27 @@ function buildPayload(formElement, transaction) {
     },
     general_info_customer: {
       customer: getField(formData, 'general_info_customer.customer'),
-      attention: transaction.general_info_customer?.attention ?? null,
+      attention: getField(formData, 'general_info_customer.attention'),
       ship_to: transaction.general_info_customer?.ship_to ?? null,
       buyer: getField(formData, 'general_info_customer.buyer'),
       buyer_number: getField(formData, 'general_info_customer.buyer_number'),
-      end_customer: transaction.general_info_customer?.end_customer ?? null,
+      end_customer: getField(formData, 'general_info_customer.end_customer'),
       prices_customer_type: getField(formData, 'general_info_customer.prices_customer_type'),
-      prices_customer_rate: normalizeNumber(formData.get('general_info_customer.prices_customer_rate')),
+      prices_customer_rate: getField(formData, 'general_info_customer.prices_customer_rate'),
       payment_customer_term: transaction.general_info_customer?.payment_customer_term ?? null,
       payment_customer_type: getField(formData, 'general_info_customer.payment_customer_type'),
       payment_customer_advance_percent: normalizeNumber(formData.get('general_info_customer.payment_customer_advance_percent')),
       description: getField(formData, 'general_info_customer.description'),
-      tolerance: transaction.general_info_customer?.tolerance ?? null,
+      tolerance: getField(formData, 'general_info_customer.tolerance'),
       marketing_fee: transaction.general_info_customer?.marketing_fee ?? false,
     },
     general_info_packer: {
       vendor: getField(formData, 'general_info_packer.vendor'),
       packer_name: getField(formData, 'general_info_packer.packer_name'),
       packer_number: getField(formData, 'general_info_packer.packer_number'),
-      packed_by: transaction.general_info_packer?.packed_by ?? null,
+      packed_by: getField(formData, 'general_info_packer.packed_by'),
       prices_packer_type: getField(formData, 'general_info_packer.prices_packer_type'),
-      prices_packer_rate: normalizeNumber(formData.get('general_info_packer.prices_packer_rate')),
+      prices_packer_rate: getField(formData, 'general_info_packer.prices_packer_rate'),
       payment_packer_term: transaction.general_info_packer?.payment_packer_term ?? null,
       payment_packer_type: getField(formData, 'general_info_packer.payment_packer_type'),
       payment_packer_advance_percent: normalizeNumber(formData.get('general_info_packer.payment_packer_advance_percent')),

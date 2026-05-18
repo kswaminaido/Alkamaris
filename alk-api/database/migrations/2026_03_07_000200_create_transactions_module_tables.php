@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('buyer_number')->nullable();
             $table->string('end_customer')->nullable();
             $table->string('prices_customer_type')->nullable();
-            $table->decimal('prices_customer_rate', 14, 4)->nullable();
+            $table->string('prices_customer_rate')->nullable();
             $table->string('payment_customer_term')->nullable();
             $table->string('payment_customer_type')->nullable();
             $table->decimal('payment_customer_advance_percent', 8, 2)->nullable();
@@ -58,7 +58,7 @@ return new class extends Migration
             $table->string('packer_number')->nullable();
             $table->string('packed_by')->nullable();
             $table->string('prices_packer_type')->nullable();
-            $table->decimal('prices_packer_rate', 14, 4)->nullable();
+            $table->string('prices_packer_rate')->nullable();
             $table->string('payment_packer_term')->nullable();
             $table->string('payment_packer_type')->nullable();
             $table->decimal('payment_packer_advance_percent', 8, 2)->nullable();

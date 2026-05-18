@@ -1,5 +1,3 @@
-import { getUserIdentifierLabel } from '../../utils/userType'
-
 function SignupPanel({
   registerForm,
   userTypeOptions,
@@ -9,7 +7,7 @@ function SignupPanel({
   message,
   error,
 }) {
-  const identifierLabel = getUserIdentifierLabel(registerForm.user_type)
+  const nameLabel = registerForm.user_type === 'customer' ? 'Customer Name' : 'Name'
 
   return (
     <section className="signup-wrap">
@@ -18,7 +16,7 @@ function SignupPanel({
 
         <form className="form-grid register-grid" onSubmit={onSubmit}>
           <div className="register-field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">{nameLabel}</label>
             <input
               id="name"
               type="text"
@@ -74,39 +72,6 @@ function SignupPanel({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="register-field">
-            <label htmlFor="registration_number">{identifierLabel}</label>
-            <input
-              id="registration_number"
-              type="text"
-              value={registerForm.registration_number}
-              onChange={(event) => onFieldChange('registration_number', event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="register-field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={registerForm.password}
-              onChange={(event) => onFieldChange('password', event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="register-field">
-            <label htmlFor="password_confirmation">Confirm Password</label>
-            <input
-              id="password_confirmation"
-              type="password"
-              value={registerForm.password_confirmation}
-              onChange={(event) => onFieldChange('password_confirmation', event.target.value)}
-              required
-            />
           </div>
 
           <button type="submit" className="primary-btn" disabled={loading}>

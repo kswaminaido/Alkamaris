@@ -4,6 +4,7 @@ namespace App\Services\Users;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class UserService
 {
@@ -52,7 +53,9 @@ final class UserService
             $payload['role'] = $validated['user_type'];
         }
 
-        if ($withPassword && isset($validated['password']) && ! empty($validated['password'])) {
+        if ($withPassword && empty($validated['password'])) {
+            $payload['password'] = Hash::make(Str::random(32));
+        } elseif ($withPassword && isset($validated['password']) && ! empty($validated['password'])) {
             $payload['password'] = Hash::make((string) $validated['password']);
         } elseif (! $withPassword && isset($validated['password']) && ! empty($validated['password'])) {
             $payload['password'] = Hash::make((string) $validated['password']);

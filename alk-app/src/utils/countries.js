@@ -1,8 +1,9 @@
-import { API_BASE } from '../config/api'
+import { API_BASE, APP_ENV } from '../config/api'
 
 export const COUNTRY_API_URL = `${API_BASE}/countries/options`
+const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
 
-export const FALLBACK_COUNTRIES = [
+const LOCAL_FALLBACK_COUNTRIES = [
   'India',
   'Singapore',
   'United Arab Emirates',
@@ -10,6 +11,8 @@ export const FALLBACK_COUNTRIES = [
   'Netherlands',
   'Vietnam',
 ]
+
+export const FALLBACK_COUNTRIES = IS_LOCAL_ENV ? LOCAL_FALLBACK_COUNTRIES : []
 
 export async function fetchCountryOptions() {
   try {

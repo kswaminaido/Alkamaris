@@ -13,9 +13,6 @@ function initialSignupForm(userType = '') {
     email: '',
     address: '',
     user_type: userType,
-    registration_number: '',
-    password: '',
-    password_confirmation: '',
   }
 }
 

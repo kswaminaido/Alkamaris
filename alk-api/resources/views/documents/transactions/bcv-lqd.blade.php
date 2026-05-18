@@ -525,7 +525,7 @@
           </td>
           <td class="sign-space">
             <div class="signature-line"></div>
-            <div class="signature-name">{{ $bcv['packer'] !== '' ? $bcv['packer'] : 'Default Packer Name Here' }}</div>
+            <div class="signature-name">{{ $bcv['packer'] }}</div>
           </td>
         </tr>
       </table>

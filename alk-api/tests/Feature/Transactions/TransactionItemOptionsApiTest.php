@@ -28,6 +28,8 @@ class TransactionItemOptionsApiTest extends TestCase
         $this->assertContains('RAW PEELED UNDEVEINED TAIL OFF', $response->json('data.style', []));
         $this->assertContains('1 x 10 KG IQF', $response->json('data.packing', []));
         $this->assertContains("BUYER'S", $response->json('data.brand', []));
+        $this->assertContains('PLAIN+STICKER', $response->json('data.brand', []));
+        $this->assertContains('PREMIUM CATCH / 5 OCEANS', $response->json('data.brand', []));
         $this->assertContains('8/12.', $response->json('data.size', []));
     }
 }

@@ -3,12 +3,9 @@
 namespace App\Http\Requests\Users;
 
 use App\Enums\UserRole;
-use App\Models\Config;
 use App\Models\User;
-use App\Support\Users\UserRegistrationNumberResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 abstract class UserUpsertRequest extends FormRequest
 {
@@ -43,36 +40,8 @@ abstract class UserUpsertRequest extends FormRequest
             'firm_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
             'factory_approval_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
             'user_type' => [$isUpdate ? 'nullable' : 'required', 'string', Rule::in($this->allowedRoles($user))],
-            'password' => [$isUpdate ? 'nullable' : 'required', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8'],
             'is_active' => ['nullable', 'boolean'],
-        ];
-    }
-
-    /**
-     * @return array<int, \Closure(Validator): void>
-     */
-    public function after(): array
-    {
-        return [
-            function (Validator $validator): void {
-                // Only validate registration number if user_type is being updated
-                if (!$this->has('user_type')) {
-                    return;
-                }
-
-                $resolved = UserRegistrationNumberResolver::resolve($this->all());
-
-                if ($resolved !== null) {
-                    return;
-                }
-
-                $userType = (string) $this->input('user_type');
-
-                $validator->errors()->add(
-                    UserRegistrationNumberResolver::identifierField($userType),
-                    sprintf('%s is required.', UserRegistrationNumberResolver::identifierLabel($userType)),
-                );
-            },
         ];
     }
 
@@ -83,10 +52,26 @@ abstract class UserUpsertRequest extends FormRequest
     {
         $validated = $this->validated();
         if ($this->has('user_type')) {
-            $validated['resolved_registration_number'] = UserRegistrationNumberResolver::resolve($validated);
+            $validated['resolved_registration_number'] = $this->resolveRegistrationNumber($validated);
         }
 
         return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function resolveRegistrationNumber(array $validated): ?string
+    {
+        foreach (['firm_number', 'factory_approval_number', 'registration_number'] as $field) {
+            $value = trim((string) ($validated[$field] ?? ''));
+
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
     /**

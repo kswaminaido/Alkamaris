@@ -2,6 +2,7 @@
 
 namespace App\Services\Transactions;
 
+use App\Models\TransactionItem;
 use Illuminate\Support\Facades\Log;
 use DOMDocument;
 use DOMXPath;
@@ -9,6 +10,19 @@ use ZipArchive;
 
 final class TransactionItemOptionService
 {
+    private const DEFAULT_BRANDS = [
+        'PLAIN+STICKER',
+        'PORTICO',
+        'PORTSIDE',
+        'PORTSIDE SEAFOOD',
+        'PPS',
+        'PREFERENCE',
+        'PREMIER',
+        'PREMIUM',
+        'PREMIUM CATCH',
+        'PREMIUM CATCH / 5 OCEANS',
+    ];
+
     /**
      * @return array<string, array<int, string>>
      */
@@ -17,13 +31,13 @@ final class TransactionItemOptionService
         $path = resource_path('xlsx/For ERP.xlsx');
 
         if (! is_file($path)) {
-            return $this->emptyOptions();
+            return $this->withSavedItemOptions($this->emptyOptions());
         }
 
         $archive = new ZipArchive();
 
         if ($archive->open($path) !== true) {
-            return $this->emptyOptions();
+            return $this->withSavedItemOptions($this->emptyOptions());
         }
 
         try {
@@ -31,20 +45,42 @@ final class TransactionItemOptionService
             $worksheetXml = $archive->getFromName('xl/worksheets/sheet1.xml');
 
             if ($worksheetXml === false) {
-                return $this->emptyOptions();
+                return $this->withSavedItemOptions($this->emptyOptions());
             }
 
-            return $this->extractOptions($worksheetXml, $sharedStrings);
+            return $this->withSavedItemOptions($this->extractOptions($worksheetXml, $sharedStrings));
         } catch (\Throwable $exception) {
             Log::warning('Unable to read transaction item options from workbook.', [
                 'path' => $path,
                 'error' => $exception->getMessage(),
             ]);
 
-            return $this->emptyOptions();
+            return $this->withSavedItemOptions($this->emptyOptions());
         } finally {
             $archive->close();
         }
+    }
+
+    /**
+     * @param  array<string, array<int, string>>  $options
+     * @return array<string, array<int, string>>
+     */
+    private function withSavedItemOptions(array $options): array
+    {
+        foreach (array_keys($this->emptyOptions()) as $field) {
+            $savedValues = TransactionItem::query()
+                ->whereNotNull($field)
+                ->distinct()
+                ->pluck($field)
+                ->all();
+
+            $options[$field] = $this->uniqueValues([
+                ...($options[$field] ?? []),
+                ...$savedValues,
+            ]);
+        }
+
+        return $options;
     }
 
     /**
@@ -224,7 +260,7 @@ final class TransactionItemOptionService
             'product' => [],
             'style' => [],
             'packing' => [],
-            'brand' => [],
+            'brand' => self::DEFAULT_BRANDS,
             'size' => [],
         ];
     }

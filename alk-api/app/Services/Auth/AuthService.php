@@ -8,7 +8,7 @@ use App\DataTransferObjects\Auth\LoginData;
 use App\DataTransferObjects\Auth\RegisterData;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class AuthService implements AuthServiceInterface
 {
@@ -23,7 +23,7 @@ final class AuthService implements AuthServiceInterface
                 'registration_number' => $data->registrationNumber,
                 'role' => $data->userType,
                 'is_active' => false,
-                'password' => $data->password,
+                'password' => $data->password ?: Str::random(32),
             ]),
         );
 
@@ -37,7 +37,7 @@ final class AuthService implements AuthServiceInterface
             ->where('email', $data->email)
             ->first();
 
-        if (! $user || ! Hash::check($data->password, $user->password) || ! $user->is_active) {
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($data->password, $user->password) || ! $user->is_active) {
             return null;
         }
 

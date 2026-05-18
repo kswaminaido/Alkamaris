@@ -4,7 +4,19 @@ const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
 const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
 const RATE_HINTS = ['Std', 'Adj']
-const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: [], size: [] }
+const DEFAULT_BRAND_OPTIONS = [
+  'PLAIN+STICKER',
+  'PORTICO',
+  'PORTSIDE',
+  'PORTSIDE SEAFOOD',
+  'PPS',
+  'PREFERENCE',
+  'PREMIER',
+  'PREMIUM',
+  'PREMIUM CATCH',
+  'PREMIUM CATCH / 5 OCEANS',
+]
+const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: DEFAULT_BRAND_OPTIONS, size: [] }
 
 const STATUS_OPTIONS = [
   { value: 'I', label: 'Invoice' },
@@ -274,7 +286,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               product: normalizeOptionList(body?.data?.product),
               style: normalizeOptionList(body?.data?.style),
               packing: normalizeOptionList(body?.data?.packing),
-              brand: normalizeOptionList(body?.data?.brand),
+              brand: normalizeOptionList([...DEFAULT_BRAND_OPTIONS, ...(body?.data?.brand ?? [])]),
               size: normalizeOptionList(body?.data?.size),
             }))
             .catch(() => EMPTY_ITEM_OPTIONS)
@@ -310,6 +322,20 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setForm((current) => ({ ...current, [key]: value }))
   }
 
+  function addFieldOption(key, value) {
+    const option = normalizeText(value)
+    if (!option) return
+
+    setFieldOptions((current) => {
+      const next = {
+        ...current,
+        [key]: normalizeOptionList([...(current[key] ?? []), option]),
+      }
+      transactionItemOptionsCache = next
+      return next
+    })
+  }
+
   async function calculate() {
     if (needsCommissionWeight(form)) {
       showToast('Please enter Total Weight to calculate commission.', 'error')
@@ -337,6 +363,8 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setSaving(true)
     setError('')
     try {
+      addFieldOption('brand', form.brand)
+      addFieldOption('size', form.size)
       const response = await authFetch(item?.id ? `/transactions/${transaction.id}/items/${item.id}` : `/transactions/${transaction.id}/items`, {
         method: item?.id ? 'PUT' : 'POST',
         body: JSON.stringify({ item: normalizePayload(form) }),
@@ -381,7 +409,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} /></EditorField>
               <EditorField label="Media"><input value={form.media} onChange={(event) => setValue('media', event.target.value)} /></EditorField>
               <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
-              <EditorField label="Size"><div className="txe-item-inline txe-item-inline-size"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
+              <EditorField label="Size"><div className="txe-item-inline txe-item-inline-size"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} onAdd={(value) => addFieldOption('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
               <EditorField label="Total Weight"><WeightRow value={form.total_weight_value} unit={form.total_weight_unit_slug} onValue={(value) => setValue('total_weight_value', value)} onUnit={(value) => setValue('total_weight_unit_slug', value)} /></EditorField>
               <EditorField label="Qty"><QtyRow value={form.qty_value} unit={form.qty_unit} booking={form.qty_booking} onValue={(value) => setValue('qty_value', value)} onUnit={(value) => setValue('qty_unit', value)} onBooking={(value) => setValue('qty_booking', value)} /></EditorField>
               <EditorField label="Selling Unit Price"><PriceRow value={form.selling_unit_price} currency={form.selling_currency} unit={form.selling_unit_slug} hint={form.selling_unit_category} onValue={(value) => setValue('selling_unit_price', value)} onCurrency={(value) => setValue('selling_currency', value)} onUnit={(value) => setValue('selling_unit_slug', value)} onHint={(value) => setValue('selling_unit_category', value)} beforeText="Before Tariff" /></EditorField>
@@ -391,7 +419,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
             </div>
 
             <div className="txe-item-editor-col">
-              <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} /></EditorField>
+              <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} onAdd={(value) => addFieldOption('brand', value)} /></EditorField>
               <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
               <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
               <section className="txe-item-calc-panel" aria-label="Calculation controls">
@@ -546,7 +574,7 @@ function RebateRow({ value, currency, unit, total, onValue, onCurrency, onUnit, 
   )
 }
 
-function SearchableSelect({ value, list, onChange }) {
+function SearchableSelect({ value, list, onChange, onAdd }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
@@ -555,6 +583,7 @@ function SearchableSelect({ value, list, onChange }) {
   const filteredOptions = normalizedSearch
     ? options.filter((option) => option.toLowerCase().includes(normalizedSearch))
     : options
+  const canAdd = Boolean(onAdd && normalizedSearch && !options.some((option) => option.toLowerCase() === normalizedSearch))
 
   useEffect(() => {
     if (!isOpen) {
@@ -616,6 +645,21 @@ function SearchableSelect({ value, list, onChange }) {
                 {option}
               </button>
             ))
+          ) : canAdd ? (
+            <button
+              type="button"
+              className="txn-combobox-option"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                const nextValue = searchText.trim()
+                onAdd(nextValue)
+                onChange(nextValue)
+                setSearchText('')
+                setIsOpen(false)
+              }}
+            >
+              Add {searchText.trim()}
+            </button>
           ) : (
             <div className="txn-combobox-empty">No matches found</div>
           )}
@@ -633,13 +677,13 @@ function buildForm(transaction, item) {
   return {
     product: item?.product ?? transaction.category ?? '',
     style: item?.style ?? '',
-    packing: item?.packing ?? transaction.container_secondary ?? '',
+    packing: item?.packing ?? '',
     media: item?.media ?? '',
     notes: item?.notes ?? '',
-    brand: item?.brand ?? transaction.general_info_packer?.vendor ?? '',
+    brand: item?.brand ?? '',
     secondary_packaging: item?.secondary_packaging ?? '',
     customer_lot_item_code: item?.item_code ?? item?.customer_lot_no ?? '',
-    size: item?.size ?? transaction.container_primary ?? '',
+    size: item?.size ?? '',
     glaze_percentage: stringify(item?.glaze_percentage),
     total_weight_value: stringify(item?.total_weight_value),
     total_weight_unit_category: item?.total_weight_unit_category ?? '',
@@ -690,20 +734,21 @@ function buildForm(transaction, item) {
 }
 
 function calculateDraft(form) {
-  const baseQuantity = resolveBaseQuantity(form)
   const quantity = resolveQuantity(form)
   const packingMultiplier = extractPackingMultiplier(form.packing)
-  const sellingBase = packingMultiplier * quantity
-  const commissionBase = packingMultiplier * quantity
-  const commissionWeightBase = firstDefinedNumber(form.total_weight_value, commissionBase)
+  const calculatedWeight = packingMultiplier > 0 && quantity > 0 ? packingMultiplier * quantity : 0
+  const weight = calculatedWeight > 0 ? calculatedWeight : resolveBaseQuantity(form)
+  const commissionBase = weight
+  const commissionWeightBase = commissionBase
   const packerCommissionRate = normalizeNumber(form.commission_from_packer) ?? 0
   const customerCommissionRate = normalizeNumber(form.commission_from_customer) ?? 0
 
   return {
-    lqd_qty: fixed(baseQuantity),
-    selling_total: fixed(sellingBase * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
-    lqd_total: fixed(baseQuantity * toNumber(form.lqd_price)),
-    buying_total: fixed(baseQuantity * toNumber(form.buying_unit_price) + toNumber(form.buying_correction)),
+    total_weight_value: calculatedWeight > 0 ? fixed(calculatedWeight) : form.total_weight_value,
+    lqd_qty: fixed(weight),
+    selling_total: fixed(weight * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
+    lqd_total: fixed(weight * toNumber(form.lqd_price)),
+    buying_total: fixed(weight * toNumber(form.buying_unit_price) + toNumber(form.buying_correction)),
     rebate_rate_packer_total: fixed4(commissionBase * toNumber(form.rebate_rate_packer)),
     rebate_rate_customer_total: fixed4(commissionBase * toNumber(form.rebate_rate_customer)),
     total_packer_commission: fixed(packerCommissionRate === 0 ? 0 : commissionWeightBase * packerCommissionRate),

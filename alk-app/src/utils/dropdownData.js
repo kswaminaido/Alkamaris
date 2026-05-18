@@ -1,3 +1,9 @@
+import { APP_ENV } from '../config/api'
+
+const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
+const PACKER_PRICE_TERMS = ['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']
+const PRICE_TERMS = PACKER_PRICE_TERMS
+
 export const DROPDOWN_FIELD_GROUPS = [
   {
     key: 'transaction',
@@ -6,7 +12,7 @@ export const DROPDOWN_FIELD_GROUPS = [
       { key: 'transaction.category', label: 'Category', source: 'config', type: 'transaction_category', fallback: ['Food Grade', 'Feed Grade', 'Industrial'], pages: ['New Booking'] },
       { key: 'transaction.type', label: 'Type', source: 'config', type: 'transaction_type', fallback: ['Trade', 'Service', 'Commission'], pages: ['New Booking'] },
       { key: 'transaction.country', label: 'Country', source: 'countries', fallback: [] },
-      { key: 'transaction.product_origin', label: 'Product Origin', source: 'countries', fallback: ['India (Singapore)'] },
+      { key: 'transaction.product_origin', label: 'Product Origin', source: 'countries', fallback: [] },
       { key: 'transaction.destination', label: 'Destination', source: 'countries', fallback: [] },
       { key: 'transaction.container_primary', label: 'Container Size', source: 'config', type: 'transaction_container_size', fallback: ['20 ft', '30 ft', '40 ft'], pages: ['New Booking'] },
       { key: 'transaction.container_secondary', label: 'Container Load', source: 'config', type: 'transaction_container_load', fallback: ['Full Load', 'Partial Load'], pages: ['New Booking'] },
@@ -20,9 +26,9 @@ export const DROPDOWN_FIELD_GROUPS = [
       { key: 'general_info_customer.customer', label: 'Customer', source: 'users', role: 'customer', fallback: [], pages: ['New Booking'] },
       { key: 'general_info_customer.attention', label: 'Attn', source: 'config', type: 'customer_attention', fallback: ['Accounts', 'Purchase', 'Logistics'], pages: ['New Booking'] },
       { key: 'general_info_customer.ship_to', label: 'Ship To', source: 'config', type: 'customer_ship_to', fallback: ['Main Warehouse', 'Port Facility', 'Client Yard'], pages: ['New Booking'] },
-      { key: 'general_info_customer.buyer', label: 'Buyer', source: 'config', type: 'customer_buyer', fallback: ['Buyer A', 'Buyer B', 'Buyer C'], pages: ['New Booking'] },
+      { key: 'general_info_customer.buyer', label: 'PO', source: 'config', type: 'customer_buyer', fallback: ['PO A', 'PO B', 'PO C'], pages: ['New Booking'] },
       { key: 'general_info_customer.end_customer', label: 'End Customer', source: 'config', type: 'customer_end_customer', fallback: ['Retail Group', 'Wholesale Group', 'Distributor X'], pages: ['New Booking'] },
-      { key: 'general_info_customer.prices_customer_type', label: 'Prices Customer Type', source: 'config', type: 'customer_price_type', fallback: ['USD/MT', 'INR/MT', 'SGD/MT'], pages: ['New Booking'] },
+      { key: 'general_info_customer.prices_customer_type', label: 'Prices Customer Type', source: 'config', type: 'customer_price_type', fallback: PRICE_TERMS, pages: ['New Booking'] },
       { key: 'general_info_customer.payment_customer_type', label: 'Payment Customer Type', source: 'config', type: 'customer_payment_type', fallback: ['LC', 'TT', 'CAD'], pages: ['New Booking'] },
       { key: 'general_info_customer.payment_customer_term', label: 'Payment Customer Term', source: 'config', type: 'customer_payment_term', fallback: ['Advance', '30 Days', '60 Days'], pages: ['New Booking'] },
       { key: 'general_info_customer.tolerance', label: 'Tolerance', source: 'config', type: 'transaction_tolerance', fallback: ['+/- 1%', '+/- 2%', '+/- 5%'], pages: ['New Booking'] },
@@ -35,7 +41,7 @@ export const DROPDOWN_FIELD_GROUPS = [
       { key: 'general_info_packer.vendor', label: 'Packer', source: 'users', role: 'packer', fallback: [], pages: ['New Booking'] },
       { key: 'general_info_packer.packer_name', label: 'Packer Name', source: 'config', type: 'packer_name', fallback: ['Packer One', 'Packer Two', 'Packer Three'], pages: ['New Booking'] },
       { key: 'general_info_packer.packed_by', label: 'Packed By', source: 'config', type: 'packer_packed_by', fallback: ['Factory', 'Third Party', 'Packer'], pages: ['New Booking'] },
-      { key: 'general_info_packer.prices_packer_type', label: 'Prices Packer Type', source: 'config', type: 'packer_price_type', fallback: ['USD/MT', 'INR/MT', 'SGD/MT'], pages: ['New Booking'] },
+      { key: 'general_info_packer.prices_packer_type', label: 'Prices Packer Type', source: 'config', type: 'packer_price_type', fallback: PACKER_PRICE_TERMS, pages: ['New Booking'] },
       { key: 'general_info_packer.payment_packer_type', label: 'Payment Packer Type', source: 'config', type: 'packer_payment_type', fallback: ['LC', 'TT', 'CAD'], pages: ['New Booking'] },
       { key: 'general_info_packer.payment_packer_term', label: 'Payment Packer Term', source: 'config', type: 'packer_payment_term', fallback: ['Advance', '30 Days', '60 Days'], pages: ['New Booking'] },
       { key: 'general_info_packer.tolerance', label: 'Tolerance', source: 'config', type: 'transaction_tolerance', fallback: ['+/- 1%', '+/- 2%', '+/- 5%'], pages: ['New Booking'] },
@@ -73,20 +79,17 @@ export function normalizeOptions(options) {
 
 export function getFieldOptions(field, resources) {
   if (field.source === 'config') {
-    return normalizeOptions(resources.configMap?.[field.type]?.data ?? field.fallback)
+    return normalizeOptions(resources.configMap?.[field.type]?.data ?? (IS_LOCAL_ENV ? field.fallback : []))
   }
 
   if (field.source === 'users') {
-    return normalizeOptions(resources?.usersByRole?.[field.role] ?? field.fallback)
+    return normalizeOptions(resources?.usersByRole?.[field.role] ?? (IS_LOCAL_ENV ? field.fallback : []))
   }
 
   if (field.source === 'countries') {
     const countries = normalizeOptions(resources.countries)
-    if (field.key === 'transaction.product_origin') {
-      return normalizeOptions([...field.fallback, ...countries])
-    }
-    return countries.length ? countries : normalizeOptions(field.fallback)
+    return countries.length ? countries : normalizeOptions(IS_LOCAL_ENV ? field.fallback : [])
   }
 
-  return normalizeOptions(field.fallback)
+  return normalizeOptions(IS_LOCAL_ENV ? field.fallback : [])
 }

@@ -9,6 +9,8 @@ const PACKER_ROLE_VALUES = ['packer', 'vendor']
 const NEW_BOOKING_ROLES = ['admin', 'logistics']
 const BOOKING_PREFIX = 'AME'
 const BOOKING_SEQUENCE_PAD = 3
+const BOOKING_SEQUENCE_START = 301
+const PRICE_TERMS = ['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']
 
 function getTodayInputValue() {
   const now = new Date()
@@ -24,7 +26,7 @@ function getFinancialYearSuffix(dateValue = getTodayInputValue()) {
 }
 
 function generateBookingNo(dateValue = getTodayInputValue(), nextTransactionId = 1) {
-  const sequence = String(Math.max(1, Number(nextTransactionId) || 1)).padStart(BOOKING_SEQUENCE_PAD, '0')
+  const sequence = String(Math.max(BOOKING_SEQUENCE_START, Number(nextTransactionId) || BOOKING_SEQUENCE_START)).padStart(BOOKING_SEQUENCE_PAD, '0')
   return `${BOOKING_PREFIX}${getFinancialYearSuffix(dateValue)}${sequence}`
 }
 
@@ -36,7 +38,7 @@ function buildInitialForm() {
       booking_no: generateBookingNo(issueDate),
       issue_date: issueDate,
       sales_person_id: '',
-      product_origin: 'India (Singapore)',
+      product_origin: '',
       destination: '',
       category: '',
       type: '',
@@ -120,7 +122,7 @@ function TransactionCreatePage() {
           booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
           issue_date: issueDate,
           sales_person_id: previous.transaction.sales_person_id || currentUser.id || '',
-          product_origin: previous.transaction.product_origin || 'India (Singapore)',
+          product_origin: previous.transaction.product_origin || '',
         },
       }
     })
@@ -162,10 +164,11 @@ function TransactionCreatePage() {
 
   async function loadNextBookingNo(issueDate = getTodayInputValue()) {
     try {
-      const response = await authFetch('/transactions?per_page=1')
+      const bookingPrefix = `${BOOKING_PREFIX}${getFinancialYearSuffix(issueDate)}`
+      const response = await authFetch(`/transactions?booking_no=${encodeURIComponent(bookingPrefix)}&per_page=100`)
       const payload = await response.json()
-      const latestTransactionId = Number(payload?.data?.[0]?.id ?? 0)
-      const nextBookingNo = generateBookingNo(issueDate, latestTransactionId + 1)
+      const latestBookingSequence = maxBookingSequence(payload?.data, issueDate)
+      const nextBookingNo = generateBookingNo(issueDate, latestBookingSequence + 1)
 
       setForm((previous) => {
         const currentIssueDate = previous.transaction.issue_date || issueDate
@@ -223,7 +226,7 @@ function TransactionCreatePage() {
     payload.transaction.booking_no = (payload.transaction.booking_no ?? '').trim()
     payload.transaction.issue_date = getTodayInputValue()
     payload.transaction.sales_person_id = payload.transaction.sales_person_id || currentUser?.id || null
-    payload.transaction.product_origin = payload.transaction.product_origin || 'India (Singapore)'
+    payload.transaction.product_origin = payload.transaction.product_origin || ''
     payload.transaction.certified = payload.transaction.certified === 'Yes'
 
     try {
@@ -281,7 +284,7 @@ function TransactionCreatePage() {
 }
 
 function TxHeader({ form, setValue, salesPeople, optionsFor }) {
-  const productOriginOptions = mergeCountryOptions(optionsFor('transaction.product_origin'), 'India (Singapore)')
+  const productOriginOptions = mergeCountryOptions(optionsFor('transaction.product_origin'))
   const destinationOptions = optionsFor('transaction.destination')
 
   return (
@@ -314,8 +317,8 @@ function TxHeader({ form, setValue, salesPeople, optionsFor }) {
   )
 }
 
-function GeneralCustomer({ form, setValue, customers, optionsFor }) { return (<div className="txn-panel"><Row label="Customer"><SearchableSelect value={form.general_info_customer.customer} list={customers} onChange={(v) => setValue('general_info_customer', 'customer', v)} /></Row><Row label="Attn"><Select value={form.general_info_customer.attention} list={optionsFor('general_info_customer.attention')} onChange={(v) => setValue('general_info_customer', 'attention', v)} /></Row><Row label="Shipto"><Select value={form.general_info_customer.ship_to} list={optionsFor('general_info_customer.ship_to')} onChange={(v) => setValue('general_info_customer', 'ship_to', v)} /></Row><Row label="Buyer's"><Select value={form.general_info_customer.buyer} list={optionsFor('general_info_customer.buyer')} onChange={(v) => setValue('general_info_customer', 'buyer', v)} /><input placeholder="#" value={form.general_info_customer.buyer_number} onChange={(e) => setValue('general_info_customer', 'buyer_number', e.target.value)} /></Row><Row label="End Customer"><Select value={form.general_info_customer.end_customer} list={optionsFor('general_info_customer.end_customer')} onChange={(v) => setValue('general_info_customer', 'end_customer', v)} /></Row><Row label="Prices Customer"><Select value={form.general_info_customer.prices_customer_type} list={optionsFor('general_info_customer.prices_customer_type')} onChange={(v) => setValue('general_info_customer', 'prices_customer_type', v)} /><input type="number" placeholder="@" value={form.general_info_customer.prices_customer_rate} onChange={(e) => setValue('general_info_customer', 'prices_customer_rate', e.target.value)} /></Row><Row label="Payment Customer"><Select value={form.general_info_customer.payment_customer_type} list={optionsFor('general_info_customer.payment_customer_type')} onChange={(v) => setValue('general_info_customer', 'payment_customer_type', v)} /><Select value={form.general_info_customer.payment_customer_term} list={optionsFor('general_info_customer.payment_customer_term')} onChange={(v) => setValue('general_info_customer', 'payment_customer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_customer.payment_customer_advance_percent} onChange={(e) => setValue('general_info_customer', 'payment_customer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_customer.description} onChange={(e) => setValue('general_info_customer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_customer.tolerance} list={optionsFor('general_info_customer.tolerance')} onChange={(v) => setValue('general_info_customer', 'tolerance', v)} /></Row><Row label="Marketing Fee"><label className="inline-checkbox"><input type="checkbox" checked={form.general_info_customer.marketing_fee} onChange={(e) => setValue('general_info_customer', 'marketing_fee', e.target.checked)} />Yes</label></Row></div>) }
-function GeneralPacker({ form, setValue, packers, optionsFor }) { return (<div className="txn-panel"><Row label="Packer"><SearchableSelect value={form.general_info_packer.vendor} list={packers} onChange={(v) => setValue('general_info_packer', 'vendor', v)} /></Row><Row label="Packer's"><Select value={form.general_info_packer.packer_name} list={optionsFor('general_info_packer.packer_name')} onChange={(v) => setValue('general_info_packer', 'packer_name', v)} /><input placeholder="#" value={form.general_info_packer.packer_number} onChange={(e) => setValue('general_info_packer', 'packer_number', e.target.value)} /></Row><Row label="Packed By"><Select value={form.general_info_packer.packed_by} list={optionsFor('general_info_packer.packed_by')} onChange={(v) => setValue('general_info_packer', 'packed_by', v)} /></Row><Row label="Prices Packer"><Select value={form.general_info_packer.prices_packer_type} list={optionsFor('general_info_packer.prices_packer_type')} onChange={(v) => setValue('general_info_packer', 'prices_packer_type', v)} /><input type="number" placeholder="@" value={form.general_info_packer.prices_packer_rate} onChange={(e) => setValue('general_info_packer', 'prices_packer_rate', e.target.value)} /></Row><Row label="Payment Packer"><Select value={form.general_info_packer.payment_packer_type} list={optionsFor('general_info_packer.payment_packer_type')} onChange={(v) => setValue('general_info_packer', 'payment_packer_type', v)} /><Select value={form.general_info_packer.payment_packer_term} list={optionsFor('general_info_packer.payment_packer_term')} onChange={(v) => setValue('general_info_packer', 'payment_packer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_packer.payment_packer_advance_percent} onChange={(e) => setValue('general_info_packer', 'payment_packer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_packer.description} onChange={(e) => setValue('general_info_packer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_packer.tolerance} list={optionsFor('general_info_packer.tolerance')} onChange={(v) => setValue('general_info_packer', 'tolerance', v)} /><span className="row-text">Total Lqd Price</span><input type="number" readOnly value={form.general_info_packer.total_lqd_price} /></Row><Row label="Consignee"><Select value={form.general_info_packer.consignee} list={optionsFor('general_info_packer.consignee')} onChange={(v) => setValue('general_info_packer', 'consignee', v)} /></Row></div>) }
+function GeneralCustomer({ form, setValue, customers, optionsFor }) { const priceOptions = mergeOptions(optionsFor('general_info_customer.prices_customer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Customer"><SearchableSelect value={form.general_info_customer.customer} list={customers} onChange={(v) => setValue('general_info_customer', 'customer', v)} /></Row><Row label="Attn"><SearchableSelect value={form.general_info_customer.attention} list={optionsFor('general_info_customer.attention')} onChange={(v) => setValue('general_info_customer', 'attention', v)} /></Row><Row label="Shipto"><Select value={form.general_info_customer.ship_to} list={optionsFor('general_info_customer.ship_to')} onChange={(v) => setValue('general_info_customer', 'ship_to', v)} /></Row><Row label="PO"><Select value={form.general_info_customer.buyer} list={optionsFor('general_info_customer.buyer')} onChange={(v) => setValue('general_info_customer', 'buyer', v)} /><input placeholder="#" value={form.general_info_customer.buyer_number} onChange={(e) => setValue('general_info_customer', 'buyer_number', e.target.value)} /></Row><Row label="End Customer"><Select value={form.general_info_customer.end_customer} list={optionsFor('general_info_customer.end_customer')} onChange={(v) => setValue('general_info_customer', 'end_customer', v)} /></Row><Row label="Prices Customer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_customer.prices_customer_type} list={priceOptions} onChange={(v) => setValue('general_info_customer', 'prices_customer_type', v)} /><input type="text" placeholder="@" value={form.general_info_customer.prices_customer_rate} onChange={(e) => setValue('general_info_customer', 'prices_customer_rate', e.target.value)} /></Row><Row label="Payment Customer"><Select value={form.general_info_customer.payment_customer_type} list={optionsFor('general_info_customer.payment_customer_type')} onChange={(v) => setValue('general_info_customer', 'payment_customer_type', v)} /><Select value={form.general_info_customer.payment_customer_term} list={optionsFor('general_info_customer.payment_customer_term')} onChange={(v) => setValue('general_info_customer', 'payment_customer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_customer.payment_customer_advance_percent} onChange={(e) => setValue('general_info_customer', 'payment_customer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_customer.description} onChange={(e) => setValue('general_info_customer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_customer.tolerance} list={optionsFor('general_info_customer.tolerance')} onChange={(v) => setValue('general_info_customer', 'tolerance', v)} /></Row><Row label="Marketing Fee"><label className="inline-checkbox"><input type="checkbox" checked={form.general_info_customer.marketing_fee} onChange={(e) => setValue('general_info_customer', 'marketing_fee', e.target.checked)} />Yes</label></Row></div>) }
+function GeneralPacker({ form, setValue, packers, optionsFor }) { const priceOptions = mergeOptions(optionsFor('general_info_packer.prices_packer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Packer"><SearchableSelect value={form.general_info_packer.vendor} list={packers} onChange={(v) => setValue('general_info_packer', 'vendor', v)} /></Row><Row label="PI"><Select value={form.general_info_packer.packer_name} list={optionsFor('general_info_packer.packer_name')} onChange={(v) => setValue('general_info_packer', 'packer_name', v)} /><input placeholder="#" value={form.general_info_packer.packer_number} onChange={(e) => setValue('general_info_packer', 'packer_number', e.target.value)} /></Row><Row label="Packed By"><Select value={form.general_info_packer.packed_by} list={optionsFor('general_info_packer.packed_by')} onChange={(v) => setValue('general_info_packer', 'packed_by', v)} /></Row><Row label="Prices Packer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_packer.prices_packer_type} list={priceOptions} onChange={(v) => setValue('general_info_packer', 'prices_packer_type', v)} /><input type="text" placeholder="@" value={form.general_info_packer.prices_packer_rate} onChange={(e) => setValue('general_info_packer', 'prices_packer_rate', e.target.value)} /></Row><Row label="Payment Packer"><Select value={form.general_info_packer.payment_packer_type} list={optionsFor('general_info_packer.payment_packer_type')} onChange={(v) => setValue('general_info_packer', 'payment_packer_type', v)} /><Select value={form.general_info_packer.payment_packer_term} list={optionsFor('general_info_packer.payment_packer_term')} onChange={(v) => setValue('general_info_packer', 'payment_packer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_packer.payment_packer_advance_percent} onChange={(e) => setValue('general_info_packer', 'payment_packer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_packer.description} onChange={(e) => setValue('general_info_packer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_packer.tolerance} list={optionsFor('general_info_packer.tolerance')} onChange={(v) => setValue('general_info_packer', 'tolerance', v)} /><span className="row-text">Total Lqd Price</span><input type="number" readOnly value={form.general_info_packer.total_lqd_price} /></Row><Row label="Consignee"><Select value={form.general_info_packer.consignee} list={optionsFor('general_info_packer.consignee')} onChange={(v) => setValue('general_info_packer', 'consignee', v)} /></Row></div>) }
 function RevenueCustomer({ form, setValue, optionsFor }) { return (<div className="txn-panel"><Row label="Total Selling Value"><input type="number" value={form.revenue_customer.total_selling_value} onChange={(e) => setValue('revenue_customer', 'total_selling_value', e.target.value)} /><Select value={form.revenue_customer.total_selling_currency} list={optionsFor('revenue_customer.total_selling_currency')} onChange={(v) => setValue('revenue_customer', 'total_selling_currency', v)} /></Row><Row label="Commission"><Radio checked={form.revenue_customer.commission_enabled} onChange={(v) => setValue('revenue_customer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_customer.commission_percent} onChange={(e) => setValue('revenue_customer', 'commission_percent', e.target.value)} /></Row><Row label="Amount"><input type="number" value={form.revenue_customer.amount} onChange={(e) => setValue('revenue_customer', 'amount', e.target.value)} /><Select value={form.revenue_customer.amount_currency} list={optionsFor('revenue_customer.amount_currency')} onChange={(v) => setValue('revenue_customer', 'amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_customer.description} onChange={(e) => setValue('revenue_customer', 'description', e.target.value)} /></Row><Row label="Rebate Memo"><input type="number" placeholder="Amount" value={form.revenue_customer.rebate_memo_amount} onChange={(e) => setValue('revenue_customer', 'rebate_memo_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.rebate_memo_description} onChange={(e) => setValue('revenue_customer', 'rebate_memo_description', e.target.value)} /></Row><Row label="Overcharge SC"><input type="number" placeholder="Amount" value={form.revenue_customer.overcharge_sc_amount} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.overcharge_sc_description} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
 function RevenuePacker({ form, setValue, optionsFor }) { return (<div className="txn-panel"><Row label="Total Buying Value"><input type="number" value={form.revenue_packer.total_buying_value} onChange={(e) => setValue('revenue_packer', 'total_buying_value', e.target.value)} /><Select value={form.revenue_packer.total_buying_currency} list={optionsFor('revenue_packer.total_buying_currency')} onChange={(v) => setValue('revenue_packer', 'total_buying_currency', v)} /></Row><Row label="Commission"><Radio checked={form.revenue_packer.commission_enabled} onChange={(v) => setValue('revenue_packer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_packer.commission_percent} onChange={(e) => setValue('revenue_packer', 'commission_percent', e.target.value)} /></Row><Row label="Amount"><input type="number" value={form.revenue_packer.amount} onChange={(e) => setValue('revenue_packer', 'amount', e.target.value)} /><Select value={form.revenue_packer.amount_currency} list={optionsFor('revenue_packer.amount_currency')} onChange={(v) => setValue('revenue_packer', 'amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_packer.description} onChange={(e) => setValue('revenue_packer', 'description', e.target.value)} /></Row><Row label="Overcharge SC"><input type="number" placeholder="Amount" value={form.revenue_packer.overcharge_sc_amount} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_packer.overcharge_sc_description} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
 function Shipping({ section, form, setValue }) { const data = form[section]; return (<div className="txn-panel"><Row label="LSD Min"><input type="date" value={data.lsd_min} onChange={(e) => setValue(section, 'lsd_min', e.target.value)} /><span className="row-text">LSD Max</span><input type="date" value={data.lsd_max} onChange={(e) => setValue(section, 'lsd_max', e.target.value)} /></Row><Row label="Presentation"><input type="number" value={data.presentation_days} onChange={(e) => setValue(section, 'presentation_days', e.target.value)} /><span className="row-text">days</span><span className="row-text">L/C Exp.</span><input type="date" value={data.lc_expiry} onChange={(e) => setValue(section, 'lc_expiry', e.target.value)} /></Row><Row label="REQ ETA"><input type="date" value={data.req_eta} onChange={(e) => setValue(section, 'req_eta', e.target.value)} /></Row></div>) }
@@ -345,6 +348,22 @@ function extractSalesPersonOptions(users, currentUser) {
   return [...userMap.values()]
 }
 
+function extractBookingSequence(bookingNo, dateValue) {
+  const prefix = `${BOOKING_PREFIX}${getFinancialYearSuffix(dateValue)}`
+  const text = typeof bookingNo === 'string' ? bookingNo.trim() : ''
+
+  if (!text.startsWith(prefix)) return 0
+
+  const sequence = Number(text.slice(prefix.length))
+  return Number.isFinite(sequence) ? sequence : 0
+}
+
+function maxBookingSequence(transactions, dateValue) {
+  return (Array.isArray(transactions) ? transactions : []).reduce((maxSequence, transaction) => (
+    Math.max(maxSequence, extractBookingSequence(transaction?.booking_no, dateValue))
+  ), BOOKING_SEQUENCE_START - 1)
+}
+
 function canAccessNewBooking(user) {
   return NEW_BOOKING_ROLES.includes(user?.role)
 }
@@ -352,9 +371,10 @@ function canAccessNewBooking(user) {
 function TxnColumn({ title, side, children }) { return (<div className="txn-col"><SectionHeader title={title} side={side} />{children}</div>) }
 function SectionHeader({ title, side }) { return (<div className="txn-section-title"><h5>{title}</h5>{side && <span>{side}</span>}</div>) }
 function Field({ label, children }) { return (<label><span>{label}</span>{children}</label>) }
-function Row({ label, children }) { return (<div className="txn-row"><label className="txn-label">{label}</label><div className="txn-controls">{children}</div></div>) }
+function Row({ label, children, controlsClassName = '' }) { return (<div className="txn-row"><label className="txn-label">{label}</label><div className={`txn-controls${controlsClassName ? ` ${controlsClassName}` : ''}`}>{children}</div></div>) }
 function Select({ value, list, onChange }) { return (<select value={value} onChange={(e) => onChange(e.target.value)}><option value="">Select</option>{list.map((o) => <option key={o} value={o}>{o}</option>)}</select>) }
 function SalesPersonSelect({ value, list, onChange }) { return (<select value={value ?? ''} onChange={(e) => onChange(e.target.value)} required><option value="">Select</option>{list.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}</select>) }
+function mergeOptions(...lists) { return [...new Set(lists.flat().map((item) => (typeof item === 'string' ? item.trim() : '')).filter(Boolean))] }
 function SearchableSelect({ value, list, onChange }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)

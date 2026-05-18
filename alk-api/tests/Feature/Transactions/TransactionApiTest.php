@@ -76,11 +76,11 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.booking_no', 'AME26001')
+            ->assertJsonPath('data.booking_no', 'AME26301')
             ->assertJsonPath('data.general_info_customer.customer', 'Leader Food')
             ->assertJsonPath('data.issue_date', '2026-05-11')
             ->assertJsonPath('data.sales_person_id', $salesPerson->id)
-            ->assertJsonPath('data.product_origin', 'India (Singapore)')
+            ->assertJsonPath('data.product_origin', null)
             ->assertJsonPath('data.notes.by_sales', 'Priority shipment')
             ->assertJsonPath('data.logistics.mother_vessel', 'VARADA V.081W')
             ->assertJsonPath('data.logistics.temperature_recorder_location_row_no', 'ROW 7')
@@ -90,7 +90,7 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.items.0.product', 'Frozen Vannamei');
 
         $this->assertDatabaseHas('transactions', [
-            'booking_no' => 'AME26001',
+            'booking_no' => 'AME26301',
             'issue_date' => '2026-05-11 00:00:00',
             'sales_person_id' => $salesPerson->id,
             'created_by_user_id' => $admin->id,
@@ -115,7 +115,7 @@ final class TransactionApiTest extends TestCase
         $logisticsUser = User::factory()->create(['role' => UserRole::Logistics->value]);
         $salesPerson = User::factory()->create(['role' => UserRole::Sales->value]);
         Transaction::query()->create([
-            'booking_no' => 'AME26001',
+            'booking_no' => 'AME26301',
             'booking_mode' => 'trade_commission',
             'created_by_user_id' => $logisticsUser->id,
         ]);
@@ -137,11 +137,11 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.booking_no', 'AME26002')
+            ->assertJsonPath('data.booking_no', 'AME26302')
             ->assertJsonPath('data.sales_person_id', $salesPerson->id);
 
         $this->assertDatabaseHas('transactions', [
-            'booking_no' => 'AME26002',
+            'booking_no' => 'AME26302',
             'sales_person_id' => $salesPerson->id,
             'created_by_user_id' => $logisticsUser->id,
         ]);

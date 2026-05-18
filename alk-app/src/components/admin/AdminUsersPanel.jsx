@@ -48,7 +48,8 @@ function AdminUsersPanel({
   const [activeSection, setActiveSection] = useState('users')
   const menuItems = useMemo(() => [{ id: 'users', label: 'Users' }], [])
   const visibleUserTypeOptions = getVisibleUserTypeOptions(userTypeOptions, form.user_type)
-  const identifierLabel = getUserIdentifierLabel(form.user_type)
+  const hideAccountCredentials = ['packer', 'customer'].includes(form.user_type)
+  const identifierLabel = hideAccountCredentials ? '' : getUserIdentifierLabel(form.user_type)
 
   return (
     <section className="admin-shell">
@@ -207,16 +208,18 @@ function AdminUsersPanel({
                 />
               </div>
 
-              <div className="register-field">
-                <label htmlFor="admin-registration">{identifierLabel}</label>
-                <input
-                  id="admin-registration"
-                  type="text"
-                  value={form.registration_number}
-                  onChange={(event) => onFieldChange('registration_number', event.target.value)}
-                  required
-                />
-              </div>
+              {!hideAccountCredentials && (
+                <div className="register-field">
+                  <label htmlFor="admin-registration">{identifierLabel}</label>
+                  <input
+                    id="admin-registration"
+                    type="text"
+                    value={form.registration_number}
+                    onChange={(event) => onFieldChange('registration_number', event.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="register-field">
                 <label htmlFor="admin-role">User Type</label>
@@ -234,29 +237,33 @@ function AdminUsersPanel({
                 </select>
               </div>
 
-              <div className="register-field">
-                <label htmlFor="admin-password">
-                  Password {editingUserId ? '(leave blank to keep current)' : ''}
-                </label>
-                <input
-                  id="admin-password"
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => onFieldChange('password', event.target.value)}
-                  required={!editingUserId}
-                />
-              </div>
+              {!hideAccountCredentials && (
+                <div className="register-field">
+                  <label htmlFor="admin-password">
+                    Password {editingUserId ? '(leave blank to keep current)' : ''}
+                  </label>
+                  <input
+                    id="admin-password"
+                    type="password"
+                    value={form.password}
+                    onChange={(event) => onFieldChange('password', event.target.value)}
+                    required={!editingUserId}
+                  />
+                </div>
+              )}
 
-              <div className="register-field">
-                <label htmlFor="admin-password-confirmation">Confirm Password</label>
-                <input
-                  id="admin-password-confirmation"
-                  type="password"
-                  value={form.password_confirmation}
-                  onChange={(event) => onFieldChange('password_confirmation', event.target.value)}
-                  required={!editingUserId}
-                />
-              </div>
+              {!hideAccountCredentials && (
+                <div className="register-field">
+                  <label htmlFor="admin-password-confirmation">Confirm Password</label>
+                  <input
+                    id="admin-password-confirmation"
+                    type="password"
+                    value={form.password_confirmation}
+                    onChange={(event) => onFieldChange('password_confirmation', event.target.value)}
+                    required={!editingUserId}
+                  />
+                </div>
+              )}
 
               <div className="admin-form-actions">
                 <button type="submit" className="primary-btn" disabled={saving}>

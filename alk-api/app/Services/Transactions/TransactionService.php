@@ -22,6 +22,7 @@ final class TransactionService
 {
     private const BOOKING_PREFIX = 'AME';
     private const BOOKING_SEQUENCE_PAD = 3;
+    private const BOOKING_SEQUENCE_START = 301;
 
     /**
      * @var array<int, string>
@@ -217,7 +218,7 @@ final class TransactionService
             'booking_no' => $bookingNo,
             'issue_date' => $issueDate,
             'sales_person_id' => $transactionData['sales_person_id'] ?? $actor->id,
-            'product_origin' => $productOrigin !== '' ? $productOrigin : 'India (Singapore)',
+            'product_origin' => $productOrigin !== '' ? $productOrigin : null,
         ];
     }
 
@@ -237,14 +238,35 @@ final class TransactionService
     private function generateBookingNo(string $issueDate): string
     {
         $prefix = self::BOOKING_PREFIX.$this->financialYearSuffix($issueDate);
-        $nextTransactionId = ((int) Transaction::query()->max('id')) + 1;
+        $bookingNumbers = Transaction::query()
+            ->where('booking_no', 'like', $prefix.'%')
+            ->pluck('booking_no');
+        $nextSequence = max(self::BOOKING_SEQUENCE_START, $this->maxBookingSequence($bookingNumbers, $prefix) + 1);
 
         do {
-            $candidate = $prefix.str_pad((string) $nextTransactionId, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
-            $nextTransactionId++;
+            $candidate = $prefix.str_pad((string) $nextSequence, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
+            $nextSequence++;
         } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
         return $candidate;
+    }
+
+    /**
+     * @param  iterable<int, string>  $bookingNumbers
+     */
+    private function maxBookingSequence(iterable $bookingNumbers, string $prefix): int
+    {
+        $max = 0;
+
+        foreach ($bookingNumbers as $bookingNo) {
+            $suffix = substr((string) $bookingNo, strlen($prefix));
+
+            if ($suffix !== '' && ctype_digit($suffix)) {
+                $max = max($max, (int) $suffix);
+            }
+        }
+
+        return $max;
     }
 
     private function financialYearSuffix(string $issueDate): string
@@ -350,11 +372,12 @@ final class TransactionService
     private function replaceItems(int $transactionId, array $items): void
     {
         TransactionItem::query()->where('transaction_id', $transactionId)->delete();
+        $itemService = app(TransactionItemService::class);
 
         foreach ($items as $index => $item) {
             TransactionItem::query()->create([
                 'transaction_id' => $transactionId,
-                ...$item,
+                ...$itemService->applyDerivedTotals($item),
                 'sort_order' => (int) ($item['sort_order'] ?? $index),
             ]);
         }

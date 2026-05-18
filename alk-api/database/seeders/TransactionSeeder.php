@@ -87,7 +87,7 @@ class TransactionSeeder extends Seeder
                 'booking_mode' => rand(0, 1) === 1 ? 'trade_commission' : 'qc_services',
                 'issue_date' => $issueDate->toDateString(),
                 'sales_person_id' => $salesPerson->id,
-                'product_origin' => fake()->randomElement(['India (Singapore)', 'India (UAE)', 'Vietnam']),
+                'product_origin' => fake()->randomElement(['India', 'India (UAE)', 'Vietnam']),
                 'destination' => fake()->randomElement(['AQABA, JORDAN', 'MARIN, SPAIN', 'LIVORNO, ITALY']),
                 'category' => fake()->randomElement(['Food Grade', 'Feed Grade']),
                 'type' => fake()->randomElement(['Trade', 'Service']),
@@ -106,7 +106,7 @@ class TransactionSeeder extends Seeder
                 'buyer' => fake()->company(),
                 'buyer_number' => (string) rand(100000, 999999),
                 'end_customer' => fake()->company(),
-                'prices_customer_type' => fake()->randomElement(['USD/MT', 'INR/MT']),
+                'prices_customer_type' => fake()->randomElement(['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']),
                 'prices_customer_rate' => rand(200, 3000) / 10,
                 'payment_customer_term' => fake()->randomElement(['Advance', '30 Days']),
                 'payment_customer_type' => fake()->randomElement(['LC', 'TT']),
@@ -122,7 +122,7 @@ class TransactionSeeder extends Seeder
                 'packer_name' => fake()->company(),
                 'packer_number' => (string) rand(1000, 9999),
                 'packed_by' => fake()->randomElement(['Factory', 'Packer']),
-                'prices_packer_type' => fake()->randomElement(['USD/MT', 'INR/MT']),
+                'prices_packer_type' => fake()->randomElement(['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']),
                 'prices_packer_rate' => rand(200, 3000) / 10,
                 'payment_packer_term' => fake()->randomElement(['Advance', '30 Days']),
                 'payment_packer_type' => fake()->randomElement(['LC', 'TT']),
@@ -204,7 +204,9 @@ class TransactionSeeder extends Seeder
                 $qtyBooking = rand(800, 4200);
                 $sellingUnitPrice = rand(250, 900) / 100;
                 $buyingUnitPrice = rand(200, 800) / 100;
-                $weightValue = rand(1200, 45000) / 10;
+                $packing = fake()->randomElement(self::ITEM_PACKINGS);
+                $weightValue = $this->packingMultiplier($packing) * $qtyBooking;
+                $lqdPrice = rand(200, 700) / 100;
                 $commissionPacker = rand(0, 20) / 10;
                 $commissionCustomer = rand(0, 20) / 10;
 
@@ -212,7 +214,7 @@ class TransactionSeeder extends Seeder
                     'transaction_id' => $transaction->id,
                     'product' => fake()->randomElement(self::ITEM_PRODUCTS),
                     'style' => fake()->randomElement(self::ITEM_STYLES),
-                    'packing' => fake()->randomElement(self::ITEM_PACKINGS),
+                    'packing' => $packing,
                     'media' => fake()->randomElement(['Retail', 'Food Service', 'Bulk']),
                     'notes' => fake()->sentence(),
                     'brand' => fake()->randomElement(['Plain+Sticker', 'Ocean Star', 'Blue Wave', 'Alkamaris']),
@@ -231,18 +233,18 @@ class TransactionSeeder extends Seeder
                     'selling_currency' => 'USD',
                     'selling_unit_category' => 'weight',
                     'selling_unit_slug' => 'pound',
-                    'selling_total' => round($qtyBooking * $sellingUnitPrice, 2),
-                    'lqd_qty' => $qtyBooking,
-                    'lqd_price' => rand(200, 700) / 100,
+                    'selling_total' => round($weightValue * $sellingUnitPrice, 2),
+                    'lqd_qty' => $weightValue,
+                    'lqd_price' => $lqdPrice,
                     'lqd_currency' => 'USD',
                     'lqd_unit_category' => 'weight',
                     'lqd_unit_slug' => 'pound',
-                    'lqd_total' => round($qtyBooking * (rand(200, 700) / 100), 2),
+                    'lqd_total' => round($weightValue * $lqdPrice, 2),
                     'buying_unit_price' => $buyingUnitPrice,
                     'buying_currency' => 'USD',
                     'buying_unit_category' => 'weight',
                     'buying_unit_slug' => 'pound',
-                    'buying_total' => round($qtyBooking * $buyingUnitPrice, 2),
+                    'buying_total' => round($weightValue * $buyingUnitPrice, 2),
                     'commission_from_packer' => $commissionPacker,
                     'commission_from_packer_unit_category' => 'weight',
                     'commission_from_packer_unit_slug' => 'kilogram',
@@ -255,5 +257,18 @@ class TransactionSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    private function packingMultiplier(string $packing): float
+    {
+        preg_match_all('/-?\d+(?:\.\d+)?/', $packing, $matches);
+        $factors = array_values(array_filter(
+            array_map(static fn (string $part): float => (float) $part, $matches[0] ?? []),
+            static fn (float $part): bool => $part > 0
+        ));
+
+        return $factors === []
+            ? 0.0
+            : array_reduce($factors, static fn (float $product, float $factor): float => $product * $factor, 1.0);
     }
 }

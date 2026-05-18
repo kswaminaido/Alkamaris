@@ -31,9 +31,6 @@ final class AuthApiTest extends TestCase
             'email' => 'test@example.com',
             'address' => 'Test address',
             'user_type' => UserRole::Packer->value,
-            'registration_number' => 'REG-1001',
-            'password' => 'Password@123',
-            'password_confirmation' => 'Password@123',
         ]);
 
         $response
@@ -49,12 +46,12 @@ final class AuthApiTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
             'role' => UserRole::Packer->value,
-            'registration_number' => 'REG-1001',
+            'registration_number' => null,
             'is_active' => false,
         ]);
     }
 
-    public function test_customer_can_register_with_firm_number(): void
+    public function test_customer_can_register_without_firm_number(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Customer User',
@@ -62,9 +59,6 @@ final class AuthApiTest extends TestCase
             'email' => 'customer@example.com',
             'address' => 'Customer address',
             'user_type' => UserRole::Customer->value,
-            'firm_number' => 'FIRM-2002',
-            'password' => 'Password@123',
-            'password_confirmation' => 'Password@123',
         ]);
 
         $response->assertCreated();
@@ -72,7 +66,7 @@ final class AuthApiTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'customer@example.com',
             'role' => UserRole::Customer->value,
-            'registration_number' => 'FIRM-2002',
+            'registration_number' => null,
         ]);
     }
 

@@ -139,7 +139,7 @@ final class TransactionDocumentViewDataFactory
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
             'packer_block' => $this->partyBlock(
-                $this->firstFilled($packer?->packer_name, $packer?->vendor),
+                $packer?->vendor,
                 UserRole::Packer->value,
                 'GSTIN NO',
                 $packer?->packer_number,
@@ -165,8 +165,15 @@ final class TransactionDocumentViewDataFactory
                 $customer?->payment_customer_term,
             ),
             'tolerance' => $this->displayText($customer?->tolerance),
-            'latest_shipment_date' => $this->formatDisplayDate($shippingCustomer?->lsd_max ?: $shippingPacker?->lsd_max),
-            'packer' => $this->upperText($packer?->packer_name),
+            'latest_shipment_date' => $this->firstFilled(
+                $this->formatDisplayDate($shippingCustomer?->lsd_max),
+                $this->formatDisplayDate($shippingPacker?->lsd_max),
+                $this->formatDisplayDate($shippingCustomer?->lsd_min),
+                $this->formatDisplayDate($shippingPacker?->lsd_min),
+                $this->formatDisplayDate($shippingCustomer?->req_eta),
+                $this->formatDisplayDate($shippingPacker?->req_eta),
+            ),
+            'packer' => $this->upperText($this->firstFilled($packer?->packer_name, $packer?->vendor)),
             'customer' => $this->upperText($customer?->customer),
             'factory_approval_number' => $this->displayText($packer?->packer_number),
             'commission' => $firstCommission !== null && $firstCommission !== ''

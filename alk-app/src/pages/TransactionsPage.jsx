@@ -25,7 +25,7 @@ const csvColumns = [
   { label: 'SC Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
   { label: 'SC Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
   { label: 'Packer Inv.', value: (transaction) => transaction.general_info_packer?.packer_name },
-  { label: "Buyer's PO/Contract", value: (transaction) => transaction.general_info_customer?.buyer_number },
+  { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
   { label: 'ETA', value: (transaction) => displayDate(transaction.shipping_details_packer?.req_eta) },
   { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
@@ -401,7 +401,7 @@ function TransactionsPage() {
                 <th>SC Inv. to Packer</th>
                 <th>SC Inv. to Customer</th>
                 <th>Packer Inv.</th>
-                <th>Buyer&apos;s PO/Contract</th>
+                <th>PO/Contract</th>
                 <th>ETD</th>
                 <th>ETA</th>
                 <th>LSD</th>

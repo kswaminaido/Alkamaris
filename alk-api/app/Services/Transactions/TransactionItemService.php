@@ -45,29 +45,32 @@ final class TransactionItemService
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function applyDerivedTotals(array $payload): array
+    public function applyDerivedTotals(array $payload): array
     {
-        $baseQuantity = $this->firstDefinedNumber(
-            $payload['total_weight_value'] ?? null,
-            $payload['qty_booking'] ?? null,
-            $payload['qty_value'] ?? null,
-        );
         $quantity = $this->firstDefinedNumber(
             $payload['qty_value'] ?? null,
             $payload['qty_booking'] ?? null,
         );
         $packingMultiplier = $this->extractPackingMultiplier($payload['packing'] ?? null);
-        $sellingBase = $packingMultiplier * $quantity;
-        $commissionBase = $packingMultiplier * $quantity;
-        $commissionWeightBase = $this->firstDefinedNumber(
-            $payload['total_weight_value'] ?? null,
-            $commissionBase,
-        );
+        $calculatedWeight = $packingMultiplier > 0.0 && $quantity > 0.0 ? $packingMultiplier * $quantity : 0.0;
+        $baseQuantity = $calculatedWeight > 0.0
+            ? $calculatedWeight
+            : $this->firstDefinedNumber(
+                $payload['total_weight_value'] ?? null,
+                $payload['qty_booking'] ?? null,
+                $payload['qty_value'] ?? null,
+            );
+        $commissionBase = $baseQuantity;
+        $commissionWeightBase = $commissionBase;
         $packerCommissionRate = $this->normalizeNumber($payload['commission_from_packer'] ?? null);
         $customerCommissionRate = $this->normalizeNumber($payload['commission_from_customer'] ?? null);
 
+        if ($calculatedWeight > 0.0) {
+            $payload['total_weight_value'] = $this->roundValue($calculatedWeight);
+        }
+
         $payload['lqd_qty'] = $this->roundValue($baseQuantity);
-        $payload['selling_total'] = $this->roundValue($sellingBase * $this->toNumber($payload['selling_unit_price'] ?? null) + $this->toNumber($payload['selling_correction'] ?? null));
+        $payload['selling_total'] = $this->roundValue($baseQuantity * $this->toNumber($payload['selling_unit_price'] ?? null) + $this->toNumber($payload['selling_correction'] ?? null));
         $payload['lqd_total'] = $this->roundValue($baseQuantity * $this->toNumber($payload['lqd_price'] ?? null));
         $payload['buying_total'] = $this->roundValue($baseQuantity * $this->toNumber($payload['buying_unit_price'] ?? null) + $this->toNumber($payload['buying_correction'] ?? null));
         $payload['rebate_rate_packer_total'] = $this->roundValue($commissionBase * $this->toNumber($payload['rebate_rate_packer'] ?? null), 4);
