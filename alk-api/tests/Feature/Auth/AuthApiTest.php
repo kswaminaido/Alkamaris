@@ -70,22 +70,43 @@ final class AuthApiTest extends TestCase
         ]);
     }
 
-    public function test_sales_cannot_register(): void
+    public function test_admin_logistics_accounts_and_sales_registration_requires_password(): void
     {
-        $response = $this->postJson('/api/auth/register', [
-            'name' => 'Sales User',
-            'phone_number' => '9998887775',
-            'email' => 'sales@example.com',
-            'address' => 'Sales address',
-            'user_type' => UserRole::Sales->value,
-            'factory_approval_number' => 'FACT-3003',
-            'password' => 'Password@123',
-            'password_confirmation' => 'Password@123',
-        ]);
+        foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts, UserRole::Sales] as $role) {
+            $response = $this->postJson('/api/auth/register', [
+                'name' => ucfirst($role->value) . ' User',
+                'phone_number' => '9998887776',
+                'email' => "{$role->value}@example.com",
+                'address' => ucfirst($role->value) . ' address',
+                'user_type' => $role->value,
+            ]);
 
-        $response
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['user_type']);
+            $response
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['password', 'password_confirmation']);
+        }
+    }
+
+    public function test_admin_logistics_accounts_and_sales_can_register_with_confirmed_password(): void
+    {
+        foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts, UserRole::Sales] as $role) {
+            $response = $this->postJson('/api/auth/register', [
+                'name' => ucfirst($role->value) . ' User',
+                'phone_number' => '9998887776',
+                'email' => "{$role->value}@example.com",
+                'address' => ucfirst($role->value) . ' address',
+                'user_type' => $role->value,
+                'password' => 'Password@123',
+                'password_confirmation' => 'Password@123',
+            ]);
+
+            $response->assertCreated();
+
+            $user = User::query()->where('email', "{$role->value}@example.com")->first();
+
+            $this->assertNotNull($user);
+            $this->assertTrue(Hash::check('Password@123', $user->password));
+        }
     }
 
     public function test_user_can_login_with_valid_credentials(): void

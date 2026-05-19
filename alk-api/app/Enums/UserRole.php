@@ -33,6 +33,7 @@ enum UserRole: string
             self::Accounts->value,
             self::Logistics->value,
             self::Admin->value,
+            self::Sales->value,
         ];
     }
 }

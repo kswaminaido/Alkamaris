@@ -8,6 +8,7 @@ function SignupPanel({
   error,
 }) {
   const nameLabel = registerForm.user_type === 'customer' ? 'Customer Name' : 'Name'
+  const shouldShowPasswordFields = ['admin', 'logistics', 'accounts', 'sales'].includes(registerForm.user_type)
 
   return (
     <section className="signup-wrap">
@@ -73,6 +74,38 @@ function SignupPanel({
               ))}
             </select>
           </div>
+
+          {shouldShowPasswordFields && (
+            <div className="register-password-section">
+              <div className="register-section-title">
+                <span>Account Access</span>
+              </div>
+
+              <div className="register-field">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={registerForm.password}
+                  onChange={(event) => onFieldChange('password', event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+
+              <div className="register-field">
+                <label htmlFor="password_confirmation">Confirm Password</label>
+                <input
+                  id="password_confirmation"
+                  type="password"
+                  value={registerForm.password_confirmation}
+                  onChange={(event) => onFieldChange('password_confirmation', event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? 'Creating account...' : 'Create Account'}

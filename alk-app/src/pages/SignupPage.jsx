@@ -5,6 +5,7 @@ import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 
 const DEFAULT_SIGNUP_USER_TYPE = 'packer'
+const PASSWORD_USER_TYPES = ['admin', 'logistics', 'accounts', 'sales']
 
 function initialSignupForm(userType = '') {
   return {
@@ -13,6 +14,8 @@ function initialSignupForm(userType = '') {
     email: '',
     address: '',
     user_type: userType,
+    password: '',
+    password_confirmation: '',
   }
 }
 
@@ -56,7 +59,19 @@ function SignupPage() {
   }
 
   function onFieldChange(field, value) {
-    setForm((previous) => ({ ...previous, [field]: value }))
+    setForm((previous) => {
+      if (field !== 'user_type') {
+        return { ...previous, [field]: value }
+      }
+
+      const nextForm = { ...previous, user_type: value }
+      if (!PASSWORD_USER_TYPES.includes(value)) {
+        nextForm.password = ''
+        nextForm.password_confirmation = ''
+      }
+
+      return nextForm
+    })
   }
 
   return (

@@ -9,6 +9,16 @@ use Illuminate\Validation\Rule;
 
 final class RegisterRequest extends FormRequest
 {
+    /**
+     * @var array<int, string>
+     */
+    private const PASSWORD_REQUIRED_USER_TYPES = [
+        UserRole::Admin->value,
+        UserRole::Logistics->value,
+        UserRole::Accounts->value,
+        UserRole::Sales->value,
+    ];
+
     public function authorize(): bool
     {
         return true;
@@ -24,7 +34,7 @@ final class RegisterRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string|Rule>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
@@ -44,7 +54,19 @@ final class RegisterRequest extends FormRequest
             'registration_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'firm_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'factory_approval_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
-            'password' => ['nullable', 'string'],
+            'password' => [
+                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+            'password_confirmation' => [
+                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                'nullable',
+                'string',
+                'min:8',
+            ],
         ];
     }
 }
