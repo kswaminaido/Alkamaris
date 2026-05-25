@@ -1,4 +1,4 @@
-const fallbackBackendUrl = 'http://localhost:8000'
+const fallbackBackendUrl = 'https://api.erpalkamaris.com/'
 
 export const APP_ENV = import.meta.env.APP_ENV ?? 'Development'
 export const BACKEND_URL = (import.meta.env.BACKEND_URL ?? fallbackBackendUrl).replace(/\/+$/, '')
