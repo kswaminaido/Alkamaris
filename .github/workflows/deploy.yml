@@ -10,18 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout Code
+      # =========================
+      # CHECKOUT CODE
+      # =========================
       - name: Checkout Repo
         uses: actions/checkout@v4
 
       # =========================
-      # NODE / REACT BUILD
+      # SETUP NODE
       # =========================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # =========================
+      # INSTALL & BUILD REACT
+      # =========================
       - name: Install Frontend Dependencies
         working-directory: ./alk-app
         run: npm install
@@ -31,38 +36,66 @@ jobs:
         run: npm run build
 
       # =========================
-      # PHP / LARAVEL
+      # SETUP PHP
       # =========================
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
 
+      # =========================
+      # INSTALL LARAVEL DEPENDENCIES
+      # =========================
       - name: Install Composer Dependencies
         working-directory: ./alk-api
         run: composer install --no-dev --optimize-autoloader
 
       # =========================
-      # SSH SETUP
+      # SETUP SSH
       # =========================
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+
           echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+
           chmod 600 ~/.ssh/id_ed25519
 
           ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} \
           ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
 
       # =========================
-      # DEPLOY REACT BUILD
+      # CREATE REQUIRED DIRECTORIES
       # =========================
-      - name: Deploy React Build
+      - name: Create Directories
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} \
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+
+          mkdir -p ~/domains/erpalkamaris.com/public_html/assets
+          mkdir -p ~/domains/erpalkamaris.com/public_html/laravel-api
+
+          EOF
+
+      # =========================
+      # DEPLOY REACT ASSETS
+      # =========================
+      - name: Deploy React Assets
         run: |
           rsync -avz --delete \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
-          alk-app/dist/ \
+          alk-app/dist/assets/ \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/assets/
+
+      # =========================
+      # DEPLOY REACT INDEX.HTML
+      # =========================
+      - name: Deploy React Index
+        run: |
+          rsync -avz \
+          -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
+          alk-app/dist/index.html \
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/
 
       # =========================
       # DEPLOY LARAVEL API
@@ -73,6 +106,7 @@ jobs:
           --exclude '.env' \
           --exclude 'vendor' \
           --exclude 'node_modules' \
+          --exclude 'storage/logs' \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-api/ \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/laravel-api/
