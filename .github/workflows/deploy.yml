@@ -62,7 +62,7 @@ jobs:
           rsync -avz --delete \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-app/dist/ \
-          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:~/public_html/assets/
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/assets/
 
       # =========================
       # DEPLOY LARAVEL API
@@ -73,10 +73,9 @@ jobs:
           --exclude '.env' \
           --exclude 'vendor' \
           --exclude 'node_modules' \
-          --exclude 'storage/logs' \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-api/ \
-          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:~/public_html/laravel-api/
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/laravel-api/
 
       # =========================
       # RUN LARAVEL COMMANDS
