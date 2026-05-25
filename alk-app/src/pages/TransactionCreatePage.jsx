@@ -211,6 +211,38 @@ function TransactionCreatePage() {
     return field ? getFieldOptions(field, dropdownResources) : []
   }
 
+  function configTypeFor(fieldKey) {
+    return dropdownFieldMap[fieldKey]?.type ?? null
+  }
+
+  async function addDropdownOption(fieldKey, value) {
+    const type = configTypeFor(fieldKey)
+    const option = typeof value === 'string' ? value.trim() : ''
+    if (!type || !option) return false
+
+    try {
+      const response = await authFetch('/configs/options', {
+        method: 'POST',
+        body: JSON.stringify({ type, value: option }),
+      })
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.data?.type) {
+        setError(payload?.message ?? 'Unable to add dropdown option.')
+        return false
+      }
+
+      setDropdownConfigMap((current) => ({
+        ...current,
+        [payload.data.type]: payload.data,
+      }))
+      return true
+    } catch {
+      setError('Unable to add dropdown option.')
+      return false
+    }
+  }
+
   async function onLogout() {
     await logout()
     navigate('/', { replace: true })
@@ -260,13 +292,13 @@ function TransactionCreatePage() {
       <form className="transaction-page" onSubmit={onSubmit}>
         <section className="txn-panel txn-top">
           <h5>TRANSACTION DETAILS</h5>
-          <TxHeader form={form} setValue={setValue} salesPeople={salesPeople} optionsFor={optionsFor} />
+          <TxHeader form={form} setValue={setValue} salesPeople={salesPeople} optionsFor={optionsFor} addOption={addDropdownOption} />
         </section>
         <section className="txn-double-grid">
-          <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} customers={customers} optionsFor={optionsFor} /></TxnColumn>
-          <TxnColumn title="GENERAL INFO" side="PACKER"><GeneralPacker form={form} setValue={setValue} packers={packers} optionsFor={optionsFor} /></TxnColumn>
-          <TxnColumn title="REVENUE" side="CUSTOMER"><RevenueCustomer form={form} setValue={setValue} optionsFor={optionsFor} /></TxnColumn>
-          <TxnColumn title="REVENUE" side="PACKER"><RevenuePacker form={form} setValue={setValue} optionsFor={optionsFor} /></TxnColumn>
+          <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} customers={customers} optionsFor={optionsFor} addOption={addDropdownOption} /></TxnColumn>
+          <TxnColumn title="GENERAL INFO" side="PACKER"><GeneralPacker form={form} setValue={setValue} packers={packers} optionsFor={optionsFor} addOption={addDropdownOption} /></TxnColumn>
+          <TxnColumn title="REVENUE" side="CUSTOMER"><RevenueCustomer form={form} setValue={setValue} optionsFor={optionsFor} addOption={addDropdownOption} /></TxnColumn>
+          <TxnColumn title="REVENUE" side="PACKER"><RevenuePacker form={form} setValue={setValue} optionsFor={optionsFor} addOption={addDropdownOption} /></TxnColumn>
           <TxnColumn title="SHIPPING DETAILS" side="CUSTOMER"><Shipping section="shipping_details_customer" form={form} setValue={setValue} /></TxnColumn>
           <TxnColumn title="SHIPPING DETAILS" side="PACKER"><Shipping section="shipping_details_packer" form={form} setValue={setValue} /></TxnColumn>
         </section>
@@ -283,7 +315,7 @@ function TransactionCreatePage() {
   )
 }
 
-function TxHeader({ form, setValue, salesPeople, optionsFor }) {
+function TxHeader({ form, setValue, salesPeople, optionsFor, addOption }) {
   const productOriginOptions = mergeCountryOptions(optionsFor('transaction.product_origin'))
   const destinationOptions = optionsFor('transaction.destination')
 
@@ -291,36 +323,38 @@ function TxHeader({ form, setValue, salesPeople, optionsFor }) {
     <div className="txn-grid cols-4">
       <Field label="Booking No."><input value={form.transaction.booking_no} onChange={(e) => setValue('transaction', 'booking_no', e.target.value)} required /></Field>
       <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} disabled className="txn-readonly" /></Field>
-      <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} /></Field>
-      <Field label="Country"><Select value={form.transaction.country} list={optionsFor('transaction.country')} onChange={(value) => setValue('transaction', 'country', value)} /></Field>
+      <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} onAdd={(value) => addOption('transaction.category', value)} /></Field>
+      <Field label="Country"><Select value={form.transaction.country} list={optionsFor('transaction.country')} onChange={(value) => setValue('transaction', 'country', value)} onAdd={(value) => addOption('transaction.country', value)} /></Field>
       <Field label="Sales Person"><SalesPersonSelect value={form.transaction.sales_person_id} list={salesPeople} onChange={(value) => setValue('transaction', 'sales_person_id', value)} /></Field>
-      <Field label="Product Origin"><Select value={form.transaction.product_origin} list={productOriginOptions} onChange={(value) => setValue('transaction', 'product_origin', value)} /></Field>
-      <Field label="Type"><Select value={form.transaction.type} list={optionsFor('transaction.type')} onChange={(value) => setValue('transaction', 'type', value)} /></Field>
+      <Field label="Product Origin"><Select value={form.transaction.product_origin} list={productOriginOptions} onChange={(value) => setValue('transaction', 'product_origin', value)} onAdd={(value) => addOption('transaction.product_origin', value)} /></Field>
+      <Field label="Type"><Select value={form.transaction.type} list={optionsFor('transaction.type')} onChange={(value) => setValue('transaction', 'type', value)} onAdd={(value) => addOption('transaction.type', value)} /></Field>
       <Field label="Container">
         <div className="txn-container-split">
           <Select
             value={form.transaction.container_primary}
             list={optionsFor('transaction.container_primary')}
             onChange={(value) => setValue('transaction', 'container_primary', value)}
+            onAdd={(value) => addOption('transaction.container_primary', value)}
           />
           <Select
             value={form.transaction.container_secondary}
             list={optionsFor('transaction.container_secondary')}
             onChange={(value) => setValue('transaction', 'container_secondary', value)}
+            onAdd={(value) => addOption('transaction.container_secondary', value)}
           />
         </div>
       </Field>
-      <Field label="Destination"><Select value={form.transaction.destination} list={destinationOptions} onChange={(value) => setValue('transaction', 'destination', value)} /></Field>
-      <Field label="Certified"><Select value={form.transaction.certified} list={optionsFor('transaction.certified')} onChange={(value) => setValue('transaction', 'certified', value)} /></Field>
+      <Field label="Destination"><Select value={form.transaction.destination} list={destinationOptions} onChange={(value) => setValue('transaction', 'destination', value)} onAdd={(value) => addOption('transaction.destination', value)} /></Field>
+      <Field label="Certified"><Select value={form.transaction.certified} list={optionsFor('transaction.certified')} onChange={(value) => setValue('transaction', 'certified', value)} onAdd={(value) => addOption('transaction.certified', value)} /></Field>
       <Field label="Net Margin"><input type="number" step="0.01" value={form.transaction.net_margin} onChange={(e) => setValue('transaction', 'net_margin', e.target.value)} /></Field>
     </div>
   )
 }
 
-function GeneralCustomer({ form, setValue, customers, optionsFor }) { const priceOptions = mergeOptions(optionsFor('general_info_customer.prices_customer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Customer"><SearchableSelect value={form.general_info_customer.customer} list={customers} onChange={(v) => setValue('general_info_customer', 'customer', v)} /></Row><Row label="Attn"><SearchableSelect value={form.general_info_customer.attention} list={optionsFor('general_info_customer.attention')} onChange={(v) => setValue('general_info_customer', 'attention', v)} /></Row><Row label="Shipto"><Select value={form.general_info_customer.ship_to} list={optionsFor('general_info_customer.ship_to')} onChange={(v) => setValue('general_info_customer', 'ship_to', v)} /></Row><Row label="PO"><Select value={form.general_info_customer.buyer} list={optionsFor('general_info_customer.buyer')} onChange={(v) => setValue('general_info_customer', 'buyer', v)} /><input placeholder="#" value={form.general_info_customer.buyer_number} onChange={(e) => setValue('general_info_customer', 'buyer_number', e.target.value)} /></Row><Row label="End Customer"><Select value={form.general_info_customer.end_customer} list={optionsFor('general_info_customer.end_customer')} onChange={(v) => setValue('general_info_customer', 'end_customer', v)} /></Row><Row label="Prices Customer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_customer.prices_customer_type} list={priceOptions} onChange={(v) => setValue('general_info_customer', 'prices_customer_type', v)} /><input type="text" placeholder="@" value={form.general_info_customer.prices_customer_rate} onChange={(e) => setValue('general_info_customer', 'prices_customer_rate', e.target.value)} /></Row><Row label="Payment Customer"><Select value={form.general_info_customer.payment_customer_type} list={optionsFor('general_info_customer.payment_customer_type')} onChange={(v) => setValue('general_info_customer', 'payment_customer_type', v)} /><Select value={form.general_info_customer.payment_customer_term} list={optionsFor('general_info_customer.payment_customer_term')} onChange={(v) => setValue('general_info_customer', 'payment_customer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_customer.payment_customer_advance_percent} onChange={(e) => setValue('general_info_customer', 'payment_customer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_customer.description} onChange={(e) => setValue('general_info_customer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_customer.tolerance} list={optionsFor('general_info_customer.tolerance')} onChange={(v) => setValue('general_info_customer', 'tolerance', v)} /></Row><Row label="Marketing Fee"><label className="inline-checkbox"><input type="checkbox" checked={form.general_info_customer.marketing_fee} onChange={(e) => setValue('general_info_customer', 'marketing_fee', e.target.checked)} />Yes</label></Row></div>) }
-function GeneralPacker({ form, setValue, packers, optionsFor }) { const priceOptions = mergeOptions(optionsFor('general_info_packer.prices_packer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Packer"><SearchableSelect value={form.general_info_packer.vendor} list={packers} onChange={(v) => setValue('general_info_packer', 'vendor', v)} /></Row><Row label="PI"><Select value={form.general_info_packer.packer_name} list={optionsFor('general_info_packer.packer_name')} onChange={(v) => setValue('general_info_packer', 'packer_name', v)} /><input placeholder="#" value={form.general_info_packer.packer_number} onChange={(e) => setValue('general_info_packer', 'packer_number', e.target.value)} /></Row><Row label="Packed By"><Select value={form.general_info_packer.packed_by} list={optionsFor('general_info_packer.packed_by')} onChange={(v) => setValue('general_info_packer', 'packed_by', v)} /></Row><Row label="Prices Packer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_packer.prices_packer_type} list={priceOptions} onChange={(v) => setValue('general_info_packer', 'prices_packer_type', v)} /><input type="text" placeholder="@" value={form.general_info_packer.prices_packer_rate} onChange={(e) => setValue('general_info_packer', 'prices_packer_rate', e.target.value)} /></Row><Row label="Payment Packer"><Select value={form.general_info_packer.payment_packer_type} list={optionsFor('general_info_packer.payment_packer_type')} onChange={(v) => setValue('general_info_packer', 'payment_packer_type', v)} /><Select value={form.general_info_packer.payment_packer_term} list={optionsFor('general_info_packer.payment_packer_term')} onChange={(v) => setValue('general_info_packer', 'payment_packer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_packer.payment_packer_advance_percent} onChange={(e) => setValue('general_info_packer', 'payment_packer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_packer.description} onChange={(e) => setValue('general_info_packer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_packer.tolerance} list={optionsFor('general_info_packer.tolerance')} onChange={(v) => setValue('general_info_packer', 'tolerance', v)} /><span className="row-text">Total Lqd Price</span><input type="number" readOnly value={form.general_info_packer.total_lqd_price} /></Row><Row label="Consignee"><Select value={form.general_info_packer.consignee} list={optionsFor('general_info_packer.consignee')} onChange={(v) => setValue('general_info_packer', 'consignee', v)} /></Row></div>) }
-function RevenueCustomer({ form, setValue, optionsFor }) { return (<div className="txn-panel"><Row label="Total Selling Value"><input type="number" value={form.revenue_customer.total_selling_value} onChange={(e) => setValue('revenue_customer', 'total_selling_value', e.target.value)} /><Select value={form.revenue_customer.total_selling_currency} list={optionsFor('revenue_customer.total_selling_currency')} onChange={(v) => setValue('revenue_customer', 'total_selling_currency', v)} /></Row><Row label="Commission"><Radio checked={form.revenue_customer.commission_enabled} onChange={(v) => setValue('revenue_customer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_customer.commission_percent} onChange={(e) => setValue('revenue_customer', 'commission_percent', e.target.value)} /></Row><Row label="Amount"><input type="number" value={form.revenue_customer.amount} onChange={(e) => setValue('revenue_customer', 'amount', e.target.value)} /><Select value={form.revenue_customer.amount_currency} list={optionsFor('revenue_customer.amount_currency')} onChange={(v) => setValue('revenue_customer', 'amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_customer.description} onChange={(e) => setValue('revenue_customer', 'description', e.target.value)} /></Row><Row label="Rebate Memo"><input type="number" placeholder="Amount" value={form.revenue_customer.rebate_memo_amount} onChange={(e) => setValue('revenue_customer', 'rebate_memo_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.rebate_memo_description} onChange={(e) => setValue('revenue_customer', 'rebate_memo_description', e.target.value)} /></Row><Row label="Overcharge SC"><input type="number" placeholder="Amount" value={form.revenue_customer.overcharge_sc_amount} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.overcharge_sc_description} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
-function RevenuePacker({ form, setValue, optionsFor }) { return (<div className="txn-panel"><Row label="Total Buying Value"><input type="number" value={form.revenue_packer.total_buying_value} onChange={(e) => setValue('revenue_packer', 'total_buying_value', e.target.value)} /><Select value={form.revenue_packer.total_buying_currency} list={optionsFor('revenue_packer.total_buying_currency')} onChange={(v) => setValue('revenue_packer', 'total_buying_currency', v)} /></Row><Row label="Commission"><Radio checked={form.revenue_packer.commission_enabled} onChange={(v) => setValue('revenue_packer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_packer.commission_percent} onChange={(e) => setValue('revenue_packer', 'commission_percent', e.target.value)} /></Row><Row label="Amount"><input type="number" value={form.revenue_packer.amount} onChange={(e) => setValue('revenue_packer', 'amount', e.target.value)} /><Select value={form.revenue_packer.amount_currency} list={optionsFor('revenue_packer.amount_currency')} onChange={(v) => setValue('revenue_packer', 'amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_packer.description} onChange={(e) => setValue('revenue_packer', 'description', e.target.value)} /></Row><Row label="Overcharge SC"><input type="number" placeholder="Amount" value={form.revenue_packer.overcharge_sc_amount} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_packer.overcharge_sc_description} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
+function GeneralCustomer({ form, setValue, customers, optionsFor, addOption }) { const priceOptions = mergeOptions(optionsFor('general_info_customer.prices_customer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Customer"><SearchableSelect value={form.general_info_customer.customer} list={mergeOptions(customers, optionsFor('general_info_customer.customer'))} onChange={(v) => setValue('general_info_customer', 'customer', v)} onAdd={(v) => addOption('general_info_customer.customer', v)} /></Row><Row label="Attn"><SearchableSelect value={form.general_info_customer.attention} list={optionsFor('general_info_customer.attention')} onChange={(v) => setValue('general_info_customer', 'attention', v)} onAdd={(v) => addOption('general_info_customer.attention', v)} /></Row><Row label="Shipto"><Select value={form.general_info_customer.ship_to} list={optionsFor('general_info_customer.ship_to')} onChange={(v) => setValue('general_info_customer', 'ship_to', v)} onAdd={(v) => addOption('general_info_customer.ship_to', v)} /></Row><Row label="PO" controlsClassName="cols-2"><Select value={form.general_info_customer.buyer} list={optionsFor('general_info_customer.buyer')} onChange={(v) => setValue('general_info_customer', 'buyer', v)} onAdd={(v) => addOption('general_info_customer.buyer', v)} /><input placeholder="#" value={form.general_info_customer.buyer_number} onChange={(e) => setValue('general_info_customer', 'buyer_number', e.target.value)} /></Row><Row label="End Customer"><Select value={form.general_info_customer.end_customer} list={optionsFor('general_info_customer.end_customer')} onChange={(v) => setValue('general_info_customer', 'end_customer', v)} onAdd={(v) => addOption('general_info_customer.end_customer', v)} /></Row><Row label="Prices Customer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_customer.prices_customer_type} list={priceOptions} onChange={(v) => setValue('general_info_customer', 'prices_customer_type', v)} onAdd={(v) => addOption('general_info_customer.prices_customer_type', v)} /><input type="text" placeholder="@" value={form.general_info_customer.prices_customer_rate} onChange={(e) => setValue('general_info_customer', 'prices_customer_rate', e.target.value)} /></Row><Row label="Payment Customer" controlsClassName="cols-3"><Select value={form.general_info_customer.payment_customer_type} list={optionsFor('general_info_customer.payment_customer_type')} onChange={(v) => setValue('general_info_customer', 'payment_customer_type', v)} onAdd={(v) => addOption('general_info_customer.payment_customer_type', v)} /><Select value={form.general_info_customer.payment_customer_term} list={optionsFor('general_info_customer.payment_customer_term')} onChange={(v) => setValue('general_info_customer', 'payment_customer_term', v)} onAdd={(v) => addOption('general_info_customer.payment_customer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_customer.payment_customer_advance_percent} onChange={(e) => setValue('general_info_customer', 'payment_customer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_customer.description} onChange={(e) => setValue('general_info_customer', 'description', e.target.value)} /></Row><Row label="Tolerance"><Select value={form.general_info_customer.tolerance} list={optionsFor('general_info_customer.tolerance')} onChange={(v) => setValue('general_info_customer', 'tolerance', v)} onAdd={(v) => addOption('general_info_customer.tolerance', v)} /></Row><Row label="Marketing Fee"><label className="inline-checkbox"><input type="checkbox" checked={form.general_info_customer.marketing_fee} onChange={(e) => setValue('general_info_customer', 'marketing_fee', e.target.checked)} />Yes</label></Row></div>) }
+function GeneralPacker({ form, setValue, packers, optionsFor, addOption }) { const priceOptions = mergeOptions(optionsFor('general_info_packer.prices_packer_type'), PRICE_TERMS); return (<div className="txn-panel"><Row label="Packer"><SearchableSelect value={form.general_info_packer.vendor} list={mergeOptions(packers, optionsFor('general_info_packer.vendor'))} onChange={(v) => setValue('general_info_packer', 'vendor', v)} onAdd={(v) => addOption('general_info_packer.vendor', v)} /></Row><Row label="PI" controlsClassName="cols-2"><Select value={form.general_info_packer.packer_name} list={optionsFor('general_info_packer.packer_name')} onChange={(v) => setValue('general_info_packer', 'packer_name', v)} onAdd={(v) => addOption('general_info_packer.packer_name', v)} /><input placeholder="#" value={form.general_info_packer.packer_number} onChange={(e) => setValue('general_info_packer', 'packer_number', e.target.value)} /></Row><Row label="Packed By"><Select value={form.general_info_packer.packed_by} list={optionsFor('general_info_packer.packed_by')} onChange={(v) => setValue('general_info_packer', 'packed_by', v)} onAdd={(v) => addOption('general_info_packer.packed_by', v)} /></Row><Row label="Prices Packer" controlsClassName="txn-price-controls"><SearchableSelect value={form.general_info_packer.prices_packer_type} list={priceOptions} onChange={(v) => setValue('general_info_packer', 'prices_packer_type', v)} onAdd={(v) => addOption('general_info_packer.prices_packer_type', v)} /><input type="text" placeholder="@" value={form.general_info_packer.prices_packer_rate} onChange={(e) => setValue('general_info_packer', 'prices_packer_rate', e.target.value)} /></Row><Row label="Payment Packer" controlsClassName="cols-3"><Select value={form.general_info_packer.payment_packer_type} list={optionsFor('general_info_packer.payment_packer_type')} onChange={(v) => setValue('general_info_packer', 'payment_packer_type', v)} onAdd={(v) => addOption('general_info_packer.payment_packer_type', v)} /><Select value={form.general_info_packer.payment_packer_term} list={optionsFor('general_info_packer.payment_packer_term')} onChange={(v) => setValue('general_info_packer', 'payment_packer_term', v)} onAdd={(v) => addOption('general_info_packer.payment_packer_term', v)} /><input type="number" placeholder="Adv %" value={form.general_info_packer.payment_packer_advance_percent} onChange={(e) => setValue('general_info_packer', 'payment_packer_advance_percent', e.target.value)} /></Row><Row label="Description"><textarea rows="3" value={form.general_info_packer.description} onChange={(e) => setValue('general_info_packer', 'description', e.target.value)} /></Row><Row label="Tolerance" controlsClassName="cols-3"><Select value={form.general_info_packer.tolerance} list={optionsFor('general_info_packer.tolerance')} onChange={(v) => setValue('general_info_packer', 'tolerance', v)} onAdd={(v) => addOption('general_info_packer.tolerance', v)} /><span className="row-text">Total Lqd Price</span><input type="number" readOnly value={form.general_info_packer.total_lqd_price} /></Row><Row label="Consignee"><Select value={form.general_info_packer.consignee} list={optionsFor('general_info_packer.consignee')} onChange={(v) => setValue('general_info_packer', 'consignee', v)} onAdd={(v) => addOption('general_info_packer.consignee', v)} /></Row></div>) }
+function RevenueCustomer({ form, setValue, optionsFor, addOption }) { return (<div className="txn-panel"><Row label="Total Selling Value" controlsClassName="cols-2"><input type="number" value={form.revenue_customer.total_selling_value} onChange={(e) => setValue('revenue_customer', 'total_selling_value', e.target.value)} /><Select value={form.revenue_customer.total_selling_currency} list={optionsFor('revenue_customer.total_selling_currency')} onChange={(v) => setValue('revenue_customer', 'total_selling_currency', v)} onAdd={(v) => addOption('revenue_customer.total_selling_currency', v)} /></Row><Row label="Commission" controlsClassName="cols-2"><Radio checked={form.revenue_customer.commission_enabled} onChange={(v) => setValue('revenue_customer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_customer.commission_percent} onChange={(e) => setValue('revenue_customer', 'commission_percent', e.target.value)} /></Row><Row label="Amount" controlsClassName="cols-2"><input type="number" value={form.revenue_customer.amount} onChange={(e) => setValue('revenue_customer', 'amount', e.target.value)} /><Select value={form.revenue_customer.amount_currency} list={optionsFor('revenue_customer.amount_currency')} onChange={(v) => setValue('revenue_customer', 'amount_currency', v)} onAdd={(v) => addOption('revenue_customer.amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_customer.description} onChange={(e) => setValue('revenue_customer', 'description', e.target.value)} /></Row><Row label="Rebate Memo" controlsClassName="cols-2"><input type="number" placeholder="Amount" value={form.revenue_customer.rebate_memo_amount} onChange={(e) => setValue('revenue_customer', 'rebate_memo_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.rebate_memo_description} onChange={(e) => setValue('revenue_customer', 'rebate_memo_description', e.target.value)} /></Row><Row label="Overcharge SC" controlsClassName="cols-2"><input type="number" placeholder="Amount" value={form.revenue_customer.overcharge_sc_amount} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_customer.overcharge_sc_description} onChange={(e) => setValue('revenue_customer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
+function RevenuePacker({ form, setValue, optionsFor, addOption }) { return (<div className="txn-panel"><Row label="Total Buying Value" controlsClassName="cols-2"><input type="number" value={form.revenue_packer.total_buying_value} onChange={(e) => setValue('revenue_packer', 'total_buying_value', e.target.value)} /><Select value={form.revenue_packer.total_buying_currency} list={optionsFor('revenue_packer.total_buying_currency')} onChange={(v) => setValue('revenue_packer', 'total_buying_currency', v)} onAdd={(v) => addOption('revenue_packer.total_buying_currency', v)} /></Row><Row label="Commission" controlsClassName="cols-2"><Radio checked={form.revenue_packer.commission_enabled} onChange={(v) => setValue('revenue_packer', 'commission_enabled', v)} /><input type="number" placeholder="Percent" value={form.revenue_packer.commission_percent} onChange={(e) => setValue('revenue_packer', 'commission_percent', e.target.value)} /></Row><Row label="Amount" controlsClassName="cols-2"><input type="number" value={form.revenue_packer.amount} onChange={(e) => setValue('revenue_packer', 'amount', e.target.value)} /><Select value={form.revenue_packer.amount_currency} list={optionsFor('revenue_packer.amount_currency')} onChange={(v) => setValue('revenue_packer', 'amount_currency', v)} onAdd={(v) => addOption('revenue_packer.amount_currency', v)} /></Row><Row label="Description"><textarea rows="2" value={form.revenue_packer.description} onChange={(e) => setValue('revenue_packer', 'description', e.target.value)} /></Row><Row label="Overcharge SC" controlsClassName="cols-2"><input type="number" placeholder="Amount" value={form.revenue_packer.overcharge_sc_amount} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_amount', e.target.value)} /><input placeholder="Description" value={form.revenue_packer.overcharge_sc_description} onChange={(e) => setValue('revenue_packer', 'overcharge_sc_description', e.target.value)} /></Row></div>) }
 function Shipping({ section, form, setValue }) { const data = form[section]; return (<div className="txn-panel"><Row label="LSD Min"><input type="date" value={data.lsd_min} onChange={(e) => setValue(section, 'lsd_min', e.target.value)} /><span className="row-text">LSD Max</span><input type="date" value={data.lsd_max} onChange={(e) => setValue(section, 'lsd_max', e.target.value)} /></Row><Row label="Presentation"><input type="number" value={data.presentation_days} onChange={(e) => setValue(section, 'presentation_days', e.target.value)} /><span className="row-text">days</span><span className="row-text">L/C Exp.</span><input type="date" value={data.lc_expiry} onChange={(e) => setValue(section, 'lc_expiry', e.target.value)} /></Row><Row label="REQ ETA"><input type="date" value={data.req_eta} onChange={(e) => setValue(section, 'req_eta', e.target.value)} /></Row></div>) }
 
 function extractUserNames(users) {
@@ -372,24 +406,21 @@ function TxnColumn({ title, side, children }) { return (<div className="txn-col"
 function SectionHeader({ title, side }) { return (<div className="txn-section-title"><h5>{title}</h5>{side && <span>{side}</span>}</div>) }
 function Field({ label, children }) { return (<label><span>{label}</span>{children}</label>) }
 function Row({ label, children, controlsClassName = '' }) { return (<div className="txn-row"><label className="txn-label">{label}</label><div className={`txn-controls${controlsClassName ? ` ${controlsClassName}` : ''}`}>{children}</div></div>) }
-function Select({ value, list, onChange }) { return (<select value={value} onChange={(e) => onChange(e.target.value)}><option value="">Select</option>{list.map((o) => <option key={o} value={o}>{o}</option>)}</select>) }
+function Select({ value, list, onChange, onAdd }) { return <SearchableSelect value={value} list={list} onChange={onChange} onAdd={onAdd} /> }
 function SalesPersonSelect({ value, list, onChange }) { return (<select value={value ?? ''} onChange={(e) => onChange(e.target.value)} required><option value="">Select</option>{list.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}</select>) }
 function mergeOptions(...lists) { return [...new Set(lists.flat().map((item) => (typeof item === 'string' ? item.trim() : '')).filter(Boolean))] }
-function SearchableSelect({ value, list, onChange }) {
+function SearchableSelect({ value, list, onChange, onAdd }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [savingOption, setSavingOption] = useState(false)
   const options = [...new Set((Array.isArray(list) ? list : []).map((item) => item?.trim?.()).filter(Boolean))]
   const normalizedSearch = searchText.trim().toLowerCase()
   const filteredOptions = normalizedSearch
     ? options.filter((option) => option.toLowerCase().includes(normalizedSearch))
     : options
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchText('')
-    }
-  }, [isOpen])
+  const typedValue = (searchText || value || '').trim()
+  const canAdd = Boolean(onAdd && typedValue && !options.some((option) => option.toLowerCase() === typedValue.toLowerCase()))
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -403,6 +434,19 @@ function SearchableSelect({ value, list, onChange }) {
     document.addEventListener('mousedown', handlePointerDown)
     return () => document.removeEventListener('mousedown', handlePointerDown)
   }, [isOpen])
+
+  async function addTypedOption() {
+    if (!canAdd || savingOption) return
+    setSavingOption(true)
+    const added = await onAdd(typedValue)
+    setSavingOption(false)
+
+    if (added) {
+      onChange(typedValue)
+      setSearchText('')
+      setIsOpen(false)
+    }
+  }
 
   return (
     <div className="txn-combobox" ref={rootRef}>
@@ -448,6 +492,17 @@ function SearchableSelect({ value, list, onChange }) {
           ) : (
             <div className="txn-combobox-empty">No matches found</div>
           )}
+          {canAdd ? (
+            <button
+              type="button"
+              className="txn-combobox-add"
+              disabled={savingOption}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={addTypedOption}
+            >
+              {savingOption ? 'Adding...' : `Add "${typedValue}"`}
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

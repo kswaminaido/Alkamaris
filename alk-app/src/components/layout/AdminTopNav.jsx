@@ -7,12 +7,6 @@ const navActions = [
     subtitle: 'Trade & Commission',
     mode: 'trade_commission',
   },
-  {
-    key: 'new_booking_qc',
-    title: 'QC Services',
-    subtitle: 'QC Services',
-    mode: 'qc_services',
-  },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
   { key: 'follow_up', title: 'Follow Up', subtitle: 'Shipments' },
   { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },

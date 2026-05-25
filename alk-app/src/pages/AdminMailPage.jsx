@@ -26,13 +26,17 @@ const initialFilters = {
   years: '1',
 }
 
+function recipientKey(recipient) {
+  return String(recipient?.id ?? recipient?.email ?? recipient?.name ?? '')
+}
+
 function AdminMailPage() {
   const navigate = useNavigate()
   const { currentUser, logout, authFetch } = useAuth()
   const [filters, setFilters] = useState(initialFilters)
   const [products, setProducts] = useState([])
   const [recipients, setRecipients] = useState([])
-  const [selectedEmails, setSelectedEmails] = useState([])
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([])
   const [composeOpen, setComposeOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
@@ -49,6 +53,9 @@ function AdminMailPage() {
     const selected = filters.continents.length > 0 ? filters.continents : Object.keys(CONTINENT_COUNTRIES)
     return [...new Set(selected.flatMap((continent) => CONTINENT_COUNTRIES[continent] ?? []))].sort()
   }, [filters.continents])
+  const selectedEmails = useMemo(() => recipients
+    .filter((recipient) => selectedRecipientIds.includes(recipientKey(recipient)) && recipient.email)
+    .map((recipient) => recipient.email), [recipients, selectedRecipientIds])
 
   useEffect(() => {
     loadOptions()
@@ -89,7 +96,7 @@ function AdminMailPage() {
     setLoading(true)
     setError('')
     setMessage('')
-    setSelectedEmails([])
+    setSelectedRecipientIds([])
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
@@ -119,18 +126,19 @@ function AdminMailPage() {
   function clearFilters() {
     setFilters(initialFilters)
     setRecipients([])
-    setSelectedEmails([])
+    setSelectedRecipientIds([])
     setMessage('')
     setError('')
   }
 
-  function toggleEmail(email) {
-    setSelectedEmails((current) => current.includes(email) ? current.filter((item) => item !== email) : [...current, email])
+  function toggleRecipient(recipient) {
+    const key = recipientKey(recipient)
+    setSelectedRecipientIds((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key])
   }
 
   function toggleSelectAll() {
-    const emails = recipients.map((recipient) => recipient.email).filter(Boolean)
-    setSelectedEmails(selectedEmails.length === emails.length ? [] : emails)
+    const keys = recipients.filter((recipient) => recipient.email).map(recipientKey)
+    setSelectedRecipientIds(selectedRecipientIds.length === keys.length ? [] : keys)
   }
 
   async function sendMail() {
@@ -277,12 +285,12 @@ function AdminMailPage() {
           <div className="users-table-wrap">
             <table className="users-table">
               <thead>
-                <tr><th><input type="checkbox" aria-label="Select all customers" checked={recipients.length > 0 && selectedEmails.length === recipients.filter((item) => item.email).length} onChange={toggleSelectAll} /></th><th>Customer</th><th>Email</th><th>Country</th><th>Products</th><th>Last Booking</th></tr>
+                <tr><th><input type="checkbox" aria-label="Select all customers" checked={recipients.some((item) => item.email) && selectedRecipientIds.length === recipients.filter((item) => item.email).length} onChange={toggleSelectAll} /></th><th>Customer</th><th>Email</th><th>Country</th><th>Products</th><th>Last Booking</th></tr>
               </thead>
               <tbody>
                 {recipients.map((recipient) => (
-                  <tr key={recipient.email || recipient.name}>
-                    <td><input type="checkbox" checked={selectedEmails.includes(recipient.email)} onChange={() => toggleEmail(recipient.email)} disabled={!recipient.email} /></td>
+                  <tr key={recipientKey(recipient)}>
+                    <td><input type="checkbox" checked={selectedRecipientIds.includes(recipientKey(recipient))} onChange={() => toggleRecipient(recipient)} disabled={!recipient.email} /></td>
                     <td>{recipient.name}</td>
                     <td>{recipient.email || '-'}</td>
                     <td>{recipient.country || '-'}</td>

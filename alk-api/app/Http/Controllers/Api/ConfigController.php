@@ -75,6 +75,33 @@ class ConfigController extends Controller
         ]);
     }
 
+    public function appendOption(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'string', 'max:100'],
+            'value' => ['required', 'string', 'max:100'],
+        ]);
+
+        $value = trim($validated['value']);
+        $config = Config::query()->firstOrCreate(
+            ['type' => $validated['type']],
+            ['data' => []],
+        );
+
+        $options = collect(is_array($config->data) ? $config->data : [])
+            ->filter(fn (mixed $option): bool => is_string($option) && trim($option) !== '')
+            ->map(fn (string $option): string => trim($option))
+            ->values();
+
+        if (! $options->contains(fn (string $option): bool => mb_strtolower($option) === mb_strtolower($value))) {
+            $options->push($value);
+        }
+
+        $config->forceFill(['data' => $options->unique()->sort()->values()->all()])->save();
+
+        return response()->json(['data' => $config->fresh()]);
+    }
+
     public function countries(): JsonResponse
     {
         $fallback = ['India', 'Singapore', 'United Arab Emirates', 'Jordan', 'Netherlands', 'Vietnam'];

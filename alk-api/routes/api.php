@@ -27,6 +27,7 @@ Route::prefix('auth')->group(function (): void {
 
 Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): void {
     Route::apiResource('configs', ConfigController::class)->only(['index', 'show']);
+    Route::post('configs/options', [ConfigController::class, 'appendOption']);
     Route::apiResource('users', UserController::class)->only(['index', 'show']);
 });
 

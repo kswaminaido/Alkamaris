@@ -9,17 +9,11 @@ const navActions = [
     subtitle: 'Trade & Commission',
     mode: 'trade_commission',
   },
-  {
-    key: 'new_booking_qc',
-    title: 'QC Services',
-    subtitle: 'QC Services',
-    mode: 'qc_services',
-  },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
   { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
 ]
 
-function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, authFetch }) {
+function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
   const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
@@ -215,21 +209,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
             )}
           </div>
 
-          <div className="position-relative">
-            <NavLink
-              to="/data"
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-              onClick={() => {
-                closeMobileMenu()
-                closeSidebarSubmenus()
-              }}
-            >
-              <SidebarIcon icon="data" />
-              <span className="sidebar-link-text">Data</span>
-              <span className="sidebar-link-end" />
-            </NavLink>
-          </div>
-
           {canViewReports && (
             <div className="position-relative">
               <button
@@ -285,18 +264,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, a
               )}
             </div>
           )}
-
-          <button type="button" className="sidebar-link sidebar-link-button sidebar-link-spaced" disabled>
-            <SidebarIcon icon="help" />
-            <span className="sidebar-link-text">Contact Us</span>
-            <span className="sidebar-link-end" />
-          </button>
-
-          <button type="button" className="sidebar-link sidebar-link-button" disabled>
-            <SidebarIcon icon="request" />
-            <span className="sidebar-link-text">Request</span>
-            <span className="sidebar-link-end" />
-          </button>
 
           <NavLink
             to="/master"
