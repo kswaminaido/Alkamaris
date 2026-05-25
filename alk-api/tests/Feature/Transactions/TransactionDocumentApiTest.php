@@ -91,6 +91,7 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertNotEmpty(base64_decode($payload['pdf']['content_base64'], true));
         $this->assertNotEmpty(base64_decode($payload['word']['content_base64'], true));
         $this->assertStringContainsString('ORDER CONFIRMATION', $payload['preview_html']);
+        $this->assertStringContainsString('src="data:image/png;base64,', $payload['preview_html']);
         $this->assertStringContainsString('Alkamaris Exports Pvt Ltd', $payload['preview_html']);
         $this->assertStringContainsString('LEADER FOOD SUPPLY INSTITUTION', $payload['preview_html']);
         $this->assertStringContainsString('Comments or Special Instructions', $payload['preview_html']);

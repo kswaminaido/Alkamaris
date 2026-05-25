@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
+    private ?string $logoDataUri = null;
+
     /**
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
@@ -37,7 +39,7 @@ final class TransactionDocumentViewDataFactory
             'company' => 'Alkamaris',
             'header_company' => 'Alkamaris Exports Pvt Ltd',
             'header_tagline' => 'Sourced with care, Delivered with Trust',
-            'logo_path' => public_path('images/alkamaris-logo.png'),
+            'logo_path' => $this->logoDataUri(),
             'title' => $documentType === 'delivery_order' ? 'DELIVERY ORDER' : 'ORDER CONFIRMATION',
             'transaction_date' => $transactionDate,
             'render_date' => $renderDate,
@@ -86,6 +88,27 @@ final class TransactionDocumentViewDataFactory
             'delivery_order' => 'delivery-order',
             default => 'preview',
         };
+    }
+
+    private function logoDataUri(): string
+    {
+        if ($this->logoDataUri !== null) {
+            return $this->logoDataUri;
+        }
+
+        $logoPath = public_path('images/alkamaris-logo.png');
+
+        if (! is_file($logoPath) || ! is_readable($logoPath)) {
+            return $this->logoDataUri = '';
+        }
+
+        $contents = file_get_contents($logoPath);
+
+        if ($contents === false) {
+            return $this->logoDataUri = '';
+        }
+
+        return $this->logoDataUri = 'data:image/png;base64,' . base64_encode($contents);
     }
 
     /**
