@@ -387,7 +387,7 @@
         </tr>
         <tr>
           <td class="party" colspan="3">
-            <div>{{ $bcv['packer_block']['name'] }}</div>
+            <!-- <div>{{ $bcv['packer_block']['name'] }}</div> -->
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach

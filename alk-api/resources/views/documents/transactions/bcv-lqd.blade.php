@@ -216,7 +216,7 @@
       font-size: 11px;
       font-family: Arial, sans-serif;
       font-style: normal;
-      }
+    }
 
     .comments-box {
       border-top: 1px solid #000;
@@ -261,6 +261,7 @@
     }
 
     .sign-label {
+      text-align: center;
       font-weight: 800;
     }
 
@@ -383,7 +384,7 @@
         </tr>
         <tr>
           <td class="party" colspan="3">
-            <div>{{ $bcv['packer_block']['name'] }}</div>
+            <!-- <div>{{ $bcv['packer_block']['name'] }}</div> -->
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
