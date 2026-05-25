@@ -85,15 +85,13 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_PORT }} \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
 
-          cd ~/public_html/laravel-api
+          cd ~/domains/erpalkamaris.com/public_html/laravel-api
 
           composer install --no-dev --optimize-autoloader
 
-          php artisan migrate --force
-
           php artisan config:clear
-          php artisan route:clear
           php artisan cache:clear
+          php artisan route:clear
           php artisan view:clear
 
           php artisan config:cache
