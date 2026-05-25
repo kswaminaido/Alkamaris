@@ -38,4 +38,12 @@ return [
     'countries' => [
         'url' => env('COUNTRIES_API_URL', 'https://restcountries.com/v3.1/all?fields=name'),
     ],
+
+    'mailchimp' => [
+        'api_key' => env('MAILCHIMP_API_KEY'),
+        'server_prefix' => env('MAILCHIMP_SERVER_PREFIX'),
+        'list_id' => env('MAILCHIMP_LIST_ID'),
+        'from_name' => env('MAILCHIMP_FROM_NAME', env('MAIL_FROM_NAME', env('APP_NAME', 'Alkamaris'))),
+        'reply_to' => env('MAILCHIMP_REPLY_TO', env('MAIL_FROM_ADDRESS')),
+    ],
 ];

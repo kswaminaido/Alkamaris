@@ -1,0 +1,104 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout Code
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # =========================
+      # NODE / REACT BUILD
+      # =========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Frontend Dependencies
+        working-directory: ./alk-app
+        run: npm install
+
+      - name: Build React App
+        working-directory: ./alk-app
+        run: npm run build
+
+      # =========================
+      # PHP / LARAVEL
+      # =========================
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: Install Composer Dependencies
+        working-directory: ./alk-api
+        run: composer install --no-dev --optimize-autoloader
+
+      # =========================
+      # SSH SETUP
+      # =========================
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -p ${{ secrets.HOSTINGER_PORT }} \
+          ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts
+
+      # =========================
+      # DEPLOY REACT BUILD
+      # =========================
+      - name: Deploy React Build
+        run: |
+          rsync -avz --delete \
+          -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
+          alk-app/dist/ \
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:~/public_html/assets/
+
+      # =========================
+      # DEPLOY LARAVEL API
+      # =========================
+      - name: Deploy Laravel API
+        run: |
+          rsync -avz --delete \
+          --exclude '.env' \
+          --exclude 'vendor' \
+          --exclude 'node_modules' \
+          --exclude 'storage/logs' \
+          -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
+          alk-api/ \
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:~/public_html/laravel-api/
+
+      # =========================
+      # RUN LARAVEL COMMANDS
+      # =========================
+      - name: Run Laravel Commands
+        run: |
+          ssh -p ${{ secrets.HOSTINGER_PORT }} \
+          ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
+
+          cd ~/public_html/laravel-api
+
+          composer install --no-dev --optimize-autoloader
+
+          php artisan migrate --force
+
+          php artisan config:clear
+          php artisan route:clear
+          php artisan cache:clear
+          php artisan view:clear
+
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+          EOF

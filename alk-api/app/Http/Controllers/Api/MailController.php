@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Services\Mail\MailchimpCampaignMailer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class MailController extends Controller
 {
@@ -118,7 +121,7 @@ class MailController extends Controller
         return response()->json(['data' => $recipients->sortBy('name')->values()]);
     }
 
-    public function send(Request $request): JsonResponse
+    public function send(Request $request, MailchimpCampaignMailer $mailchimp): JsonResponse
     {
         $validated = $request->validate([
             'recipients' => ['required', 'array', 'min:1'],
@@ -138,6 +141,29 @@ class MailController extends Controller
             (bool) ($validated['body_html'] ?? false),
         );
         $attachments = $request->file('attachments', []);
+
+        if ($mailchimp->isConfigured()) {
+            if (count($attachments) > 0) {
+                throw ValidationException::withMessages([
+                    'attachments' => ['Mailchimp default mail does not support file attachments. Add images inside the message body instead.'],
+                ]);
+            }
+
+            try {
+                $mailchimp->sendCampaign(
+                    $recipients,
+                    $validated['subject'],
+                    $html,
+                    $validated['title'] ?? null,
+                );
+            } catch (RuntimeException $exception) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
+            return response()->json([
+                'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s) through Mailchimp.',
+            ]);
+        }
 
         foreach ($recipients as $email) {
             Mail::html($html, function ($message) use ($email, $validated, $attachments): void {

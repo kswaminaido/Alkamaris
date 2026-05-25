@@ -26,8 +26,17 @@ const initialFilters = {
   years: '1',
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 function recipientKey(recipient) {
   return String(recipient?.id ?? recipient?.email ?? recipient?.name ?? '')
+}
+
+function parseRecipientEmails(value) {
+  return [...new Set(value
+    .split(/[\s,;]+/)
+    .map((email) => email.trim())
+    .filter(Boolean))]
 }
 
 function AdminMailPage() {
@@ -43,6 +52,7 @@ function AdminMailPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [mail, setMail] = useState({ title: '', subject: '', body: '' })
+  const [composeRecipients, setComposeRecipients] = useState('')
   const [attachments, setAttachments] = useState([])
   const bodyEditorRef = useRef(null)
   const attachmentInputRef = useRef(null)
@@ -141,9 +151,21 @@ function AdminMailPage() {
     setSelectedRecipientIds(selectedRecipientIds.length === keys.length ? [] : keys)
   }
 
+  function openCompose() {
+    setComposeRecipients(selectedEmails.join(', '))
+    setComposeOpen(true)
+  }
+
   async function sendMail() {
-    if (selectedEmails.length === 0) {
+    const recipientEmails = parseRecipientEmails(composeRecipients)
+    const invalidEmails = recipientEmails.filter((email) => !EMAIL_PATTERN.test(email))
+
+    if (recipientEmails.length === 0) {
       setError('Select at least one customer.')
+      return
+    }
+    if (invalidEmails.length > 0) {
+      setError(`Invalid email address: ${invalidEmails[0]}`)
       return
     }
     const bodyText = bodyEditorRef.current?.innerText?.trim() ?? ''
@@ -157,7 +179,7 @@ function AdminMailPage() {
     setMessage('')
     try {
       const formData = new FormData()
-      selectedEmails.forEach((email) => formData.append('recipients[]', email))
+      recipientEmails.forEach((email) => formData.append('recipients[]', email))
       formData.append('title', mail.title)
       formData.append('subject', mail.subject)
       formData.append('body', mail.body)
@@ -176,6 +198,7 @@ function AdminMailPage() {
       setMessage(payload?.message ?? 'Mail sent successfully.')
       setComposeOpen(false)
       setMail({ title: '', subject: '', body: '' })
+      setComposeRecipients('')
       setAttachments([])
     } catch {
       setError('Unable to send mail.')
@@ -232,6 +255,7 @@ function AdminMailPage() {
   function discardDraft() {
     setComposeOpen(false)
     setMail({ title: '', subject: '', body: '' })
+    setComposeRecipients('')
     setAttachments([])
   }
 
@@ -280,7 +304,7 @@ function AdminMailPage() {
         <article className="admin-mail-results">
           <div className="admin-mail-results-head">
             <h3>Customers List</h3>
-            <button type="button" className="primary-btn" onClick={() => setComposeOpen(true)} disabled={selectedEmails.length === 0 || !filters.defaultMail}>Default Mail ({selectedEmails.length})</button>
+            <button type="button" className="primary-btn" onClick={openCompose} disabled={selectedEmails.length === 0 || !filters.defaultMail}>Default Mail ({selectedEmails.length})</button>
           </div>
           <div className="users-table-wrap">
             <table className="users-table">
@@ -314,7 +338,12 @@ function AdminMailPage() {
             </div>
             <div className="admin-mail-compose-recipients">
               <span>To</span>
-              <div>{selectedEmails.join(', ')}</div>
+              <textarea
+                value={composeRecipients}
+                onChange={(event) => setComposeRecipients(event.target.value)}
+                rows="2"
+                aria-label="Recipient emails"
+              />
             </div>
             <input
               className="admin-mail-compose-subject"
