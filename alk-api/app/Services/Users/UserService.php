@@ -37,6 +37,9 @@ final class UserService
         if (isset($validated['name'])) {
             $payload['name'] = $validated['name'];
         }
+        if (isset($validated['contact_name'])) {
+            $payload['contact_name'] = $validated['contact_name'];
+        }
         if (isset($validated['phone_number'])) {
             $payload['phone_number'] = $validated['phone_number'];
         }

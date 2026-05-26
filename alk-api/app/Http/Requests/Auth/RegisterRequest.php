@@ -47,6 +47,7 @@ final class RegisterRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
+            'contact_name' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'address' => ['required', 'string', 'max:1000'],
@@ -55,14 +56,14 @@ final class RegisterRequest extends FormRequest
             'firm_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'factory_approval_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'password' => [
-                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
                 'nullable',
                 'string',
                 'min:8',
                 'confirmed',
             ],
             'password_confirmation' => [
-                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
                 'nullable',
                 'string',
                 'min:8',

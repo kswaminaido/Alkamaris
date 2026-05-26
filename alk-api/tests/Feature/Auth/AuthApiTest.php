@@ -27,6 +27,7 @@ final class AuthApiTest extends TestCase
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Test User',
+            'contact_name' => 'Test Contact',
             'phone_number' => '9876543210',
             'email' => 'test@example.com',
             'address' => 'Test address',
@@ -39,12 +40,13 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
+                    'user' => ['id', 'name', 'contact_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
+            'contact_name' => 'Test Contact',
             'role' => UserRole::Packer->value,
             'registration_number' => null,
             'is_active' => false,
@@ -55,6 +57,7 @@ final class AuthApiTest extends TestCase
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Customer User',
+            'contact_name' => 'Customer Contact',
             'phone_number' => '9998887776',
             'email' => 'customer@example.com',
             'address' => 'Customer address',
@@ -70,11 +73,12 @@ final class AuthApiTest extends TestCase
         ]);
     }
 
-    public function test_admin_logistics_accounts_and_sales_registration_requires_password(): void
+    public function test_admin_logistics_and_accounts_registration_requires_password(): void
     {
-        foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts, UserRole::Sales] as $role) {
+        foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts] as $role) {
             $response = $this->postJson('/api/auth/register', [
                 'name' => ucfirst($role->value) . ' User',
+                'contact_name' => ucfirst($role->value) . ' Contact',
                 'phone_number' => '9998887776',
                 'email' => "{$role->value}@example.com",
                 'address' => ucfirst($role->value) . ' address',
@@ -87,11 +91,31 @@ final class AuthApiTest extends TestCase
         }
     }
 
+    public function test_sales_registration_does_not_require_password(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'Sales User',
+            'contact_name' => 'Sales Contact',
+            'phone_number' => '9998887776',
+            'email' => 'sales@example.com',
+            'address' => 'Sales address',
+            'user_type' => UserRole::Sales->value,
+        ]);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'sales@example.com',
+            'role' => UserRole::Sales->value,
+        ]);
+    }
+
     public function test_admin_logistics_accounts_and_sales_can_register_with_confirmed_password(): void
     {
         foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts, UserRole::Sales] as $role) {
             $response = $this->postJson('/api/auth/register', [
                 'name' => ucfirst($role->value) . ' User',
+                'contact_name' => ucfirst($role->value) . ' Contact',
                 'phone_number' => '9998887776',
                 'email' => "{$role->value}@example.com",
                 'address' => ucfirst($role->value) . ' address',
@@ -128,7 +152,7 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
+                    'user' => ['id', 'name', 'contact_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
     }

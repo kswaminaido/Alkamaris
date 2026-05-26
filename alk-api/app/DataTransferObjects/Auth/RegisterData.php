@@ -6,6 +6,7 @@ final readonly class RegisterData
 {
     public function __construct(
         public string $name,
+        public string $contactName,
         public string $phoneNumber,
         public string $email,
         public string $address,
@@ -15,12 +16,13 @@ final readonly class RegisterData
     ) {}
 
     /**
-     * @param  array{name: string, phone_number: string, email: string, address: string, user_type: string, registration_number?: string, firm_number?: string, factory_approval_number?: string, password?: string}  $data
+     * @param  array{name: string, contact_name: string, phone_number: string, email: string, address: string, user_type: string, registration_number?: string, firm_number?: string, factory_approval_number?: string, password?: string}  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             name: $data['name'],
+            contactName: $data['contact_name'],
             phoneNumber: $data['phone_number'],
             email: $data['email'],
             address: $data['address'],

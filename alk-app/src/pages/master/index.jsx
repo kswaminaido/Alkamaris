@@ -3,6 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../../components/layout/AdminSidebarLayout'
 import { useAuth } from '../../context/AuthContext'
 
+function ShowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        d="M12 5c5 0 8.5 4.6 9.7 6.4.2.4.2.8 0 1.2C20.5 14.4 17 19 12 19s-8.5-4.6-9.7-6.4a1.1 1.1 0 0 1 0-1.2C3.5 9.6 7 5 12 5zm0 2c-3.5 0-6.2 3-7.6 5 1.4 2 4.1 5 7.6 5s6.2-3 7.6-5C18.2 10 15.5 7 12 7zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        d="M4 16.5V20h3.5L18 9.5 14.5 6 4 16.5zM19.7 7.8c.4-.4.4-1 0-1.4l-2.1-2.1c-.4-.4-1-.4-1.4 0L14.8 5.7 18.3 9.2l1.4-1.4z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+function StatusIcon({ active }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        d={active
+          ? 'M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm2.4 5.2L8 11.6l3.1 3.1L16.7 9l-1.4-1.4-4.2 4.2-1.7-1.6z'
+          : 'M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm2.7 3.3L8.3 9.7 10.6 12l-2.3 2.3 1.4 1.4 2.3-2.3 2.3 2.3 1.4-1.4-2.3-2.3 2.3-2.3-1.4-1.4-2.3 2.3-2.3-2.3z'}
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 function MasterData() {
   const navigate = useNavigate()
   const { currentUser, dashboardTitle, logout, authFetch } = useAuth()
@@ -20,6 +55,7 @@ function MasterData() {
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: 20, total: 0 })
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+  const [viewingUser, setViewingUser] = useState(null)
 
   useEffect(() => {
     if (!currentUser) return
@@ -41,9 +77,17 @@ function MasterData() {
     setShowEditModal(true)
   }
 
+  function openDetailsModal(user) {
+    setViewingUser(user)
+  }
+
   function closeEditModal() {
     setShowEditModal(false)
     setEditingUser(null)
+  }
+
+  function closeDetailsModal() {
+    setViewingUser(null)
   }
 
   async function saveUserChanges() {
@@ -54,14 +98,19 @@ function MasterData() {
         method: 'PUT',
         body: JSON.stringify({
           name: editingUser.name,
+          contact_name: editingUser.contact_name,
+          email: editingUser.email,
           phone_number: editingUser.phone_number,
           address: editingUser.address,
           registration_number: editingUser.registration_number,
           user_type: editingUser.role,
+          is_active: editingUser.is_active,
         }),
       })
       if (response.ok) {
-        setUsers(users.map(u => u.id === editingUser.id ? editingUser : u))
+        const payload = await response.json()
+        const updatedUser = payload?.data ?? editingUser
+        setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u))
         closeEditModal()
       } else {
         setError('Failed to update user')
@@ -236,20 +285,31 @@ function MasterData() {
                     <div className="action-buttons">
                       <button
                         type="button"
-                        className="edit-btn"
-                        onClick={() => openEditModal(user)}
-                        title="Edit user"
+                        className="icon-btn show"
+                        onClick={() => openDetailsModal(user)}
+                        title="Show user details"
+                        aria-label={`Show details for ${user.name}`}
                       >
-                        Edit
+                        <ShowIcon />
                       </button>
                       <button
                         type="button"
-                        className={`status-toggle-btn ${user.is_active ? 'deactivate' : 'activate'}`}
+                        className="icon-btn edit"
+                        onClick={() => openEditModal(user)}
+                        title="Edit user"
+                        aria-label={`Edit ${user.name}`}
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        type="button"
+                        className={`icon-btn ${user.is_active ? 'deactivate' : 'activate'}`}
                         onClick={() => toggleUserStatus(user.id, user.is_active)}
                         disabled={updating === user.id}
                         title={user.is_active ? 'Deactivate user' : 'Activate user'}
+                        aria-label={user.is_active ? `Deactivate ${user.name}` : `Activate ${user.name}`}
                       >
-                        {updating === user.id ? 'Updating...' : (user.is_active ? 'Deactivate' : 'Activate')}
+                        <StatusIcon active={user.is_active} />
                       </button>
                     </div>
                   </td>
@@ -277,12 +337,49 @@ function MasterData() {
           </button>
         </div>
 
+        {viewingUser && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="User details">
+            <div className="modal-content p-4 user-detail-modal">
+              <div className="modal-header p-0">
+                <h3>User Details</h3>
+                <button type="button" className="close-btn" onClick={closeDetailsModal}>x</button>
+              </div>
+              <div className="modal-body user-detail-grid">
+                <DetailItem label="ID" value={viewingUser.id} />
+                <DetailItem label="Name" value={viewingUser.name} />
+                <DetailItem label="Contact Name" value={viewingUser.contact_name} />
+                <DetailItem label="Email" value={viewingUser.email} />
+                <DetailItem label="Phone" value={viewingUser.phone_number} />
+                <DetailItem label="Role" value={formatRole(viewingUser.role)} />
+                <DetailItem label="Registration Number" value={viewingUser.registration_number} />
+                <DetailItem label="Status" value={viewingUser.is_active ? 'Active' : 'Inactive'} />
+                <DetailItem label="Address" value={viewingUser.address} wide />
+                <DetailItem label="Created At" value={formatDateTime(viewingUser.created_at)} />
+                <DetailItem label="Updated At" value={formatDateTime(viewingUser.updated_at)} />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="secondary-btn" onClick={closeDetailsModal}>Close</button>
+                <button
+                  type="button"
+                  className="primary-btn"
+                  onClick={() => {
+                    closeDetailsModal()
+                    openEditModal(viewingUser)
+                  }}
+                >
+                  Edit User
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showEditModal && editingUser && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
             <div className="modal-content p-4">
               <div className="modal-header p-0">
                 <h3>Edit User</h3>
-                <button type="button" className="close-btn" onClick={closeEditModal}>×</button>
+                <button type="button" className="close-btn" onClick={closeEditModal}>x</button>
               </div>
               <div className="modal-body">
                 <div className="form-group">
@@ -292,6 +389,24 @@ function MasterData() {
                     type="text"
                     value={editingUser.name || ''}
                     onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-contact-name">Contact Name:</label>
+                  <input
+                    id="edit-contact-name"
+                    type="text"
+                    value={editingUser.contact_name || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, contact_name: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-email">Email:</label>
+                  <input
+                    id="edit-email"
+                    type="email"
+                    value={editingUser.email || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                   />
                 </div>
                 <div className="form-group">
@@ -334,6 +449,22 @@ function MasterData() {
                     <option value="customer">Customer</option>
                   </select>
                 </div>
+                <div className="form-group">
+                  <label htmlFor="edit-status">Status:</label>
+                  <select
+                    id="edit-status"
+                    value={editingUser.is_active ? 'active' : 'inactive'}
+                    onChange={(e) => setEditingUser({ ...editingUser, is_active: e.target.value === 'active' })}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div className="user-edit-meta">
+                  <DetailItem label="ID" value={editingUser.id} />
+                  <DetailItem label="Created At" value={formatDateTime(editingUser.created_at)} />
+                  <DetailItem label="Updated At" value={formatDateTime(editingUser.updated_at)} />
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeEditModal}>Cancel</button> &nbsp; &nbsp;
@@ -355,4 +486,21 @@ function formatRole(role) {
   if (role === 'packer' || role === 'vendor') return 'Packer'
   if (!role) return ''
   return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
+function DetailItem({ label, value, wide = false }) {
+  return (
+    <div className={`user-detail-item ${wide ? 'wide' : ''}`}>
+      <span>{label}</span>
+      <strong>{value || '-'}</strong>
+    </div>
+  )
+}
+
+function formatDateTime(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return date.toLocaleString()
 }

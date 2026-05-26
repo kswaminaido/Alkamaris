@@ -5,11 +5,12 @@ import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 
 const DEFAULT_SIGNUP_USER_TYPE = 'packer'
-const PASSWORD_USER_TYPES = ['admin', 'logistics', 'accounts', 'sales']
+const PASSWORD_USER_TYPES = ['admin', 'logistics', 'accounts']
 
 function initialSignupForm(userType = '') {
   return {
     name: '',
+    contact_name: '',
     phone_number: '',
     email: '',
     address: '',

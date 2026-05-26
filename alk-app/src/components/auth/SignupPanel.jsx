@@ -8,7 +8,7 @@ function SignupPanel({
   error,
 }) {
   const nameLabel = registerForm.user_type === 'customer' ? 'Customer Name' : 'Name'
-  const shouldShowPasswordFields = ['admin', 'logistics', 'accounts', 'sales'].includes(registerForm.user_type)
+  const shouldShowPasswordFields = ['admin', 'logistics', 'accounts'].includes(registerForm.user_type)
 
   return (
     <section className="signup-wrap">
@@ -28,33 +28,23 @@ function SignupPanel({
           </div>
 
           <div className="register-field">
+            <label htmlFor="contact_name">Contact Name</label>
+            <input
+              id="contact_name"
+              type="text"
+              value={registerForm.contact_name}
+              onChange={(event) => onFieldChange('contact_name', event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="register-field">
             <label htmlFor="phone_number">Phone Number</label>
             <input
               id="phone_number"
               type="text"
               value={registerForm.phone_number}
               onChange={(event) => onFieldChange('phone_number', event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="register-field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={registerForm.email}
-              onChange={(event) => onFieldChange('email', event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="register-field">
-            <label htmlFor="address">Address</label>
-            <textarea
-              id="address"
-              value={registerForm.address}
-              onChange={(event) => onFieldChange('address', event.target.value)}
               required
             />
           </div>
@@ -73,6 +63,27 @@ function SignupPanel({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="register-field">
+            <label htmlFor="email">Email ID</label>
+            <input
+              id="email"
+              type="email"
+              value={registerForm.email}
+              onChange={(event) => onFieldChange('email', event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="register-field register-field-full">
+            <label htmlFor="address">Address</label>
+            <textarea
+              id="address"
+              value={registerForm.address}
+              onChange={(event) => onFieldChange('address', event.target.value)}
+              required
+            />
           </div>
 
           {shouldShowPasswordFields && (
