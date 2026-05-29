@@ -39,7 +39,8 @@ final class TransactionDocumentApiTest extends TestCase
             'transaction_id' => $transaction->id,
             'customer' => 'Leader Food Supply Institution',
             'attention' => 'Mr. Yousef Aziz',
-            'prices_customer_type' => 'CFR',
+            'prices_customer_type' => 'DDP',
+            'prices_customer_rate' => 'Japan',
             'payment_customer_advance_percent' => 30,
         ]);
 
@@ -106,6 +107,7 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Comments or Special Instructions', $payload['preview_html']);
         $this->assertStringContainsString('Shipment Date', $payload['preview_html']);
         $this->assertStringContainsString('Packer', $payload['preview_html']);
+        $this->assertStringContainsString('DDP, JAPAN', $payload['preview_html']);
         $this->assertStringContainsString('<td class="comment-label">Destination</td>', $payload['preview_html']);
         $this->assertStringContainsString('AQABA, JORDAN', $payload['preview_html']);
         $this->assertStringContainsString('<td class="comment-label">Note</td>', $payload['preview_html']);
@@ -146,6 +148,8 @@ final class TransactionDocumentApiTest extends TestCase
         GeneralInfoPacker::query()->create([
             'transaction_id' => $transaction->id,
             'packer_name' => 'Mourya Aquex Private Limited',
+            'prices_packer_type' => 'DAP',
+            'prices_packer_rate' => 'Vietnam',
         ]);
 
         RevenueCustomer::query()->create([
@@ -225,7 +229,9 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Rajahmundry', $payload['preview_html']);
         $this->assertStringContainsString('ALKAMARIS EXPORTS(OPC)PVT LTD', $payload['preview_html']);
         $this->assertStringContainsString('MOURYA AQUEX PRIVATE LIMITED', $payload['preview_html']);
+        $this->assertStringContainsString('DAP, VIETNAM', $payload['preview_html']);
         $this->assertStringContainsString('PACKER MUST CONFIRM LOADING PHOTOS BEFORE DISPATCH.', $payload['preview_html']);
+        $this->assertStringNotContainsString('The above prices has included commission', $payload['preview_html']);
         $this->assertStringNotContainsString('A Separate invoice will be sent after shipment from our office.', $payload['preview_html']);
         $this->assertStringNotContainsString('8/12', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);

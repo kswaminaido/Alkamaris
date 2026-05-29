@@ -124,6 +124,12 @@ final class TransactionDocumentViewDataFactory
         $shippingPacker = $transaction->shippingDetailsPacker;
         $logistics = $transaction->logistics;
         $items = $transaction->items ?? collect();
+        $priceType = $documentType === 'bcv_lqd'
+            ? $packer?->prices_packer_type
+            : $customer?->prices_customer_type;
+        $pricePlace = $documentType === 'bcv_lqd'
+            ? $packer?->prices_packer_rate
+            : $customer?->prices_customer_rate;
 
         $productItems = $items
             ->map(fn(mixed $item): array => $this->bcvLqdItem($item))
@@ -180,7 +186,7 @@ final class TransactionDocumentViewDataFactory
             'total_amount' => $this->moneyOrBlank($totalAmount),
             'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
             'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency) . ' ' . $this->moneyOrBlank($totalAmount)),
-            'price_basis' => $this->priceBasis($customer?->prices_customer_type, $logistics?->port ?: $logistics?->destination ?: $transaction->destination),
+            'price_basis' => $this->priceBasis($priceType, $pricePlace),
             'payment_terms' => $this->bcvPaymentTerms(
                 $customer?->payment_customer_type,
                 $customer?->payment_customer_advance_percent,
@@ -202,7 +208,7 @@ final class TransactionDocumentViewDataFactory
             'commission' => $firstCommission !== null && $firstCommission !== ''
                 ? $firstCommission
                 : $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
-            'commission_note' => $this->commissionNote($firstCommission, $revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
+            'commission_note' => '',
             'destination' => $this->upperText($logistics?->destination ?: $transaction->destination),
             'special_instruction' => $this->upperText($this->documentSpecialInstruction($transaction, $documentType)),
         ];
@@ -358,9 +364,11 @@ final class TransactionDocumentViewDataFactory
      */
     private function rows(mixed $customer): array
     {
+        $customerPrice = $this->numberOrNull($customer?->prices_customer_rate);
+
         return [
-            ['size' => '8/12', 'cartons' => '1,000', 'price' => $this->money($customer?->prices_customer_rate ?: 6.45), 'amount' => $this->money(64500)],
-            ['size' => '11/15', 'cartons' => '1,000', 'price' => $this->money(($customer?->prices_customer_rate ?: 5.48) - 0.97), 'amount' => $this->money(54800)],
+            ['size' => '8/12', 'cartons' => '1,000', 'price' => $this->money($customerPrice ?? 6.45), 'amount' => $this->money(64500)],
+            ['size' => '11/15', 'cartons' => '1,000', 'price' => $this->money(($customerPrice ?? 5.48) - 0.97), 'amount' => $this->money(54800)],
         ];
     }
 
@@ -549,7 +557,10 @@ final class TransactionDocumentViewDataFactory
 
     private function priceBasis(mixed $priceType, mixed $place): string
     {
-        return trim(Str::upper($this->displayText($priceType) . ' ' . $this->displayText($place)));
+        $type = $this->displayText($priceType);
+        $place = $this->displayText($place);
+
+        return Str::upper($place !== '' ? trim($type . ', ' . $place, ', ') : $type);
     }
 
     private function bcvPaymentTerms(mixed $paymentType, mixed $advancePercent, mixed $optionAdvance, mixed $balanceTerm): string
@@ -600,19 +611,6 @@ final class TransactionDocumentViewDataFactory
         $unitLabel = $this->displayUnit($unit);
 
         return trim('US $ ' . $formattedRate . ($unitLabel !== '' ? '/' . Str::upper($unitLabel) : ''));
-    }
-
-    private function commissionNote(?string $itemCommission, mixed $enabled, mixed $percent): string
-    {
-        $commission = $itemCommission !== null && $itemCommission !== ''
-            ? $itemCommission
-            : ($enabled ? $this->commissionText($enabled, $percent) : '');
-
-        if ($commission === '' || Str::upper($commission) === 'NO COMMISSION') {
-            return '';
-        }
-
-        return "The above prices has included commission {$commission} payable to Alkamaris Exports (OPC) Pvt Ltd.";
     }
 
     private function priceHeader(string $currency, string $unit): string
