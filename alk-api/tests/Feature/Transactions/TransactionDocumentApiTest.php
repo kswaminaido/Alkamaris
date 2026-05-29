@@ -100,6 +100,14 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertIsArray($payload);
         $this->assertNotEmpty(base64_decode($payload['pdf']['content_base64'], true));
         $this->assertNotEmpty(base64_decode($payload['word']['content_base64'], true));
+        $wordContent = base64_decode($payload['word']['content_base64'], true);
+        $this->assertIsString($wordContent);
+        $this->assertStringContainsString('Content-Type: multipart/related', $wordContent);
+        $this->assertStringContainsString('Content-ID: <image0@alkamaris>', $wordContent);
+        $this->assertStringContainsString('font-size: 7.5pt', quoted_printable_decode($wordContent));
+        $this->assertStringContainsString('border: 0.75pt solid #000', quoted_printable_decode($wordContent));
+        $this->assertStringContainsString('bgcolor="#061173"', quoted_printable_decode($wordContent));
+        $this->assertStringContainsString('class="main items" border="1"', quoted_printable_decode($wordContent));
         $this->assertStringContainsString('ORDER CONFIRMATION', $payload['preview_html']);
         $this->assertStringContainsString('src="data:image/png;base64,', $payload['preview_html']);
         $this->assertStringContainsString('Alkamaris Exports Pvt Ltd', $payload['preview_html']);
