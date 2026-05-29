@@ -80,7 +80,7 @@ class TransactionDocumentService
             'type' => $documentType,
             'label' => $label,
             'preview_html' => $previewHtml,
-            'pdf' => $this->binaryPayload("{$view['file_stem']}.pdf", 'application/pdf', $this->buildPdfBinary($previewHtml)),
+            'pdf' => $this->binaryPayload(Str::upper("{$view['file_stem']}.pdf"), 'application/pdf', $this->buildPdfBinary($previewHtml)),
             'word' => $this->binaryPayload("{$view['file_stem']}.doc", 'application/msword', $previewHtml),
         ];
     }

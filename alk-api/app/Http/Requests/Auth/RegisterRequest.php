@@ -16,7 +16,6 @@ final class RegisterRequest extends FormRequest
         UserRole::Admin->value,
         UserRole::Logistics->value,
         UserRole::Accounts->value,
-        UserRole::Sales->value,
     ];
 
     public function authorize(): bool

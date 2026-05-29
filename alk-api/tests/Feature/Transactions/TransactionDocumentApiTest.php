@@ -9,6 +9,7 @@ use App\Models\RevenueCustomer;
 use App\Models\ShippingDetailsPacker;
 use App\Models\Transaction;
 use App\Models\TransactionNote;
+use App\Models\TransactionNoteEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -63,6 +64,14 @@ final class TransactionDocumentApiTest extends TestCase
             'by_sales' => '35% glaze frozen weight & frozen count. EU standard treatment',
         ]);
 
+        TransactionNoteEntry::query()->create([
+            'transaction_id' => $transaction->id,
+            'section' => 'home',
+            'note_key' => 'for_customer',
+            'note_value' => 'Customer should inspect goods on arrival.',
+            'sort_order' => 0,
+        ]);
+
         $token = $admin->createToken('test-token')->plainTextToken;
 
         $response = $this
@@ -83,7 +92,7 @@ final class TransactionDocumentApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.type', 'bcb_lqd')
             ->assertJsonPath('data.0.word.filename', 'sin2605802-bcb-lqd.doc')
-            ->assertJsonPath('data.0.pdf.filename', 'sin2605802-bcb-lqd.pdf');
+            ->assertJsonPath('data.0.pdf.filename', 'SIN2605802-BCB-LQD.PDF');
 
         $payload = $response->json('data.0');
 
@@ -99,13 +108,14 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Packer', $payload['preview_html']);
         $this->assertStringContainsString('<td class="comment-label">Destination</td>', $payload['preview_html']);
         $this->assertStringContainsString('AQABA, JORDAN', $payload['preview_html']);
+        $this->assertStringContainsString('<td class="comment-label">Note</td>', $payload['preview_html']);
+        $this->assertStringContainsString('CUSTOMER SHOULD INSPECT GOODS ON ARRIVAL.', $payload['preview_html']);
         $this->assertStringContainsString('For and on behalf of', $payload['preview_html']);
         $this->assertStringNotContainsString('For &amp; Behalf of', $payload['preview_html']);
         $this->assertStringNotContainsString('Confirmation &amp; Accepted by', $payload['preview_html']);
         $this->assertStringNotContainsString('Latest Shipment Date', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Customer</td>', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Commission</td>', $payload['preview_html']);
-        $this->assertStringNotContainsString('<td class="comment-label">Note</td>', $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_uses_transaction_items(): void
@@ -176,6 +186,14 @@ final class TransactionDocumentApiTest extends TestCase
             'lqd_total' => 21388.55,
         ]);
 
+        TransactionNoteEntry::query()->create([
+            'transaction_id' => $transaction->id,
+            'section' => 'home',
+            'note_key' => 'for_packer',
+            'note_value' => 'Packer must confirm loading photos before dispatch.',
+            'sort_order' => 0,
+        ]);
+
         $token = $admin->createToken('test-token')->plainTextToken;
 
         $response = $this
@@ -189,7 +207,7 @@ final class TransactionDocumentApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.type', 'bcv_lqd')
-            ->assertJsonPath('data.0.pdf.filename', 'sif2502056-bcv-lqd.pdf');
+            ->assertJsonPath('data.0.pdf.filename', 'SIF2502056-BCV-LQD.PDF');
 
         $payload = $response->json('data.0');
 
@@ -207,6 +225,8 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Rajahmundry', $payload['preview_html']);
         $this->assertStringContainsString('ALKAMARIS EXPORTS(OPC)PVT LTD', $payload['preview_html']);
         $this->assertStringContainsString('MOURYA AQUEX PRIVATE LIMITED', $payload['preview_html']);
+        $this->assertStringContainsString('PACKER MUST CONFIRM LOADING PHOTOS BEFORE DISPATCH.', $payload['preview_html']);
+        $this->assertStringNotContainsString('A Separate invoice will be sent after shipment from our office.', $payload['preview_html']);
         $this->assertStringNotContainsString('8/12', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
     }
@@ -273,5 +293,7 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('MISSING PRICE PRODUCT', $html);
         $this->assertStringNotContainsString('Price US$/1', $html);
         $this->assertStringNotContainsString('>0.00</td>', $html);
+        $this->assertStringNotContainsString('A Separate invoice will be sent after shipment from our office.', $html);
+        $this->assertStringNotContainsString('<td class="comment-label">Note</td>', $html);
     }
 }

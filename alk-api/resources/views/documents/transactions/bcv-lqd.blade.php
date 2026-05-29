@@ -500,14 +500,18 @@
                   <td class="comment-label">Commission</td>
                   <td class="comment-value">{{ $bcv['commission'] }}</td>
                 </tr>
+                @if($bcv['commission_note'] !== '')
                 <tr class="note-row">
                   <td class="comment-label">Note</td>
                   <td class="comment-value">{{ $bcv['commission_note'] }}</td>
                 </tr>
+                @endif
+                @if($bcv['special_instruction'] !== '')
                 <tr class="note-row">
-                  <td></td>
-                  <td class="comment-value">A Separate invoice will be sent after shipment from our office.</td>
+                  <td class="comment-label">Note</td>
+                  <td class="comment-value">{{ $bcv['special_instruction'] }}</td>
                 </tr>
+                @endif
               </table>
             </div>
           </td>

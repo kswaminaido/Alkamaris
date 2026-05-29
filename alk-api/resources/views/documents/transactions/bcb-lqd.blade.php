@@ -503,6 +503,12 @@
                   <td class="comment-label">Destination</td>
                   <td class="comment-value">{{ $bcv['destination'] }}</td>
                 </tr>
+                @if($bcv['special_instruction'] !== '')
+                <tr class="note-row">
+                  <td class="comment-label">Note</td>
+                  <td class="comment-value">{{ $bcv['special_instruction'] }}</td>
+                </tr>
+                @endif
               </table>
             </div>
           </td>

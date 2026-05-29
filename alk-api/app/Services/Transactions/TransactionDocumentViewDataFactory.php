@@ -66,10 +66,10 @@ final class TransactionDocumentViewDataFactory
             'articles' => $this->articles($options),
             'attachments' => $this->attachments($options),
             'footer_note' => $documentType === 'bcv_lqd'
-                ? 'Alkamaris issues this Order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the buyer.'
-                : 'Alkamaris issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
+                ? 'Alkamaris Exports issues this Order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the buyer.'
+                : 'Alkamaris Exports issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
             'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
-            'bcv' => $this->bcvLqdData($transaction, $options),
+            'bcv' => $this->bcvLqdData($transaction, $options, $documentType),
         ];
     }
 
@@ -115,7 +115,7 @@ final class TransactionDocumentViewDataFactory
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
      */
-    private function bcvLqdData(Transaction $transaction, array $options): array
+    private function bcvLqdData(Transaction $transaction, array $options, string $documentType): array
     {
         $customer = $transaction->generalInfoCustomer;
         $packer = $transaction->generalInfoPacker;
@@ -126,24 +126,24 @@ final class TransactionDocumentViewDataFactory
         $items = $transaction->items ?? collect();
 
         $productItems = $items
-            ->map(fn (mixed $item): array => $this->bcvLqdItem($item))
+            ->map(fn(mixed $item): array => $this->bcvLqdItem($item))
             ->values()
             ->all();
 
         $amountValues = collect($productItems)
             ->pluck('amount_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $totalAmount = $amountValues->isEmpty() ? null : $amountValues->sum();
         $cartonValues = collect($productItems)
             ->pluck('cartons_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $weightValues = collect($productItems)
             ->pluck('weight_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $firstCurrency = $this->firstProductItemValue($productItems, 'amount_currency');
         $firstCommission = collect($productItems)
             ->pluck('commission')
-            ->first(fn (string $value): bool => $value !== '');
+            ->first(fn(string $value): bool => $value !== '');
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -204,7 +204,26 @@ final class TransactionDocumentViewDataFactory
                 : $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
             'commission_note' => $this->commissionNote($firstCommission, $revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
             'destination' => $this->upperText($logistics?->destination ?: $transaction->destination),
+            'special_instruction' => $this->upperText($this->documentSpecialInstruction($transaction, $documentType)),
         ];
+    }
+
+    private function documentSpecialInstruction(Transaction $transaction, string $documentType): string
+    {
+        return match ($documentType) {
+            'bcb_lqd' => $this->noteEntryValue($transaction, 'for_customer'),
+            'bcv_lqd' => $this->noteEntryValue($transaction, 'for_packer'),
+            default => '',
+        };
+    }
+
+    private function noteEntryValue(Transaction $transaction, string $noteKey): string
+    {
+        $entries = $transaction->relationLoaded('noteEntries')
+            ? $transaction->noteEntries
+            : $transaction->noteEntries()->get();
+
+        return $this->displayText($entries->firstWhere('note_key', $noteKey)?->note_value);
     }
 
     /**
@@ -243,7 +262,7 @@ final class TransactionDocumentViewDataFactory
     private function bcvLqdGroups(array $items): array
     {
         return collect($items)
-            ->groupBy(fn (array $item): string => implode('|', [
+            ->groupBy(fn(array $item): string => implode('|', [
                 $item['product'] ?? '',
                 $item['style'] ?? '',
                 $item['packing'] ?? '',
@@ -660,13 +679,13 @@ final class TransactionDocumentViewDataFactory
         $partyName = $this->displayText($name);
         $user = $partyName !== ''
             ? User::query()
-                ->where('role', $role)
-                ->where('name', $partyName)
-                ->first(['address', 'registration_number'])
+            ->where('role', $role)
+            ->where('name', $partyName)
+            ->first(['address', 'registration_number'])
             : null;
 
         $addressLines = collect(preg_split('/\r\n|\r|\n/', $this->displayText($user?->address)) ?: [])
-            ->map(fn (string $line): string => trim($line))
+            ->map(fn(string $line): string => trim($line))
             ->filter()
             ->values()
             ->all();
@@ -677,7 +696,7 @@ final class TransactionDocumentViewDataFactory
 
         return [
             'name' => Str::upper($partyName),
-            'lines' => array_map(fn (string $line): string => Str::upper($line), $addressLines),
+            'lines' => array_map(fn(string $line): string => Str::upper($line), $addressLines),
             'registration' => $registration !== '' ? $registrationLabel . ': ' . Str::upper($registration) : '',
         ];
     }
