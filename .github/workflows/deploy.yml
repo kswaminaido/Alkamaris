@@ -122,7 +122,7 @@ jobs:
           cd ~/domains/erpalkamaris.com/public_html/laravel-api
 
           composer install --no-dev --optimize-autoloader
-
+          php artisan migrate
           php artisan config:clear
           php artisan cache:clear
           php artisan route:clear

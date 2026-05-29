@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
@@ -17,7 +18,7 @@ final class TransactionDocumentViewDataFactory
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
      */
-    public function build(Transaction $transaction, string $documentType, array $options, string $label): array
+    public function build(Transaction $transaction, string $documentType, array $options, string $label, ?User $user = null): array
     {
         $customer = $transaction->generalInfoCustomer;
         $packer = $transaction->generalInfoPacker;
@@ -69,6 +70,7 @@ final class TransactionDocumentViewDataFactory
                 ? 'Alkamaris Exports issues this Order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the buyer.'
                 : 'Alkamaris Exports issues this order confirmation in its capacity as broker/agent and does not assume liability in the event of non-performance or default by the packer.',
             'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
+            'authorization' => $this->authorizationImages($user),
             'bcv' => $this->bcvLqdData($transaction, $options, $documentType),
         ];
     }
@@ -109,6 +111,43 @@ final class TransactionDocumentViewDataFactory
         }
 
         return $this->logoDataUri = 'data:image/png;base64,' . base64_encode($contents);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function authorizationImages(?User $user): array
+    {
+        return [
+            'signature' => $this->authorizationImageDataUri($user?->authorization_signature_path, public_path('images/signature.png')),
+            'stamp' => $this->authorizationImageDataUri($user?->authorization_stamp_path, public_path('images/stamp.jpg')),
+        ];
+    }
+
+    private function authorizationImageDataUri(?string $storedPath, string $fallbackPath): string
+    {
+        $path = $fallbackPath;
+
+        if ($storedPath !== null && $storedPath !== '') {
+            $candidate = Storage::disk('public')->path($storedPath);
+            if (is_file($candidate) && is_readable($candidate)) {
+                $path = $candidate;
+            }
+        }
+
+        if (! is_file($path) || ! is_readable($path)) {
+            return '';
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            return '';
+        }
+
+        $mimeType = mime_content_type($path) ?: 'image/png';
+
+        return "data:{$mimeType};base64," . base64_encode($contents);
     }
 
     /**

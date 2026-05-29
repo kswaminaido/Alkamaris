@@ -1314,6 +1314,34 @@ select:focus {
   gap: 0.2rem;
 }
 
+.profile-authorization-panel {
+  grid-column: 1 / -1;
+}
+
+.profile-authorization-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.authorization-upload-field {
+  gap: 0.45rem;
+}
+
+.authorization-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.authorization-preview img {
+  max-width: 100%;
+  max-height: 86px;
+  object-fit: contain;
+}
+
 .profile-address-field {
   grid-column: 1 / -1;
 }
@@ -3991,6 +4019,10 @@ h5 {
   }
 
   .profile-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-authorization-grid {
     grid-template-columns: 1fr;
   }
 }

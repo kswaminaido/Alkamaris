@@ -24,6 +24,7 @@ class TransactionDocumentController extends Controller
             $transaction,
             $validated['document_types'],
             $validated['options'] ?? [],
+            $request->user(),
         );
 
         return response()->json(['data' => $documents]);

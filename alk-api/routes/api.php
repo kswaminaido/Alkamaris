@@ -21,6 +21,7 @@ Route::prefix('auth')->group(function (): void {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::patch('profile', [ProfileController::class, 'update']);
+        Route::post('profile/authorization', [ProfileController::class, 'updateAuthorization']);
         Route::patch('password', [ProfileController::class, 'updatePassword']);
     });
 });

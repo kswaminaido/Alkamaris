@@ -3,6 +3,7 @@
 namespace App\Services\Transactions;
 
 use App\Models\Transaction;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 
@@ -34,10 +35,10 @@ class TransactionDocumentService
      * @param  array<string, mixed>  $options
      * @return array<int, array<string, mixed>>
      */
-    public function render(Transaction $transaction, array $documentTypes, array $options = []): array
+    public function render(Transaction $transaction, array $documentTypes, array $options = [], ?User $user = null): array
     {
         return $this->normalizeTypes($documentTypes)
-            ->map(fn (string $documentType): array => $this->buildDocument($transaction, $documentType, $options))
+            ->map(fn (string $documentType): array => $this->buildDocument($transaction, $documentType, $options, $user))
             ->all();
     }
 
@@ -70,10 +71,10 @@ class TransactionDocumentService
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
      */
-    private function buildDocument(Transaction $transaction, string $documentType, array $options): array
+    private function buildDocument(Transaction $transaction, string $documentType, array $options, ?User $user): array
     {
         $label = self::DOCUMENT_LABELS[$documentType] ?? Str::headline($documentType);
-        $view = $this->viewDataFactory->build($transaction, $documentType, $options, $label);
+        $view = $this->viewDataFactory->build($transaction, $documentType, $options, $label, $user);
         $previewHtml = $this->renderPreviewHtml($view);
 
         return [

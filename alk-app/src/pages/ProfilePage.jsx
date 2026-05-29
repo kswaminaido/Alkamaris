@@ -19,10 +19,16 @@ function ProfilePage() {
     password: '',
     password_confirmation: '',
   })
+  const [authorizationForm, setAuthorizationForm] = useState({
+    signature_image: null,
+    stamp_image: null,
+  })
   const [profileSaving, setProfileSaving] = useState(false)
   const [passwordSaving, setPasswordSaving] = useState(false)
+  const [authorizationSaving, setAuthorizationSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [toast, setToast] = useState('')
 
   useEffect(() => {
     if (!currentUser) return
@@ -34,6 +40,12 @@ function ProfilePage() {
       registration_number: currentUser.registration_number ?? '',
     })
   }, [currentUser])
+
+  useEffect(() => {
+    if (!toast) return undefined
+    const timer = window.setTimeout(() => setToast(''), 2200)
+    return () => window.clearTimeout(timer)
+  }, [toast])
 
   async function handleLogout() {
     await logout()
@@ -52,6 +64,10 @@ function ProfilePage() {
 
   function updatePasswordField(field, value) {
     setPasswordForm((previous) => ({ ...previous, [field]: value }))
+  }
+
+  function updateAuthorizationField(field, value) {
+    setAuthorizationForm((previous) => ({ ...previous, [field]: value }))
   }
 
   async function handleProfileSubmit(event) {
@@ -113,6 +129,50 @@ function ProfilePage() {
     }
   }
 
+  async function handleAuthorizationSubmit(event) {
+    event.preventDefault()
+    const formElement = event.currentTarget
+    setAuthorizationSaving(true)
+    setMessage('')
+    setError('')
+
+    const formData = new FormData()
+    if (authorizationForm.signature_image) {
+      formData.append('signature_image', authorizationForm.signature_image)
+    }
+    if (authorizationForm.stamp_image) {
+      formData.append('stamp_image', authorizationForm.stamp_image)
+    }
+
+    try {
+      const response = await authFetch('/auth/profile/authorization', {
+        method: 'POST',
+        body: formData,
+        loadingLabel: 'Updating authorization images...',
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        setError(firstError(payload) ?? payload?.message ?? 'Unable to update authorization images.')
+        return
+      }
+
+      setAuthorizationForm({
+        signature_image: null,
+        stamp_image: null,
+      })
+      formElement.reset()
+      syncCurrentUser(payload?.data ?? null)
+      const successMessage = payload?.message ?? 'Authorization images updated successfully.'
+      setMessage(successMessage)
+      setToast(successMessage)
+    } catch {
+      setError('Unable to update authorization images right now.')
+    } finally {
+      setAuthorizationSaving(false)
+    }
+  }
+
   const content = (
     <section className="transaction-page profile-app-page">
       <section className="txn-panel txn-top profile-summary-panel">
@@ -124,6 +184,7 @@ function ProfilePage() {
         </div>
       </section>
 
+      {toast ? <div className="data-toast">{toast}</div> : null}
       {message ? <p className="message success">{message}</p> : null}
       {error ? <p className="message error">{error}</p> : null}
 
@@ -229,6 +290,51 @@ function ProfilePage() {
             <div className="admin-form-actions profile-form-actions">
               <button type="submit" className="primary-btn" disabled={passwordSaving}>
                 {passwordSaving ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className="txn-panel profile-authorization-panel">
+          <div className="profile-panel-head">
+            <h5>Authorization</h5>
+            <p className="dashboard-footnote">Upload the signature and stamp used on account documents.</p>
+          </div>
+
+          <form className="form-grid profile-authorization-grid" onSubmit={handleAuthorizationSubmit}>
+            <div className="register-field authorization-upload-field">
+              <label htmlFor="authorization-signature">Signature Image</label>
+              <div className="authorization-preview">
+                {currentUser.authorization_signature_url ? (
+                  <img src={currentUser.authorization_signature_url} alt="Signature preview" />
+                ) : null}
+              </div>
+              <input
+                id="authorization-signature"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => updateAuthorizationField('signature_image', event.target.files?.[0] ?? null)}
+              />
+            </div>
+
+            <div className="register-field authorization-upload-field">
+              <label htmlFor="authorization-stamp">Stamp Image</label>
+              <div className="authorization-preview">
+                {currentUser.authorization_stamp_url ? (
+                  <img src={currentUser.authorization_stamp_url} alt="Stamp preview" />
+                ) : null}
+              </div>
+              <input
+                id="authorization-stamp"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => updateAuthorizationField('stamp_image', event.target.files?.[0] ?? null)}
+              />
+            </div>
+
+            <div className="admin-form-actions profile-form-actions">
+              <button type="submit" className="primary-btn" disabled={authorizationSaving}>
+                {authorizationSaving ? 'Saving...' : 'Save Authorization'}
               </button>
             </div>
           </form>

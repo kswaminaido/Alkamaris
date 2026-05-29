@@ -256,7 +256,28 @@
 
     .sign-space {
       height: 66px;
-      padding-top: 38px;
+      padding-top: 8px;
+      vertical-align: bottom;
+    }
+
+    .authorization-images {
+      height: 54px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .authorization-signature {
+      display: inline-block;
+      max-width: 112px;
+      max-height: 46px;
+      vertical-align: bottom;
+    }
+
+    .authorization-stamp {
+      display: inline-block;
+      max-width: 58px;
+      max-height: 52px;
+      margin-left: 8px;
       vertical-align: bottom;
     }
 
@@ -525,6 +546,14 @@
         </tr>
         <tr>
           <td class="sign-space">
+            <div class="authorization-images">
+              @if (($view['authorization']['signature'] ?? '') !== '')
+                <img class="authorization-signature" src="{{ $view['authorization']['signature'] }}" alt="Signature">
+              @endif
+              @if (($view['authorization']['stamp'] ?? '') !== '')
+                <img class="authorization-stamp" src="{{ $view['authorization']['stamp'] }}" alt="Stamp">
+              @endif
+            </div>
             <div class="signature-line"></div>
             <div class="signature-name">ALKAMARIS EXPORTS(OPC)PVT LTD</div>
           </td>

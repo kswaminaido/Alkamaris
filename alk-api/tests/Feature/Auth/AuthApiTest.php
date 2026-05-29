@@ -6,7 +6,9 @@ use App\Enums\UserRole;
 use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class AuthApiTest extends TestCase
@@ -259,6 +261,32 @@ final class AuthApiTest extends TestCase
             'email' => 'after@example.com',
             'registration_number' => 'REG-2002',
         ]);
+    }
+
+    public function test_authenticated_user_can_update_authorization_images(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->post('/api/auth/profile/authorization', [
+                'signature_image' => UploadedFile::fake()->image('signature.png', 240, 90),
+                'stamp_image' => UploadedFile::fake()->image('stamp.jpg', 140, 140),
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('message', 'Authorization images updated successfully.');
+
+        $freshUser = $user->fresh();
+
+        $this->assertNotNull($freshUser->authorization_signature_path);
+        $this->assertNotNull($freshUser->authorization_stamp_path);
+        Storage::disk('public')->assertExists($freshUser->authorization_signature_path);
+        Storage::disk('public')->assertExists($freshUser->authorization_stamp_path);
     }
 
     public function test_authenticated_user_can_update_password(): void

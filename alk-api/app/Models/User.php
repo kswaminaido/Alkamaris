@@ -26,6 +26,8 @@ class User extends Authenticatable
         'email',
         'address',
         'registration_number',
+        'authorization_signature_path',
+        'authorization_stamp_path',
         'role',
         'password',
         'is_active',

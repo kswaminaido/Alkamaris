@@ -230,6 +230,8 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('ALKAMARIS EXPORTS(OPC)PVT LTD', $payload['preview_html']);
         $this->assertStringContainsString('MOURYA AQUEX PRIVATE LIMITED', $payload['preview_html']);
         $this->assertStringContainsString('DAP, VIETNAM', $payload['preview_html']);
+        $this->assertStringContainsString('authorization-signature', $payload['preview_html']);
+        $this->assertStringContainsString('authorization-stamp', $payload['preview_html']);
         $this->assertStringContainsString('PACKER MUST CONFIRM LOADING PHOTOS BEFORE DISPATCH.', $payload['preview_html']);
         $this->assertStringNotContainsString('The above prices has included commission', $payload['preview_html']);
         $this->assertStringNotContainsString('A Separate invoice will be sent after shipment from our office.', $payload['preview_html']);
