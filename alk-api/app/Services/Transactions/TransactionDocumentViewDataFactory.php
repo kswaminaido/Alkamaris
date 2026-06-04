@@ -241,15 +241,16 @@ final class TransactionDocumentViewDataFactory
             'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
             'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency) . ' ' . $this->moneyOrBlank($totalAmount)),
             'price_basis' => $this->priceBasis($priceType, $pricePlace),
-            'payment_terms' => $this->upperText($this->combinedInstructionText(
-                $this->bcvPaymentTerms(
-                    $paymentType,
-                    $paymentAdvancePercent,
-                    Arr::get($options, 'payment_advance'),
-                    $paymentBalanceTerm,
-                ),
-                $paymentDescription,
-            )),
+            // 'payment_terms' => $this->upperText($this->combinedInstructionText(
+            //     $this->bcvPaymentTerms(
+            //         $paymentType,
+            //         $paymentAdvancePercent,
+            //         Arr::get($options, 'payment_advance'),
+            //         $paymentBalanceTerm,
+            //     ),
+            //     $paymentDescription,
+            // )),
+            'payment_terms' => $this->upperText($this->combinedInstructionText("", $paymentDescription)),
             'tolerance' => $this->displayText($customer?->tolerance),
             'latest_shipment_date' => $this->firstFilled(
                 $this->formatDisplayDate($shippingCustomer?->lsd_max),
@@ -818,13 +819,13 @@ final class TransactionDocumentViewDataFactory
 
         $user = $names->isNotEmpty()
             ? User::query()
-                ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
-                ->where(function ($query) use ($names): void {
-                    $query
-                        ->whereIn('name', $names->all())
-                        ->orWhereIn('firm_name', $names->all());
-                })
-                ->first(['firm_name', 'name'])
+            ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
+            ->where(function ($query) use ($names): void {
+                $query
+                    ->whereIn('name', $names->all())
+                    ->orWhereIn('firm_name', $names->all());
+            })
+            ->first(['firm_name', 'name'])
             : null;
 
         return $this->firstFilled($packerName, $user?->firm_name, $vendorName, $user?->name);
