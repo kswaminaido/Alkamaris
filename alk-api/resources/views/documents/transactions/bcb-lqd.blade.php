@@ -125,6 +125,24 @@
       font-weight: 700;
     }
 
+    .order-ref-table {
+      width: 100%;
+      margin-top: 6px;
+      border-collapse: collapse;
+      font-size: 7pt;
+    }
+
+    .order-ref-table td {
+      border: 0.75pt solid #000;
+      padding: 2px 3px;
+    }
+
+    .order-ref-label {
+      width: 38%;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .section-head td {
       background: #061173;
       color: #fff;
@@ -194,7 +212,7 @@
 
     .desc-text {
       min-height: 54px;
-      white-space: pre-line;
+      white-space: normal;
       font-weight: 700;
     }
 
@@ -269,10 +287,15 @@
     .customer-signature {
       width: 50%;
       margin-left: auto;
-      text-align: center;
+      text-align: right;
       font-size: 11px;
       font-weight: 800;
       padding-top: 8px;
+    }
+
+    .customer-signature-block {
+      display: inline-block;
+      text-align: center;
     }
 
     .customer-signature-space {
@@ -281,7 +304,8 @@
 
     .customer-signature-line {
       border-top: 1px solid #000;
-      width: 82%;
+      height: 1px;
+      width: 100%;
       margin: 0 auto 5px;
     }
 
@@ -379,6 +403,22 @@
           <td class="info-order" colspan="2">
             <div>Order Confirmation No:</div>
             <div style="margin-top:8px">{{ $bcv['order_confirmation_no'] }}</div>
+            @if ($bcv['buyer_reference'] !== '' || $bcv['packer_reference'] !== '')
+            <table class="order-ref-table">
+              @if ($bcv['buyer_reference'] !== '')
+              <tr>
+                <td class="order-ref-label">Buyer's</td>
+                <td>{{ $bcv['buyer_reference'] }}</td>
+              </tr>
+              @endif
+              @if ($bcv['packer_reference'] !== '')
+              <tr>
+                <td class="order-ref-label">Packer's</td>
+                <td>{{ $bcv['packer_reference'] }}</td>
+              </tr>
+              @endif
+            </table>
+            @endif
           </td>
         </tr>
         <tr class="section-head">
@@ -387,7 +427,7 @@
         </tr>
         <tr>
           <td class="party" colspan="3">
-            <!-- <div>{{ $bcv['packer_block']['name'] }}</div> -->
+            <div>{{ $bcv['packer_block']['name'] }}</div>
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
@@ -485,7 +525,7 @@
                 </tr>
                 <tr>
                   <td class="comment-label">Payment</td>
-                  <td class="comment-value">{{ $bcv['payment_terms'] }}</td>
+                  <td class="comment-value">{!! nl2br(e($bcv['payment_terms'])) !!}</td>
                 </tr>
                 <tr>
                   <td class="comment-label">Shipment Date</td>
@@ -493,7 +533,7 @@
                 </tr>
                 <tr>
                   <td class="comment-label">Packer</td>
-                  <td class="comment-value">{{ $bcv['packer'] }}</td>
+                  <td class="comment-value">{{ $bcv['packer_block']['name'] }}</td>
                 </tr>
                 <tr>
                   <td class="comment-label">Factory Approval Number</td>
@@ -506,7 +546,7 @@
                 @if($bcv['special_instruction'] !== '')
                 <tr class="note-row">
                   <td class="comment-label">Note</td>
-                  <td class="comment-value">{{ $bcv['special_instruction'] }}</td>
+                  <td class="comment-value">{!! nl2br(e($bcv['special_instruction'])) !!}</td>
                 </tr>
                 @endif
               </table>
@@ -516,10 +556,12 @@
       </table>
 
       <div class="customer-signature">
-        <div>For and on behalf of</div>
-        <div class="customer-signature-space"></div>
-        <div class="customer-signature-line"></div>
-        <div>{{ $bcv['customer'] }}</div>
+        <div class="customer-signature-block">
+          <div>For &amp; Behalf of</div>
+          <div class="customer-signature-space"></div>
+          <div class="customer-signature-line"></div>
+          <div class="customer-signature-name">{{ $bcv['customer'] }}</div>
+        </div>
       </div>
 
       <!-- <div class="contact">

@@ -508,7 +508,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
         <LabelField label="Sales Person"><SalesPersonSelect value={salesPersonId} list={salesPeople} currentName={salesPersonName} /></LabelField>
         <LabelField label="Product Origin"><NamedSearchableSelect name="transaction.product_origin" value={origin} list={originOptions} onAdd={(value) => addOption('transaction.product_origin', value)} /></LabelField>
         <LabelField label="Type"><NamedSearchableSelect name="transaction.type" value={type} list={withCurrent(optionsFor('transaction.type'), type)} onAdd={(value) => addOption('transaction.type', value)} /></LabelField>
-        <LabelField label="Container"><div className="txe-inline"><NamedSearchableSelect name="transaction.container_primary" value={container} list={withCurrent(optionsFor('transaction.container_primary'), container)} onAdd={(value) => addOption('transaction.container_primary', value)} /><NamedSearchableSelect name="transaction.container_secondary" value={containerSecondary} list={withCurrent(optionsFor('transaction.container_secondary'), containerSecondary)} onAdd={(value) => addOption('transaction.container_secondary', value)} /></div></LabelField>
+        <LabelField label="Container"><div className="txe-inline"><NamedSearchableSelect name="transaction.container_primary" value={container} list={withCurrent(optionsFor('transaction.container_primary'), container)} onAdd={(value) => addOption('transaction.container_primary', value)} hideToggle /><NamedSearchableSelect name="transaction.container_secondary" value={containerSecondary} list={withCurrent(optionsFor('transaction.container_secondary'), containerSecondary)} onAdd={(value) => addOption('transaction.container_secondary', value)} hideToggle /></div></LabelField>
 
         <LabelField label="Country"><NamedSearchableSelect name="transaction.country" value={country} list={countrySelectOptions} onAdd={(value) => addOption('transaction.country', value)} /></LabelField>
         <LabelField label="Destination"><NamedSearchableSelect name="transaction.destination" value={destination} list={destinationOptions} onAdd={(value) => addOption('transaction.destination', value)} /></LabelField>
@@ -535,7 +535,7 @@ function HomeTab({ transaction, optionsFor, addOption, customers, packers }) {
       <div className="txe-two">
         <SectionCard title="GENERAL INFO" side="CUSTOMER" tone="blue">
           <Row label="Customer"><NamedSearchableSelect name="general_info_customer.customer" value={customer.customer ?? ''} list={mergeOptions(customers, optionsFor('general_info_customer.customer'), [customer.customer])} onAdd={(value) => addOption('general_info_customer.customer', value)} /></Row>
-          <Row label="Attn"><NamedSearchableSelect name="general_info_customer.attention" value={customer.attention ?? ''} list={withCurrent(optionsFor('general_info_customer.attention'), customer.attention)} onAdd={(value) => addOption('general_info_customer.attention', value)} /></Row>
+          <Row label="Attn"><NamedSearchableSelect name="general_info_customer.attention" value={customer.attention ?? ''} list={mergeOptions(packers, [customer.attention])} /></Row>
           <Row label="Shipto"><NamedSearchableSelect name="general_info_customer.ship_to" value={customer.ship_to ?? ''} list={withCurrent(optionsFor('general_info_customer.ship_to'), customer.ship_to)} onAdd={(value) => addOption('general_info_customer.ship_to', value)} /></Row>
           <Row label="Buyer's"><div className="txe-inline"><NamedSearchableSelect name="general_info_customer.buyer" value={customer.buyer ?? ''} list={withCurrent(optionsFor('general_info_customer.buyer'), customer.buyer)} onAdd={(value) => addOption('general_info_customer.buyer', value)} /><input name="general_info_customer.buyer_number" defaultValue={customer.buyer_number ?? ''} placeholder="#" /></div></Row>
           <Row label="End Customer"><NamedSearchableSelect name="general_info_customer.end_customer" value={customer.end_customer ?? ''} list={withCurrent(optionsFor('general_info_customer.end_customer'), customer.end_customer)} onAdd={(value) => addOption('general_info_customer.end_customer', value)} /></Row>
@@ -1128,7 +1128,7 @@ function SalesPersonSelect({ value, list, currentName }) {
   )
 }
 
-function NamedSearchableSelect({ name, value, list, onAdd }) {
+function NamedSearchableSelect({ name, value, list, onAdd, hideToggle = false }) {
   return (
     <SearchableSelect
       key={`${name ?? 'field'}:${value ?? ''}`}
@@ -1136,11 +1136,12 @@ function NamedSearchableSelect({ name, value, list, onAdd }) {
       initialValue={value}
       list={list}
       onAdd={onAdd}
+      hideToggle={hideToggle}
     />
   )
 }
 
-function SearchableSelect({ name, initialValue, list, onAdd }) {
+function SearchableSelect({ name, initialValue, list, onAdd, hideToggle = false }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [value, setValue] = useState(initialValue ?? '')
@@ -1181,12 +1182,12 @@ function SearchableSelect({ name, initialValue, list, onAdd }) {
   }
 
   return (
-    <div className="txn-combobox" ref={rootRef}>
+    <div className={`txn-combobox${hideToggle ? ' no-toggle' : ''}`} ref={rootRef}>
       <input
         name={name}
         type="text"
         value={value ?? ''}
-        placeholder="Search or select"
+        placeholder="Search"
         autoComplete="off"
         onFocus={() => setIsOpen(true)}
         onClick={() => setIsOpen(true)}
@@ -1196,14 +1197,16 @@ function SearchableSelect({ name, initialValue, list, onAdd }) {
           setIsOpen(true)
         }}
       />
-      <button
-        type="button"
-        className="txn-combobox-toggle"
-        aria-label={isOpen ? 'Close options' : 'Open options'}
-        onClick={() => setIsOpen((previous) => !previous)}
-      >
-        <span className={`txn-combobox-caret${isOpen ? ' is-open' : ''}`} aria-hidden="true" />
-      </button>
+      {!hideToggle && (
+        <button
+          type="button"
+          className="txn-combobox-toggle"
+          aria-label={isOpen ? 'Close options' : 'Open options'}
+          onClick={() => setIsOpen((previous) => !previous)}
+        >
+          <span className={`txn-combobox-caret${isOpen ? ' is-open' : ''}`} aria-hidden="true" />
+        </button>
+      )}
       {isOpen ? (
         <div className="txn-combobox-menu">
           {filteredOptions.length ? (

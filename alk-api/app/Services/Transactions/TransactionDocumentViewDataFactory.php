@@ -169,6 +169,18 @@ final class TransactionDocumentViewDataFactory
         $pricePlace = $documentType === 'bcv_lqd'
             ? $packer?->prices_packer_rate
             : $customer?->prices_customer_rate;
+        $paymentType = $documentType === 'bcv_lqd'
+            ? $packer?->payment_packer_type
+            : $customer?->payment_customer_type;
+        $paymentAdvancePercent = $documentType === 'bcv_lqd'
+            ? $packer?->payment_packer_advance_percent
+            : $customer?->payment_customer_advance_percent;
+        $paymentBalanceTerm = $documentType === 'bcv_lqd'
+            ? $packer?->payment_packer_term
+            : $customer?->payment_customer_term;
+        $paymentDescription = $documentType === 'bcv_lqd'
+            ? $packer?->description
+            : $customer?->description;
 
         $productItems = $items
             ->map(fn(mixed $item): array => $this->bcvLqdItem($item))
@@ -189,6 +201,7 @@ final class TransactionDocumentViewDataFactory
         $firstCommission = collect($productItems)
             ->pluck('commission')
             ->first(fn(string $value): bool => $value !== '');
+        $packerName = $this->associatedPackerName($packer?->packer_name, $packer?->vendor);
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -203,6 +216,8 @@ final class TransactionDocumentViewDataFactory
             'date' => $this->formatDotDate($transaction->issue_date ?: Carbon::now()),
             'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
             'order_confirmation_no' => $this->displayText($transaction->booking_no),
+            'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
+            'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
             'fax' => '',
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
@@ -226,12 +241,15 @@ final class TransactionDocumentViewDataFactory
             'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
             'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency) . ' ' . $this->moneyOrBlank($totalAmount)),
             'price_basis' => $this->priceBasis($priceType, $pricePlace),
-            'payment_terms' => $this->bcvPaymentTerms(
-                $customer?->payment_customer_type,
-                $customer?->payment_customer_advance_percent,
-                Arr::get($options, 'payment_advance'),
-                $customer?->payment_customer_term,
-            ),
+            'payment_terms' => $this->upperText($this->combinedInstructionText(
+                $this->bcvPaymentTerms(
+                    $paymentType,
+                    $paymentAdvancePercent,
+                    Arr::get($options, 'payment_advance'),
+                    $paymentBalanceTerm,
+                ),
+                $paymentDescription,
+            )),
             'tolerance' => $this->displayText($customer?->tolerance),
             'latest_shipment_date' => $this->firstFilled(
                 $this->formatDisplayDate($shippingCustomer?->lsd_max),
@@ -241,9 +259,9 @@ final class TransactionDocumentViewDataFactory
                 $this->formatDisplayDate($shippingCustomer?->req_eta),
                 $this->formatDisplayDate($shippingPacker?->req_eta),
             ),
-            'packer' => $this->upperText($this->firstFilled($packer?->packer_name, $packer?->vendor)),
+            'packer' => $this->upperText($packerName),
             'customer' => $this->upperText($customer?->customer),
-            'factory_approval_number' => $this->displayText($packer?->packer_number),
+            'factory_approval_number' => $this->upperText($this->packerRegistrationNumber($packer?->packer_name, $packer?->vendor)),
             'commission' => $firstCommission !== null && $firstCommission !== ''
                 ? $firstCommission
                 : $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
@@ -260,6 +278,22 @@ final class TransactionDocumentViewDataFactory
             'bcv_lqd' => $this->noteEntryValue($transaction, 'for_packer'),
             default => '',
         };
+    }
+
+    private function combinedInstructionText(mixed ...$values): string
+    {
+        return collect($values)
+            ->map(fn(mixed $value): string => $this->displayText($value))
+            ->filter(fn(string $value): bool => $value !== '')
+            ->implode("\n");
+    }
+
+    private function combinedReferenceText(mixed ...$values): string
+    {
+        return collect($values)
+            ->map(fn(mixed $value): string => $this->displayText($value))
+            ->filter(fn(string $value): bool => $value !== '')
+            ->implode(' ');
     }
 
     private function noteEntryValue(Transaction $transaction, string $noteKey): string
@@ -613,6 +647,10 @@ final class TransactionDocumentViewDataFactory
             $advance = $this->quantityOrBlank($advancePercent) . ' % DEPOSIT';
         }
 
+        if (Str::upper($balance) === 'ADVANCE') {
+            $balance = '';
+        }
+
         if ($type !== '') {
             $parts[] = $type;
         }
@@ -716,8 +754,12 @@ final class TransactionDocumentViewDataFactory
         $partyName = $this->displayText($name);
         $user = $partyName !== ''
             ? User::query()
-            ->where('role', $role)
-            ->where('name', $partyName)
+            ->whereIn('role', $this->partyRoles($role))
+            ->where(function ($query) use ($partyName): void {
+                $query
+                    ->where('name', $partyName)
+                    ->orWhere('firm_name', $partyName);
+            })
             ->first(['address', 'registration_number'])
             : null;
 
@@ -736,5 +778,63 @@ final class TransactionDocumentViewDataFactory
             'lines' => array_map(fn(string $line): string => Str::upper($line), $addressLines),
             'registration' => $registration !== '' ? $registrationLabel . ': ' . Str::upper($registration) : '',
         ];
+    }
+
+    private function packerRegistrationNumber(mixed $packerName, mixed $vendorName): string
+    {
+        $names = collect([$packerName, $vendorName])
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
+            ->unique()
+            ->values();
+
+        if ($names->isNotEmpty()) {
+            $user = User::query()
+                ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
+                ->where(function ($query) use ($names): void {
+                    $query
+                        ->whereIn('name', $names->all())
+                        ->orWhereIn('firm_name', $names->all());
+                })
+                ->first(['registration_number', 'firm_name']);
+
+            $registration = $this->firstFilled($user?->registration_number, $user?->firm_name);
+
+            if ($registration !== '') {
+                return $registration;
+            }
+        }
+
+        return '';
+    }
+
+    private function associatedPackerName(mixed $packerName, mixed $vendorName): string
+    {
+        $names = collect([$packerName, $vendorName])
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
+            ->unique()
+            ->values();
+
+        $user = $names->isNotEmpty()
+            ? User::query()
+                ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
+                ->where(function ($query) use ($names): void {
+                    $query
+                        ->whereIn('name', $names->all())
+                        ->orWhereIn('firm_name', $names->all());
+                })
+                ->first(['firm_name', 'name'])
+            : null;
+
+        return $this->firstFilled($packerName, $user?->firm_name, $vendorName, $user?->name);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function partyRoles(string $role): array
+    {
+        return $role === UserRole::Packer->value ? [UserRole::Packer->value, 'vendor'] : [$role];
     }
 }

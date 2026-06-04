@@ -609,7 +609,7 @@ function SearchableSelect({ value, list, onChange, onAdd }) {
       <input
         type="text"
         value={value}
-        placeholder="Search or select"
+        placeholder="Search"
         autoComplete="off"
         onFocus={() => setIsOpen(true)}
         onClick={() => setIsOpen(true)}

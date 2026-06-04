@@ -117,7 +117,7 @@ function AdminUsersPanel({
                         <td>{user.email}</td>
                         <td>{user.phone_number}</td>
                         <td>{user.role}</td>
-                        <td>{user.registration_number}</td>
+                        <td>{displayIdentifier(user)}</td>
                         <td>
                           <div className="users-actions">
                             <button
@@ -185,6 +185,19 @@ function AdminUsersPanel({
                   required
                 />
               </div>
+
+              {form.user_type === 'packer' && (
+                <div className="register-field">
+                  <label htmlFor="admin-firm-name">Firm Name</label>
+                  <input
+                    id="admin-firm-name"
+                    type="text"
+                    value={form.firm_name || ''}
+                    onChange={(event) => onFieldChange('firm_name', event.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="register-field">
                 <label htmlFor="admin-email">Email</label>
@@ -301,3 +314,11 @@ function AdminUsersPanel({
 }
 
 export default AdminUsersPanel
+
+function displayIdentifier(user) {
+  if (['packer', 'vendor'].includes(user?.role) && user?.firm_name) {
+    return user.firm_name
+  }
+
+  return user?.registration_number
+}

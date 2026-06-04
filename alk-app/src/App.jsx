@@ -44,7 +44,14 @@ function AppShell() {
 
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/signup"
+          element={
+            <RequireAuth>
+              <SignupPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/dashboard"
           element={

@@ -10,6 +10,7 @@ function ProfilePage() {
   const { currentUser, logout, authFetch, syncCurrentUser } = useAuth()
   const [profileForm, setProfileForm] = useState({
     name: '',
+    firm_name: '',
     phone_number: '',
     email: '',
     address: '',
@@ -34,6 +35,7 @@ function ProfilePage() {
     if (!currentUser) return
     setProfileForm({
       name: currentUser.name ?? '',
+      firm_name: currentUser.firm_name ?? '',
       phone_number: currentUser.phone_number ?? '',
       email: currentUser.email ?? '',
       address: currentUser.address ?? '',
@@ -57,6 +59,7 @@ function ProfilePage() {
   }
 
   const identifierLabel = getUserIdentifierLabel(currentUser.role)
+  const isPacker = currentUser.role === 'packer'
 
   function updateProfileField(field, value) {
     setProfileForm((previous) => ({ ...previous, [field]: value }))
@@ -217,6 +220,19 @@ function ProfilePage() {
                 required
               />
             </div>
+
+            {isPacker ? (
+              <div className="register-field">
+                <label htmlFor="profile-firm-name">Firm Name</label>
+                <input
+                  id="profile-firm-name"
+                  type="text"
+                  value={profileForm.firm_name}
+                  onChange={(event) => updateProfileField('firm_name', event.target.value)}
+                  required
+                />
+              </div>
+            ) : null}
 
             <div className="register-field">
               <label htmlFor="profile-email">Email</label>

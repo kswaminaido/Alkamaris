@@ -350,6 +350,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
 
             {profileMenuOpen ? (
               <div className="dashboard-topbar-profile-menu" role="menu">
+                <Link to="/signup" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Add User</Link>
                 <Link to="/profile" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Profile</Link>
                 <button type="button" className="dashboard-topbar-profile-menu-item" onClick={onLogout}>Logout</button>
               </div>

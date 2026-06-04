@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SignupPanel from '../components/auth/SignupPanel'
+import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 
@@ -11,6 +12,7 @@ function initialSignupForm(userType = '') {
   return {
     name: '',
     contact_name: '',
+    firm_name: '',
     phone_number: '',
     email: '',
     address: '',
@@ -30,12 +32,13 @@ function SignupPage() {
     currentUser,
     userTypeOptions,
     clearFeedback,
+    logout,
   } = useAuth()
   const [form, setForm] = useState(() => initialSignupForm(userTypeOptions[0] ?? ''))
 
   useEffect(() => {
-    if (currentUser) {
-      navigate('/dashboard', { replace: true })
+    if (!currentUser) {
+      navigate('/', { replace: true })
     }
   }, [currentUser, navigate])
 
@@ -70,23 +73,43 @@ function SignupPage() {
         nextForm.password = ''
         nextForm.password_confirmation = ''
       }
+      if (value !== 'packer') {
+        nextForm.firm_name = ''
+      }
 
       return nextForm
     })
   }
 
+  async function handleLogout() {
+    await logout()
+    navigate('/', { replace: true })
+  }
+
+  const content = (
+    <SignupPanel
+      registerForm={form}
+      userTypeOptions={userTypeOptions}
+      onFieldChange={onFieldChange}
+      onSubmit={handleSubmit}
+      loading={loading}
+      message={message}
+      error={error}
+    />
+  )
+
+  if (currentUser) {
+    return (
+      <AdminSidebarLayout currentUser={currentUser} activeKey="" onLogout={handleLogout}>
+        {content}
+      </AdminSidebarLayout>
+    )
+  }
+
   return (
     <>
       <TopNav currentUser={currentUser} showLoginLink />
-      <SignupPanel
-        registerForm={form}
-        userTypeOptions={userTypeOptions}
-        onFieldChange={onFieldChange}
-        onSubmit={handleSubmit}
-        loading={loading}
-        message={message}
-        error={error}
-      />
+      {content}
     </>
   )
 }

@@ -328,7 +328,7 @@ function OptionManager({ fieldKey, options, selectedValue, onChangeSelection, on
                   handleAdd()
                 }
               }}
-              placeholder="Search or type a new option"
+              placeholder="Search"
             />
             <button type="button" className="data-combobox-add-btn" onClick={handleAdd} disabled={!canAdd}>
               Add

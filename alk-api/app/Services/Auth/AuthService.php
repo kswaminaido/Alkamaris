@@ -18,6 +18,7 @@ final class AuthService implements AuthServiceInterface
             fn (): User => User::query()->create([
                 'name' => $data->name,
                 'contact_name' => $data->contactName,
+                'firm_name' => $data->firmName,
                 'phone_number' => $data->phoneNumber,
                 'email' => $data->email,
                 'address' => $data->address,

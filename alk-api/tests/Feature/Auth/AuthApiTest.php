@@ -30,6 +30,7 @@ final class AuthApiTest extends TestCase
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Test User',
             'contact_name' => 'Test Contact',
+            'firm_name' => 'Prime Packing Co.',
             'phone_number' => '9876543210',
             'email' => 'test@example.com',
             'address' => 'Test address',
@@ -42,17 +43,34 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'contact_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
+                    'user' => ['id', 'name', 'contact_name', 'firm_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
             'contact_name' => 'Test Contact',
+            'firm_name' => 'Prime Packing Co.',
             'role' => UserRole::Packer->value,
             'registration_number' => null,
             'is_active' => false,
         ]);
+    }
+
+    public function test_packer_registration_requires_firm_name(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'Test User',
+            'contact_name' => 'Test Contact',
+            'phone_number' => '9876543210',
+            'email' => 'test@example.com',
+            'address' => 'Test address',
+            'user_type' => UserRole::Packer->value,
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['firm_name']);
     }
 
     public function test_customer_can_register_without_firm_number(): void
@@ -154,7 +172,7 @@ final class AuthApiTest extends TestCase
                 'data' => [
                     'token_type',
                     'access_token',
-                    'user' => ['id', 'name', 'contact_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
+                    'user' => ['id', 'name', 'contact_name', 'firm_name', 'email', 'phone_number', 'address', 'registration_number', 'role'],
                 ],
             ]);
     }
@@ -244,6 +262,7 @@ final class AuthApiTest extends TestCase
             ->withHeader('Authorization', "Bearer {$token}")
             ->patchJson('/api/auth/profile', [
                 'name' => 'Updated User',
+                'firm_name' => 'Updated Packing Co.',
                 'phone_number' => '9000000000',
                 'email' => 'after@example.com',
                 'address' => 'Updated address',
@@ -258,6 +277,7 @@ final class AuthApiTest extends TestCase
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'name' => 'Updated User',
+            'firm_name' => 'Updated Packing Co.',
             'email' => 'after@example.com',
             'registration_number' => 'REG-2002',
         ]);

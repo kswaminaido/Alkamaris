@@ -7,6 +7,7 @@ final readonly class RegisterData
     public function __construct(
         public string $name,
         public string $contactName,
+        public ?string $firmName,
         public string $phoneNumber,
         public string $email,
         public string $address,
@@ -16,13 +17,14 @@ final readonly class RegisterData
     ) {}
 
     /**
-     * @param  array{name: string, contact_name: string, phone_number: string, email: string, address: string, user_type: string, registration_number?: string, firm_number?: string, factory_approval_number?: string, password?: string}  $data
+     * @param  array{name: string, contact_name: string, firm_name?: string|null, phone_number: string, email: string, address: string, user_type: string, registration_number?: string, firm_number?: string, factory_approval_number?: string, password?: string}  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             name: $data['name'],
             contactName: $data['contact_name'],
+            firmName: self::nullableString($data['firm_name'] ?? null),
             phoneNumber: $data['phone_number'],
             email: $data['email'],
             address: $data['address'],
@@ -45,5 +47,12 @@ final readonly class RegisterData
         };
 
         return $resolved !== '' ? $resolved : null;
+    }
+
+    private static function nullableString(mixed $value): ?string
+    {
+        $trimmed = trim((string) ($value ?? ''));
+
+        return $trimmed !== '' ? $trimmed : null;
     }
 }

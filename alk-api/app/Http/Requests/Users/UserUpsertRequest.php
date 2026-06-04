@@ -34,6 +34,7 @@ abstract class UserUpsertRequest extends FormRequest
         return [
             'name' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:255'],
             'contact_name' => ['nullable', 'string', 'max:255'],
+            'firm_name' => ['nullable', 'string', 'max:255'],
             'phone_number' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:20'],
             'email' => [$isUpdate ? 'nullable' : 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'address' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:1000'],

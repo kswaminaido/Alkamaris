@@ -126,6 +126,24 @@
       font-weight: 700;
     }
 
+    .order-ref-table {
+      width: 100%;
+      margin-top: 6px;
+      border-collapse: collapse;
+      font-size: 7pt;
+    }
+
+    .order-ref-table td {
+      border: 0.75pt solid #000;
+      padding: 2px 3px;
+    }
+
+    .order-ref-label {
+      width: 38%;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .section-head td {
       background: #061173;
       color: #fff;
@@ -195,7 +213,8 @@
 
     .desc-text {
       min-height: 54px;
-      white-space: pre-line;
+      white-space: normal;
+      line-height: 1.2;
       font-weight: 700;
     }
 
@@ -258,6 +277,13 @@
       height: 66px;
       padding-top: 8px;
       vertical-align: bottom;
+      text-align: center;
+    }
+
+    .signature-block {
+      display: inline-block;
+      width: 82%;
+      text-align: center;
     }
 
     .authorization-images {
@@ -294,7 +320,7 @@
     .signature-line {
       border-top: 1px solid #000;
       height: 1px;
-      width: 82%;
+      width: 100%;
       margin: 0 auto 5px;
     }
 
@@ -397,6 +423,22 @@
           <td class="info-order" colspan="2">
             <div>Order Confirmation No:</div>
             <div style="margin-top:8px">{{ $bcv['order_confirmation_no'] }}</div>
+            @if ($bcv['buyer_reference'] !== '' || $bcv['packer_reference'] !== '')
+            <table class="order-ref-table">
+              @if ($bcv['buyer_reference'] !== '')
+              <tr>
+                <td class="order-ref-label">Buyer's</td>
+                <td>{{ $bcv['buyer_reference'] }}</td>
+              </tr>
+              @endif
+              @if ($bcv['packer_reference'] !== '')
+              <tr>
+                <td class="order-ref-label">Packer's</td>
+                <td>{{ $bcv['packer_reference'] }}</td>
+              </tr>
+              @endif
+            </table>
+            @endif
           </td>
         </tr>
         <tr class="section-head">
@@ -405,7 +447,7 @@
         </tr>
         <tr>
           <td class="party" colspan="3">
-            <!-- <div>{{ $bcv['packer_block']['name'] }}</div> -->
+            <div>{{ $bcv['packer_block']['name'] }}</div>
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
@@ -503,7 +545,7 @@
                 </tr>
                 <tr>
                   <td class="comment-label">Payment</td>
-                  <td class="comment-value">{{ $bcv['payment_terms'] }}</td>
+                  <td class="comment-value">{!! nl2br(e($bcv['payment_terms'])) !!}</td>
                 </tr>
                 <tr>
                   <td class="comment-label">Latest Shipment Date</td>
@@ -514,7 +556,7 @@
                   <td class="comment-value">{{ $bcv['customer'] }}</td>
                 </tr>
                 <tr>
-                  <td class="comment-label">Factory Approval Number</td>
+                  <td class="comment-label">Factory Approval Number</td>`
                   <td class="comment-value">{{ $bcv['factory_approval_number'] }}</td>
                 </tr>
                 <tr>
@@ -530,7 +572,7 @@
                 @if($bcv['special_instruction'] !== '')
                 <tr class="note-row">
                   <td class="comment-label">Note</td>
-                  <td class="comment-value">{{ $bcv['special_instruction'] }}</td>
+                  <td class="comment-value">{!! nl2br(e($bcv['special_instruction'])) !!}</td>
                 </tr>
                 @endif
               </table>
@@ -548,18 +590,22 @@
           <td class="sign-space">
             <div class="authorization-images">
               @if (($view['authorization']['signature'] ?? '') !== '')
-                <img class="authorization-signature" src="{{ $view['authorization']['signature'] }}" alt="Signature">
+              <img class="authorization-signature" src="{{ $view['authorization']['signature'] }}" alt="Signature">
               @endif
               @if (($view['authorization']['stamp'] ?? '') !== '')
-                <img class="authorization-stamp" src="{{ $view['authorization']['stamp'] }}" alt="Stamp">
+              <img class="authorization-stamp" src="{{ $view['authorization']['stamp'] }}" alt="Stamp">
               @endif
             </div>
-            <div class="signature-line"></div>
-            <div class="signature-name">ALKAMARIS EXPORTS(OPC)PVT LTD</div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-name">ALKAMARIS EXPORTS(OPC)PVT LTD</div>
+            </div>
           </td>
           <td class="sign-space">
-            <div class="signature-line"></div>
-            <div class="signature-name">{{ $bcv['packer'] }}</div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-name">{{ $bcv['packer_block']['name'] }}</div>
+            </div>
           </td>
         </tr>
       </table>

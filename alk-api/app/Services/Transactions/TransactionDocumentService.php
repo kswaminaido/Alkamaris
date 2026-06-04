@@ -180,7 +180,7 @@ class TransactionDocumentService
 
     private function withWordMarkup(string $html): string
     {
-        return $this->withWordItemTableMarkup($this->withWordStyles($html));
+        return $this->withWordSignatureMarkup($this->withWordItemTableMarkup($this->withWordStyles($html)));
     }
 
     private function withWordStyles(string $html): string
@@ -298,6 +298,24 @@ HTML;
 
                 return '<table class="main items" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1pt solid #000;mso-border-alt:solid #000 0.75pt;">' . $table . '</table>';
             },
+            $html,
+        ) ?? $html;
+    }
+
+    private function withWordSignatureMarkup(string $html): string
+    {
+        $lineStyle = 'border-top:0.75pt solid #000;mso-border-top-alt:solid #000 0.75pt;'
+            . 'height:1pt;line-height:1pt;font-size:1pt;width:100%;margin:0 auto 5pt;';
+
+        $html = preg_replace(
+            '/<div class="signature-line"><\/div>/',
+            '<div class="signature-line" style="' . $lineStyle . '">&nbsp;</div>',
+            $html,
+        ) ?? $html;
+
+        return preg_replace(
+            '/<div class="customer-signature-line"><\/div>/',
+            '<div class="customer-signature-line" style="' . $lineStyle . '">&nbsp;</div>',
             $html,
         ) ?? $html;
     }

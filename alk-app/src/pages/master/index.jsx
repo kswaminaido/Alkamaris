@@ -99,6 +99,7 @@ function MasterData() {
         body: JSON.stringify({
           name: editingUser.name,
           contact_name: editingUser.contact_name,
+          firm_name: editingUser.firm_name,
           email: editingUser.email,
           phone_number: editingUser.phone_number,
           address: editingUser.address,
@@ -243,7 +244,7 @@ function MasterData() {
             onClick={() => navigate('/signup')}
             title="Add new user"
           >
-            + Add User
+            Add User
           </button>
         </div>
 
@@ -275,7 +276,7 @@ function MasterData() {
                   <td>{user.email}</td>
                   <td>{user.phone_number}</td>
                   <td>{formatRole(user.role)}</td>
-                  <td>{user.registration_number}</td>
+                  <td>{displayRegistrationNumber(user)}</td>
                   <td>
                     <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
                       {user.is_active ? 'Active' : 'Inactive'}
@@ -348,10 +349,11 @@ function MasterData() {
                 <DetailItem label="ID" value={viewingUser.id} />
                 <DetailItem label="Name" value={viewingUser.name} />
                 <DetailItem label="Contact Name" value={viewingUser.contact_name} />
+                <DetailItem label="Firm Name" value={viewingUser.firm_name} />
                 <DetailItem label="Email" value={viewingUser.email} />
                 <DetailItem label="Phone" value={viewingUser.phone_number} />
                 <DetailItem label="Role" value={formatRole(viewingUser.role)} />
-                <DetailItem label="Registration Number" value={viewingUser.registration_number} />
+                <DetailItem label="Registration Number" value={displayRegistrationNumber(viewingUser)} />
                 <DetailItem label="Status" value={viewingUser.is_active ? 'Active' : 'Inactive'} />
                 <DetailItem label="Address" value={viewingUser.address} wide />
                 <DetailItem label="Created At" value={formatDateTime(viewingUser.created_at)} />
@@ -400,6 +402,17 @@ function MasterData() {
                     onChange={(e) => setEditingUser({ ...editingUser, contact_name: e.target.value })}
                   />
                 </div>
+                {editingUser.role === 'packer' && (
+                  <div className="form-group">
+                    <label htmlFor="edit-firm-name">Firm Name:</label>
+                    <input
+                      id="edit-firm-name"
+                      type="text"
+                      value={editingUser.firm_name || ''}
+                      onChange={(e) => setEditingUser({ ...editingUser, firm_name: e.target.value })}
+                    />
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="edit-email">Email:</label>
                   <input
@@ -486,6 +499,14 @@ function formatRole(role) {
   if (role === 'packer' || role === 'vendor') return 'Packer'
   if (!role) return ''
   return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
+function displayRegistrationNumber(user) {
+  if (['packer', 'vendor'].includes(user?.role) && user?.firm_name) {
+    return user.firm_name
+  }
+
+  return user?.registration_number
 }
 
 function DetailItem({ label, value, wide = false }) {
