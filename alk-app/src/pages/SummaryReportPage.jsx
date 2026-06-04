@@ -46,6 +46,14 @@ function SummaryReportPage() {
 
   useEffect(() => {
     if (!currentUser) return
+    // Require min 4 characters for free-text filters before firing API
+    const textKeys = ['bookingNo', 'vendor', 'customer']
+    for (const key of textKeys) {
+      const val = (searchFilters[key] ?? '').trim()
+      if (val !== '' && val.length < 4) {
+        return
+      }
+    }
     loadTransactions(searchFilters, page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilters, page])
@@ -344,10 +352,10 @@ function SummaryReportPage() {
               <div className="filter-group" style={{ marginLeft: 'auto' }}>
                 <label>&nbsp;</label>
                 <div className="filter-actions">
-                  <button type="button" className="secondary-btn" onClick={clearFilters} disabled={loading}>
+                  <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
                     Clear
                   </button>
-                  <button type="button" className="secondary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
+                  <button type="button" className="primary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
                     {exporting ? 'Exporting...' : 'Export'}
                   </button>
                 </div>

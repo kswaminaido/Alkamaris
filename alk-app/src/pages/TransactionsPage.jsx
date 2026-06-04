@@ -61,6 +61,14 @@ function TransactionsPage() {
 
   useEffect(() => {
     if (!currentUser) return
+    // Require min 3 characters for free-text filters before firing API
+    const textKeys = ['bookingNo', 'vendor', 'customer']
+    for (const key of textKeys) {
+      const val = (searchFilters[key] ?? '').trim()
+      if (val !== '' && val.length < 4) {
+        return
+      }
+    }
     loadTransactions(searchFilters, page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFilters, page])

@@ -59,6 +59,10 @@ function MasterData() {
 
   useEffect(() => {
     if (!currentUser) return
+    // Require min 3 characters for free-text name filter before calling API
+    const nameVal = (searchFilters.name ?? '').trim()
+    if (nameVal !== '' && nameVal.length < 4) return
+
     loadUsers(searchFilters, page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, searchFilters, page])

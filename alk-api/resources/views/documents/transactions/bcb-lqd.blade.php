@@ -407,14 +407,14 @@
             <table class="order-ref-table">
               @if ($bcv['buyer_reference'] !== '')
               <tr>
-                <td class="order-ref-label">Buyer's</td>
-                <td>{{ $bcv['buyer_reference'] }}</td>
+                <td class="info-order">Buyer's PO#</td>
+                <td>{{ str_replace(' ', '', $bcv['buyer_reference']) }}</td>
               </tr>
               @endif
               @if ($bcv['packer_reference'] !== '')
               <tr>
-                <td class="order-ref-label">Packer's</td>
-                <td>{{ $bcv['packer_reference'] }}</td>
+                <td class="info-order">Packer's PI#</td>
+                <td>{{ str_replace(' ', '', $bcv['packer_reference']) }}</td>
               </tr>
               @endif
             </table>
