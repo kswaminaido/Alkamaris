@@ -38,7 +38,7 @@ function buildInitialForm() {
       booking_no: generateBookingNo(issueDate),
       issue_date: issueDate,
       sales_person_id: '',
-      product_origin: '',
+      product_origin: 'India',
       destination: '',
       category: '',
       type: '',
@@ -123,7 +123,7 @@ function TransactionCreatePage() {
           booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
           issue_date: issueDate,
           sales_person_id: previous.transaction.sales_person_id || currentUser.id || '',
-          product_origin: previous.transaction.product_origin || '',
+          product_origin: previous.transaction.product_origin || 'India',
         },
       }
     })

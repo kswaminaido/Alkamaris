@@ -295,6 +295,7 @@
     .customer-signature-block {
       display: inline-block;
       text-align: center;
+      margin-right: 100px;
     }
 
     .customer-signature-space {
