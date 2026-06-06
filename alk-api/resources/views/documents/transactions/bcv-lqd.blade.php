@@ -303,7 +303,7 @@
       display: inline-block;
       max-width: 58px;
       max-height: 52px;
-      margin-left: 8px;
+      margin-left: -82px;
       vertical-align: bottom;
     }
 

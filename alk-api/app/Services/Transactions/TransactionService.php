@@ -190,14 +190,36 @@ final class TransactionService
 
     private function generateDuplicateBookingNo(string $sourceBookingNo): string
     {
-        $base = trim($sourceBookingNo) !== '' ? $sourceBookingNo : 'TRX';
-        $suffix = 1;
+        $sourceBookingNo = trim($sourceBookingNo);
+
+        if ($sourceBookingNo === '') {
+            return $this->generateBookingNo(CarbonImmutable::now()->toDateString());
+        }
+
+        if (preg_match('/^(?<base>.+?)-D\d+$/', $sourceBookingNo, $matches)) {
+            $sourceBookingNo = $matches['base'];
+        }
+
+        $prefix = preg_replace('/\d+$/', '', $sourceBookingNo);
+        $sequenceText = substr($sourceBookingNo, strlen($prefix));
+
+        if ($prefix === '' || $sequenceText === '' || !ctype_digit($sequenceText)) {
+            return $this->generateBookingNo(CarbonImmutable::now()->toDateString());
+        }
+
+        $sequenceLength = max(strlen($sequenceText), self::BOOKING_SEQUENCE_PAD);
+        $nextSequence = max(
+            self::BOOKING_SEQUENCE_START,
+            $this->maxBookingSequence(
+                Transaction::query()->where('booking_no', 'like', $prefix . '%')->pluck('booking_no'),
+                $prefix,
+            ) + 1,
+        );
 
         do {
-            $candidate = "{$base}-D{$suffix}";
-            $exists = Transaction::query()->where('booking_no', $candidate)->exists();
-            $suffix++;
-        } while ($exists);
+            $candidate = $prefix . str_pad((string) $nextSequence, $sequenceLength, '0', STR_PAD_LEFT);
+            $nextSequence++;
+        } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
         return $candidate;
     }
@@ -237,14 +259,14 @@ final class TransactionService
 
     private function generateBookingNo(string $issueDate): string
     {
-        $prefix = self::BOOKING_PREFIX.$this->financialYearSuffix($issueDate);
+        $prefix = self::BOOKING_PREFIX . $this->financialYearSuffix($issueDate);
         $bookingNumbers = Transaction::query()
-            ->where('booking_no', 'like', $prefix.'%')
+            ->where('booking_no', 'like', $prefix . '%')
             ->pluck('booking_no');
         $nextSequence = max(self::BOOKING_SEQUENCE_START, $this->maxBookingSequence($bookingNumbers, $prefix) + 1);
 
         do {
-            $candidate = $prefix.str_pad((string) $nextSequence, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
+            $candidate = $prefix . str_pad((string) $nextSequence, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (Transaction::query()->where('booking_no', $candidate)->exists());
 

@@ -258,7 +258,7 @@ final class TransactionApiTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('message', 'Transaction duplicated successfully.')
-            ->assertJsonPath('data.booking_no', 'TRX-3001-D1')
+            ->assertJsonPath('data.booking_no', 'TRX-3002')
             ->assertJsonPath('data.notes.by_sales', 'Duplicate this')
             ->assertJsonPath('data.items.0.product', 'Item one');
     }

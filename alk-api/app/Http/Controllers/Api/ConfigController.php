@@ -29,7 +29,7 @@ class ConfigController extends Controller
         $validated = $request->validate([
             'type' => ['required', 'string', 'max:100', 'unique:configs,type'],
             'data' => ['required', 'array'],
-            'data.*' => ['required', 'string', 'max:100'],
+            'data.*' => ['required', 'string', 'max:255'],
         ]);
 
         $config = Config::query()->create($validated);
@@ -47,7 +47,7 @@ class ConfigController extends Controller
                 Rule::unique('configs', 'type')->ignore($config->id),
             ],
             'data' => ['required', 'array'],
-            'data.*' => ['required', 'string', 'max:100'],
+            'data.*' => ['required', 'string', 'max:255'],
         ]);
 
         $config->update($validated);
@@ -79,7 +79,7 @@ class ConfigController extends Controller
     {
         $validated = $request->validate([
             'type' => ['required', 'string', 'max:100'],
-            'value' => ['required', 'string', 'max:100'],
+            'value' => ['required', 'string', 'max:255'],
         ]);
 
         $value = trim($validated['value']);
@@ -89,11 +89,11 @@ class ConfigController extends Controller
         );
 
         $options = collect(is_array($config->data) ? $config->data : [])
-            ->filter(fn (mixed $option): bool => is_string($option) && trim($option) !== '')
-            ->map(fn (string $option): string => trim($option))
+            ->filter(fn(mixed $option): bool => is_string($option) && trim($option) !== '')
+            ->map(fn(string $option): string => trim($option))
             ->values();
 
-        if (! $options->contains(fn (string $option): bool => mb_strtolower($option) === mb_strtolower($value))) {
+        if (! $options->contains(fn(string $option): bool => mb_strtolower($option) === mb_strtolower($value))) {
             $options->push($value);
         }
 
@@ -119,7 +119,7 @@ class ConfigController extends Controller
             }
 
             $options = collect($response->json())
-                ->map(fn (mixed $entry): string => is_array($entry) ? trim((string) data_get($entry, 'name.common', '')) : '')
+                ->map(fn(mixed $entry): string => is_array($entry) ? trim((string) data_get($entry, 'name.common', '')) : '')
                 ->filter()
                 ->unique()
                 ->sort()
