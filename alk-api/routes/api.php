@@ -26,10 +26,13 @@ Route::prefix('auth')->group(function (): void {
     });
 });
 
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::apiResource('users', UserController::class)->only(['index', 'show']);
+});
+
 Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): void {
     Route::apiResource('configs', ConfigController::class)->only(['index', 'show']);
     Route::post('configs/options', [ConfigController::class, 'appendOption']);
-    Route::apiResource('users', UserController::class)->only(['index', 'show']);
     Route::post('transactions/{transaction}/documents/render', [TransactionDocumentController::class, 'render']);
     Route::get('transaction-item-options', [TransactionItemController::class, 'options']);
     Route::post('transactions/{transaction}/items', [TransactionItemController::class, 'store']);

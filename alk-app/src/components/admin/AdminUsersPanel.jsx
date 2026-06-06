@@ -50,6 +50,8 @@ function AdminUsersPanel({
   const visibleUserTypeOptions = getVisibleUserTypeOptions(userTypeOptions, form.user_type)
   const hideAccountCredentials = ['packer', 'customer'].includes(form.user_type)
   const identifierLabel = hideAccountCredentials ? '' : getUserIdentifierLabel(form.user_type)
+  const isAdmin = currentUser?.role === 'admin'
+  const tableColumnCount = isAdmin ? 6 : 5
 
   return (
     <section className="admin-shell">
@@ -88,9 +90,11 @@ function AdminUsersPanel({
           <article className="dashboard-panel admin-main">
             <div className="users-toolbar">
               <h3>All Users</h3>
-              <button type="button" className="primary-btn create-user-btn" onClick={onOpenCreateModal}>
-                Create User
-              </button>
+              {isAdmin ? (
+                <button type="button" className="primary-btn create-user-btn" onClick={onOpenCreateModal}>
+                  Create User
+                </button>
+              ) : null}
             </div>
 
             {message && <p className="message success">{message}</p>}
@@ -107,7 +111,7 @@ function AdminUsersPanel({
                       <th>Phone</th>
                       <th>Role</th>
                       <th>Identifier</th>
-                      <th>Actions</th>
+                      {isAdmin ? <th>Actions</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -118,31 +122,33 @@ function AdminUsersPanel({
                         <td>{user.phone_number}</td>
                         <td>{user.role}</td>
                         <td>{displayIdentifier(user)}</td>
-                        <td>
-                          <div className="users-actions">
-                            <button
-                              type="button"
-                              className="icon-btn edit"
-                              title="Edit user"
-                              onClick={() => onOpenEditModal(user)}
-                            >
-                              <EditIcon />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-btn delete"
-                              title="Delete user"
-                              onClick={() => onRequestDelete(user)}
-                            >
-                              <DeleteIcon />
-                            </button>
-                          </div>
-                        </td>
+                        {isAdmin ? (
+                          <td>
+                            <div className="users-actions">
+                              <button
+                                type="button"
+                                className="icon-btn edit"
+                                title="Edit user"
+                                onClick={() => onOpenEditModal(user)}
+                              >
+                                <EditIcon />
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-btn delete"
+                                title="Delete user"
+                                onClick={() => onRequestDelete(user)}
+                              >
+                                <DeleteIcon />
+                              </button>
+                            </div>
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                     {users.length === 0 && (
                       <tr>
-                        <td colSpan="6">No users found.</td>
+                        <td colSpan={tableColumnCount}>No users found.</td>
                       </tr>
                     )}
                   </tbody>
@@ -153,7 +159,7 @@ function AdminUsersPanel({
         )}
       </main>
 
-      {isFormModalOpen && (
+      {isAdmin && isFormModalOpen && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal-card">
             <div className="modal-header">
@@ -291,7 +297,7 @@ function AdminUsersPanel({
         </div>
       )}
 
-      {deleteCandidate && (
+      {isAdmin && deleteCandidate && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="confirm-card">
             <h3>Delete User</h3>

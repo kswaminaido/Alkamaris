@@ -266,20 +266,18 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             </div>
           )}
 
-          {isAdmin && (
-            <NavLink
-              to="/master"
-              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-              onClick={() => {
-                closeMobileMenu()
-                closeSidebarSubmenus()
-              }}
-            >
-              <SidebarIcon icon="transactions" />
-              <span className="sidebar-link-text">Master List</span>
-              <span className="sidebar-link-end" />
-            </NavLink>
-          )}
+          <NavLink
+            to="/master"
+            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+            onClick={() => {
+              closeMobileMenu()
+              closeSidebarSubmenus()
+            }}
+          >
+            <SidebarIcon icon="transactions" />
+            <span className="sidebar-link-text">Master List</span>
+            <span className="sidebar-link-end" />
+          </NavLink>
 
           <NavLink
             to="/admin/mail"

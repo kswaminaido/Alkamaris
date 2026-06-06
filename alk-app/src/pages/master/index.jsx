@@ -77,6 +77,7 @@ function MasterData() {
   }
 
   function openEditModal(user) {
+    if (currentUser?.role !== 'admin') return
     setEditingUser({ ...user })
     setShowEditModal(true)
   }
@@ -95,6 +96,7 @@ function MasterData() {
   }
 
   async function saveUserChanges() {
+    if (currentUser?.role !== 'admin') return
     if (!editingUser) return
     setUpdating(editingUser.id)
     try {
@@ -159,6 +161,7 @@ function MasterData() {
   }
 
   async function toggleUserStatus(userId, currentStatus) {
+    if (currentUser?.role !== 'admin') return
     setUpdating(userId)
     try {
       const response = await authFetch(`/users/${userId}`, {
@@ -187,6 +190,7 @@ function MasterData() {
   }
 
   const isAdmin = currentUser.role === 'admin'
+  const tableColumnCount = isAdmin ? 7 : 6
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
@@ -269,15 +273,15 @@ function MasterData() {
                 <th>Role</th>
                 <th>Registration Number</th>
                 <th>Status</th>
-                <th>Actions</th>
+                {isAdmin ? <th>Actions</th> : null}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={7} className="loading-row">Loading users...</td></tr>
+                <tr><td colSpan={tableColumnCount} className="loading-row">Loading users...</td></tr>
               )}
               {!loading && users.length === 0 && (
-                <tr><td colSpan={7}>No users found.</td></tr>
+                <tr><td colSpan={tableColumnCount}>No users found.</td></tr>
               )}
               {!loading && users.map((user) => (
                 <tr key={user.id}>
@@ -291,38 +295,40 @@ function MasterData() {
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        type="button"
-                        className="icon-btn show"
-                        onClick={() => openDetailsModal(user)}
-                        title="Show user details"
-                        aria-label={`Show details for ${user.name}`}
-                      >
-                        <ShowIcon />
-                      </button>
-                      <button
-                        type="button"
-                        className="icon-btn edit"
-                        onClick={() => openEditModal(user)}
-                        title="Edit user"
-                        aria-label={`Edit ${user.name}`}
-                      >
-                        <EditIcon />
-                      </button>
-                      <button
-                        type="button"
-                        className={`icon-btn ${user.is_active ? 'deactivate' : 'activate'}`}
-                        onClick={() => toggleUserStatus(user.id, user.is_active)}
-                        disabled={updating === user.id}
-                        title={user.is_active ? 'Deactivate user' : 'Activate user'}
-                        aria-label={user.is_active ? `Deactivate ${user.name}` : `Activate ${user.name}`}
-                      >
-                        <StatusIcon active={user.is_active} />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin ? (
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          type="button"
+                          className="icon-btn show"
+                          onClick={() => openDetailsModal(user)}
+                          title="Show user details"
+                          aria-label={`Show details for ${user.name}`}
+                        >
+                          <ShowIcon />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn edit"
+                          onClick={() => openEditModal(user)}
+                          title="Edit user"
+                          aria-label={`Edit ${user.name}`}
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          type="button"
+                          className={`icon-btn ${user.is_active ? 'deactivate' : 'activate'}`}
+                          onClick={() => toggleUserStatus(user.id, user.is_active)}
+                          disabled={updating === user.id}
+                          title={user.is_active ? 'Deactivate user' : 'Activate user'}
+                          aria-label={user.is_active ? `Deactivate ${user.name}` : `Activate ${user.name}`}
+                        >
+                          <StatusIcon active={user.is_active} />
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>
@@ -370,22 +376,24 @@ function MasterData() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeDetailsModal}>Close</button>
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={() => {
-                    closeDetailsModal()
-                    openEditModal(viewingUser)
-                  }}
-                >
-                  Edit User
-                </button>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => {
+                      closeDetailsModal()
+                      openEditModal(viewingUser)
+                    }}
+                  >
+                    Edit User
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
         )}
 
-        {showEditModal && editingUser && (
+        {isAdmin && showEditModal && editingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
             <div className="modal-content p-4">
               <div className="modal-header p-0">

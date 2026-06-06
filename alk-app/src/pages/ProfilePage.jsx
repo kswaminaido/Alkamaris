@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
-import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
+import { BACKEND_URL } from '../config/api'
 import { getUserIdentifierLabel } from '../utils/userType'
 
 function ProfilePage() {
@@ -27,9 +27,23 @@ function ProfilePage() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [authorizationSaving, setAuthorizationSaving] = useState(false)
+  const [authorizationImageVersion, setAuthorizationImageVersion] = useState('')
+  const [authorizationPreviewOverrides, setAuthorizationPreviewOverrides] = useState({
+    signature: '',
+    stamp: '',
+  })
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
+  const selectedSignaturePreviewUrl = useFilePreviewDataUrl(authorizationForm.signature_image)
+  const selectedStampPreviewUrl = useFilePreviewDataUrl(authorizationForm.stamp_image)
+  const savedImageVersion = authorizationImageVersion || currentUser?.updated_at || ''
+  const signaturePreviewUrl = selectedSignaturePreviewUrl
+    || authorizationPreviewOverrides.signature
+    || authorizationImageUrl(currentUser?.authorization_signature_url, savedImageVersion)
+  const stampPreviewUrl = selectedStampPreviewUrl
+    || authorizationPreviewOverrides.stamp
+    || authorizationImageUrl(currentUser?.authorization_stamp_url, savedImageVersion)
 
   useEffect(() => {
     if (!currentUser) return
@@ -160,12 +174,22 @@ function ProfilePage() {
         return
       }
 
+      const [savedSignaturePreviewUrl, savedStampPreviewUrl] = await Promise.all([
+        authorizationForm.signature_image ? fileToDataUrl(authorizationForm.signature_image) : Promise.resolve(''),
+        authorizationForm.stamp_image ? fileToDataUrl(authorizationForm.stamp_image) : Promise.resolve(''),
+      ])
+
       setAuthorizationForm({
         signature_image: null,
         stamp_image: null,
       })
       formElement.reset()
-      syncCurrentUser(payload?.data ?? null)
+      const syncedUser = payload?.data ? syncCurrentUser(payload.data) : currentUser
+      setAuthorizationImageVersion(syncedUser?.updated_at ?? String(Date.now()))
+      setAuthorizationPreviewOverrides((previous) => ({
+        signature: authorizationForm.signature_image ? savedSignaturePreviewUrl : previous.signature,
+        stamp: authorizationForm.stamp_image ? savedStampPreviewUrl : previous.stamp,
+      }))
       const successMessage = payload?.message ?? 'Authorization images updated successfully.'
       setMessage(successMessage)
       setToast(successMessage)
@@ -321,9 +345,11 @@ function ProfilePage() {
             <div className="register-field authorization-upload-field">
               <label htmlFor="authorization-signature">Signature Image</label>
               <div className="authorization-preview">
-                {currentUser.authorization_signature_url ? (
-                  <img src={currentUser.authorization_signature_url} alt="Signature preview" />
-                ) : null}
+                {signaturePreviewUrl ? (
+                  <img key={signaturePreviewUrl} src={signaturePreviewUrl} alt="Signature preview" />
+                ) : (
+                  <span>No signature uploaded</span>
+                )}
               </div>
               <input
                 id="authorization-signature"
@@ -336,9 +362,11 @@ function ProfilePage() {
             <div className="register-field authorization-upload-field">
               <label htmlFor="authorization-stamp">Stamp Image</label>
               <div className="authorization-preview">
-                {currentUser.authorization_stamp_url ? (
-                  <img src={currentUser.authorization_stamp_url} alt="Stamp preview" />
-                ) : null}
+                {stampPreviewUrl ? (
+                  <img key={stampPreviewUrl} src={stampPreviewUrl} alt="Stamp preview" />
+                ) : (
+                  <span>No stamp uploaded</span>
+                )}
               </div>
               <input
                 id="authorization-stamp"
@@ -359,31 +387,73 @@ function ProfilePage() {
     </section>
   )
 
-  if (currentUser.role === 'admin') {
-    return (
-      <AdminSidebarLayout currentUser={currentUser} title="Profile" activeKey="" onLogout={handleLogout} authFetch={authFetch}>
-        {content}
-      </AdminSidebarLayout>
-    )
-  }
-
   return (
-    <>
-      <TopNav currentUser={currentUser} onLogout={handleLogout} />
-      <section className="dashboard-wrap">
-        {content}
-      </section>
-    </>
+    <AdminSidebarLayout currentUser={currentUser} title="Profile" activeKey="" onLogout={handleLogout} authFetch={authFetch}>
+      {content}
+    </AdminSidebarLayout>
   )
 }
 
-function formatRole(role) {
-  if (typeof role !== 'string' || !role.trim()) return 'User'
-  return role
-    .trim()
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
+function useFilePreviewDataUrl(file) {
+  const [preview, setPreview] = useState({ file: null, url: '' })
+
+  useEffect(() => {
+    let isActive = true
+
+    if (!file) {
+      return undefined
+    }
+
+    fileToDataUrl(file).then((dataUrl) => {
+      if (isActive) {
+        setPreview({ file, url: dataUrl })
+      }
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [file])
+
+  return preview.file === file ? preview.url : ''
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve) => {
+    if (!file || typeof FileReader === 'undefined') {
+      resolve('')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
+
+function authorizationImageUrl(url, version) {
+  if (typeof url !== 'string' || !url.trim()) return ''
+
+  const normalizedUrl = backendAssetUrl(url)
+  if (!version) return normalizedUrl
+
+  const separator = normalizedUrl.includes('?') ? '&' : '?'
+  return `${normalizedUrl}${separator}v=${encodeURIComponent(version)}`
+}
+
+function backendAssetUrl(url) {
+  const trimmedUrl = url.trim()
+
+  if (/^(?:https?:|blob:|data:)/i.test(trimmedUrl)) {
+    return trimmedUrl
+  }
+
+  if (trimmedUrl.startsWith('/')) {
+    return `${BACKEND_URL}${trimmedUrl}`
+  }
+
+  return `${BACKEND_URL}/${trimmedUrl.replace(/^\/+/, '')}`
 }
 
 function firstError(payload) {

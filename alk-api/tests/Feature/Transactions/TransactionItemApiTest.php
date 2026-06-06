@@ -165,4 +165,37 @@ final class TransactionItemApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data.items');
     }
+
+    public function test_item_can_calculate_cartons_from_weight_and_packing_when_quantity_is_missing(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-ITEM-WEIGHT-1',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/items", [
+                'item' => [
+                    'product' => 'Frozen Vannamei',
+                    'packing' => '6 * 1.8',
+                    'total_weight_value' => 4321,
+                    'selling_unit_price' => 9,
+                    'buying_unit_price' => 4,
+                    'commission_from_packer' => 0.1,
+                ],
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.items.0.qty_booking', '401.00000')
+            ->assertJsonPath('data.items.0.total_weight_value', '4321.00000')
+            ->assertJsonPath('data.items.0.selling_total', '38889.00000')
+            ->assertJsonPath('data.items.0.buying_total', '17284.00000')
+            ->assertJsonPath('data.items.0.total_packer_commission', '432.10000');
+    }
 }

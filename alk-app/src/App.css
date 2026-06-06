@@ -1342,6 +1342,11 @@ select:focus {
   object-fit: contain;
 }
 
+.authorization-preview span {
+  color: #667085;
+  font-size: 0.82rem;
+}
+
 .profile-address-field {
   grid-column: 1 / -1;
 }
