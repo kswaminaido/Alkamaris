@@ -110,6 +110,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   const [printOptions, setPrintOptions] = useState(() => buildInitialPrintOptions())
   const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRIES)
   const [customers, setCustomers] = useState([])
+  const [customerContacts, setCustomerContacts] = useState({})
   const [packers, setPackers] = useState([])
   const [salesPeople, setSalesPeople] = useState([])
   const [dropdownConfigMap, setDropdownConfigMap] = useState({})
@@ -161,6 +162,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
       setCountryOptions(countries)
       setDropdownConfigMap(configs)
       setCustomers(users.customers)
+      setCustomerContacts(users.customerContacts)
       setPackers(users.packers)
       setSalesPeople(users.salesPeople)
     }
@@ -356,7 +358,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
         <div className="txn-edit-body">
           <div className="txn-edit-main">
             <HeaderCard transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} salesPeople={salesPeople} />
-            {tab === 'home' && <HomeTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} customers={customers} packers={packers} />}
+            {tab === 'home' && <HomeTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} customers={customers} customerContacts={customerContacts} packers={packers} />}
             {tab === 'dollar' && <DollarTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} />}
             {tab === 'ship' && <ShipTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} />}
             <BottomActions
@@ -520,7 +522,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
   )
 }
 
-function HomeTab({ transaction, optionsFor, addOption, customers, packers }) {
+function HomeTab({ transaction, optionsFor, addOption, customers, customerContacts, packers }) {
   const customer = transaction.general_info_customer ?? {}
   const packer = transaction.general_info_packer ?? {}
   const revenueCustomer = transaction.revenue_customer ?? {}
@@ -529,14 +531,23 @@ function HomeTab({ transaction, optionsFor, addOption, customers, packers }) {
   const shippingPacker = transaction.shipping_details_packer ?? {}
   const notes = transaction.notes ?? transaction.note ?? {}
   const noteEntries = transaction.note_entries ?? transaction.noteEntries ?? []
+  const [attentionValue, setAttentionValue] = useState(customer.attention ?? '')
+
+  useEffect(() => {
+    setAttentionValue(customer.attention ?? '')
+  }, [transaction.id, customer.attention])
+
+  function handleCustomerChange(value) {
+    const contactName = customerContacts?.[value]
+    if (contactName) setAttentionValue(contactName)
+  }
 
   return (
     <div className="txe-stack">
       <div className="txe-two">
         <SectionCard title="GENERAL INFO" side="CUSTOMER" tone="blue">
-          <Row label="Customer"><NamedSearchableSelect name="general_info_customer.customer" value={customer.customer ?? ''} list={mergeOptions(customers, optionsFor('general_info_customer.customer'), [customer.customer])} onAdd={(value) => addOption('general_info_customer.customer', value)} /></Row>
-          <Row label="Attn"><NamedSearchableSelect name="general_info_customer.attention" value={customer.attention ?? ''} list={mergeOptions(packers, [customer.attention])} /></Row>
-          <Row label="Shipto"><NamedSearchableSelect name="general_info_customer.ship_to" value={customer.ship_to ?? ''} list={withCurrent(optionsFor('general_info_customer.ship_to'), customer.ship_to)} onAdd={(value) => addOption('general_info_customer.ship_to', value)} /></Row>
+          <Row label="Customer"><NamedSearchableSelect name="general_info_customer.customer" value={customer.customer ?? ''} list={mergeOptions(customers, optionsFor('general_info_customer.customer'), [customer.customer])} onChange={handleCustomerChange} onAdd={(value) => addOption('general_info_customer.customer', value)} /></Row>
+          <Row label="Attn"><NamedSearchableSelect name="general_info_customer.attention" value={attentionValue} list={mergeOptions(Object.values(customerContacts ?? {}), packers, [attentionValue])} onChange={setAttentionValue} /></Row>
           <Row label="Buyer's"><div className="txe-inline"><NamedSearchableSelect name="general_info_customer.buyer" value={customer.buyer ?? ''} list={withCurrent(optionsFor('general_info_customer.buyer'), customer.buyer)} onAdd={(value) => addOption('general_info_customer.buyer', value)} /><input name="general_info_customer.buyer_number" defaultValue={customer.buyer_number ?? ''} placeholder="#" /></div></Row>
           <Row label="End Customer"><NamedSearchableSelect name="general_info_customer.end_customer" value={customer.end_customer ?? ''} list={withCurrent(optionsFor('general_info_customer.end_customer'), customer.end_customer)} onAdd={(value) => addOption('general_info_customer.end_customer', value)} /></Row>
           <Row label="Prices Customer"><div className="txe-inline"><NamedSearchableSelect name="general_info_customer.prices_customer_type" value={customer.prices_customer_type ?? ''} list={mergeOptions(optionsFor('general_info_customer.prices_customer_type'), PRICE_TERMS, [customer.prices_customer_type])} onAdd={(value) => addOption('general_info_customer.prices_customer_type', value)} /><input type="text" name="general_info_customer.prices_customer_rate" defaultValue={customer.prices_customer_rate ?? ''} /></div></Row>
@@ -554,7 +565,6 @@ function HomeTab({ transaction, optionsFor, addOption, customers, packers }) {
           <Row label="Payment Packer"><div className="txe-inline txe-inline-3"><NamedSearchableSelect name="general_info_packer.payment_packer_type" value={packer.payment_packer_type ?? ''} list={withCurrent(optionsFor('general_info_packer.payment_packer_type'), packer.payment_packer_type)} onAdd={(value) => addOption('general_info_packer.payment_packer_type', value)} /><NamedSearchableSelect name="general_info_packer.payment_packer_term" value={packer.payment_packer_term ?? ''} list={withCurrent(optionsFor('general_info_packer.payment_packer_term'), packer.payment_packer_term)} onAdd={(value) => addOption('general_info_packer.payment_packer_term', value)} /><input name="general_info_packer.payment_packer_advance_percent" defaultValue={packer.payment_packer_advance_percent ?? ''} placeholder="Adv %" /></div></Row>
           <Row label="Description"><textarea name="general_info_packer.description" rows="2" defaultValue={packer.description ?? ''} /></Row>
           <Row label="Tolerance"><div className="txe-inline"><NamedSearchableSelect name="general_info_packer.tolerance" value={packer.tolerance ?? ''} list={withCurrent(optionsFor('general_info_packer.tolerance'), packer.tolerance)} onAdd={(value) => addOption('general_info_packer.tolerance', value)} /><input name="general_info_packer.total_lqd_price" defaultValue={packer.total_lqd_price ?? ''} /></div></Row>
-          <Row label="Consignee"><NamedSearchableSelect name="general_info_packer.consignee" value={packer.consignee ?? ''} list={withCurrent(optionsFor('general_info_packer.consignee'), packer.consignee)} onAdd={(value) => addOption('general_info_packer.consignee', value)} /></Row>
         </SectionCard>
       </div>
 
@@ -1128,20 +1138,21 @@ function SalesPersonSelect({ value, list, currentName }) {
   )
 }
 
-function NamedSearchableSelect({ name, value, list, onAdd, hideToggle = false }) {
+function NamedSearchableSelect({ name, value, list, onChange, onAdd, hideToggle = false }) {
   return (
     <SearchableSelect
       key={`${name ?? 'field'}:${value ?? ''}`}
       name={name}
       initialValue={value}
       list={list}
+      onChange={onChange}
       onAdd={onAdd}
       hideToggle={hideToggle}
     />
   )
 }
 
-function SearchableSelect({ name, initialValue, list, onAdd, hideToggle = false }) {
+function SearchableSelect({ name, initialValue, list, onChange, onAdd, hideToggle = false }) {
   const rootRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [value, setValue] = useState(initialValue ?? '')
@@ -1176,6 +1187,7 @@ function SearchableSelect({ name, initialValue, list, onAdd, hideToggle = false 
 
     if (added) {
       setValue(typedValue)
+      if (onChange) onChange(typedValue)
       setSearchText('')
       setIsOpen(false)
     }
@@ -1194,6 +1206,7 @@ function SearchableSelect({ name, initialValue, list, onAdd, hideToggle = false 
         onChange={(event) => {
           setSearchText(event.target.value)
           setValue(event.target.value)
+          if (onChange) onChange(event.target.value)
           setIsOpen(true)
         }}
       />
@@ -1219,6 +1232,7 @@ function SearchableSelect({ name, initialValue, list, onAdd, hideToggle = false 
                 onClick={() => {
                   setSearchText('')
                   setValue(option)
+                  if (onChange) onChange(option)
                   setIsOpen(false)
                 }}
               >
@@ -1404,21 +1418,23 @@ async function loadDropdownConfigs(authFetch) {
 }
 
 async function loadBookingPartyOptions(authFetch) {
-  if (!authFetch) return { customers: [], packers: [], salesPeople: [] }
+  if (!authFetch) return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
 
   try {
     const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
     const payload = await response.json()
 
-    if (!response.ok || !payload?.data) return { customers: [], packers: [], salesPeople: [] }
+    if (!response.ok || !payload?.data) return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
+    const customers = payload.data.filter((user) => user.role === 'customer')
 
     return {
-      customers: extractUserNames(payload.data.filter((user) => user.role === 'customer')),
+      customers: extractUserNames(customers),
+      customerContacts: extractCustomerContactMap(customers),
       packers: extractUserNames(payload.data.filter((user) => ['packer', 'vendor'].includes(user.role))),
       salesPeople: extractSalesPersonOptions(payload.data.filter((user) => ['sales', 'admin', 'logistics'].includes(user.role))),
     }
   } catch {
-    return { customers: [], packers: [], salesPeople: [] }
+    return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
   }
 }
 
@@ -1426,6 +1442,17 @@ function extractUserNames(users) {
   return normalizeOptions(
     (Array.isArray(users) ? users : [])
       .map((user) => (typeof user?.name === 'string' ? user.name : '')),
+  )
+}
+
+function extractCustomerContactMap(users) {
+  return Object.fromEntries(
+    (Array.isArray(users) ? users : [])
+      .map((user) => [
+        typeof user?.name === 'string' ? user.name.trim() : '',
+        typeof user?.contact_name === 'string' ? user.contact_name.trim() : '',
+      ])
+      .filter(([name, contactName]) => name && contactName),
   )
 }
 

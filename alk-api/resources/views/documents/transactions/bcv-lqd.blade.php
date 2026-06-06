@@ -118,12 +118,10 @@
 
     .info-date {
       width: 20%;
-      font-weight: 700;
     }
 
     .info-order {
       width: 30%;
-      font-weight: 700;
     }
 
     .order-ref-table {
@@ -154,7 +152,6 @@
     .party {
       width: 50%;
       height: 82px;
-      font-weight: 700;
     }
 
     .party div {
@@ -162,7 +159,7 @@
     }
 
     .party .muted {
-      font-weight: 700;
+      font-weight: 400;
     }
 
     .items {
@@ -215,11 +212,14 @@
       min-height: 54px;
       white-space: normal;
       line-height: 1.2;
-      font-weight: 700;
     }
 
     .total-row td {
-      font-weight: 800;
+      font-weight: 400;
+    }
+
+    .total-row td:nth-child(2) {
+      font-weight: 700;
     }
 
     .comments-head td {
@@ -251,14 +251,14 @@
     }
 
     .comment-value {
-      font-weight: 700;
+      font-weight: 400;
       font-family: Arial, sans-serif;
       font-style: normal;
       text-align: left;
     }
 
     .note-row .comment-value {
-      font-weight: 700;
+      font-weight: 400;
       text-align: left;
     }
 
@@ -334,14 +334,12 @@
       font-size: 10.5px;
       line-height: 1.25;
       margin-top: 4px;
-      font-weight: 700;
     }
 
     .disclaimer {
       text-align: center;
       font-size: 9.5px;
       margin-top: 8px;
-      font-weight: 700;
     }
 
     @media screen {
@@ -454,6 +452,10 @@
             @if ($bcv['packer_block']['registration'] !== '')
             <div>{{ $bcv['packer_block']['registration'] }}</div>
             @endif
+            @if ($bcv['packed_by'] !== '')
+            <div><strong>Packed By</strong></div>
+            <div class="muted">{{ $bcv['packed_by'] }}</div>
+            @endif
           </td>
           <td class="party" colspan="3">
             <div>{{ $bcv['customer_block']['name'] }}</div>
@@ -555,10 +557,10 @@
                   <td class="comment-label">Customer</td>
                   <td class="comment-value">{{ $bcv['customer'] }}</td>
                 </tr>
-                <tr>
+                <!-- <tr>
                   <td class="comment-label">Factory Approval Number</td>`
                   <td class="comment-value">{{ $bcv['factory_approval_number'] }}</td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td class="comment-label">Commission</td>
                   <td class="comment-value">{{ $bcv['commission'] }}</td>

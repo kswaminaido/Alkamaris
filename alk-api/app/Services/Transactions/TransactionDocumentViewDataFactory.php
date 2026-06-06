@@ -261,6 +261,7 @@ final class TransactionDocumentViewDataFactory
                 $this->formatDisplayDate($shippingPacker?->req_eta),
             ),
             'packer' => $this->upperText($packerName),
+            'packed_by' => $this->upperText($packer?->packed_by),
             'customer' => $this->upperText($customer?->customer),
             'factory_approval_number' => $this->upperText($this->packerRegistrationNumber($packer?->packer_name, $packer?->vendor)),
             'commission' => $firstCommission !== null && $firstCommission !== ''

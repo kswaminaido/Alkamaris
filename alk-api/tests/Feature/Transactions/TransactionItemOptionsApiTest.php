@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Transactions;
 
+use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -31,5 +32,32 @@ class TransactionItemOptionsApiTest extends TestCase
         $this->assertContains('PLAIN+STICKER', $response->json('data.brand', []));
         $this->assertContains('PREMIUM CATCH / 5 OCEANS', $response->json('data.brand', []));
         $this->assertContains('8/12.', $response->json('data.size', []));
+    }
+
+    public function test_transaction_item_options_can_be_synced_from_workbook(): void
+    {
+        $this->artisan('transaction-items:sync-options')
+            ->assertSuccessful();
+
+        $this->assertContains(
+            'FROZEN VANNAMEI WHITE SHRIMP',
+            Config::optionsByType('transaction_item_products'),
+        );
+        $this->assertContains(
+            'RAW PEELED UNDEVEINED TAIL OFF',
+            Config::optionsByType('transaction_item_styles'),
+        );
+        $this->assertContains(
+            '1 x 10 KG IQF',
+            Config::optionsByType('transaction_item_packings'),
+        );
+        $this->assertContains(
+            "BUYER'S",
+            Config::optionsByType('transaction_item_brands'),
+        );
+        $this->assertContains(
+            '8/12.',
+            Config::optionsByType('transaction_item_sizes'),
+        );
     }
 }

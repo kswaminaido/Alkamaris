@@ -324,7 +324,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
 
   function addFieldOption(key, value) {
     const option = normalizeText(value)
-    if (!option) return
+    if (!option) return false
 
     setFieldOptions((current) => {
       const next = {
@@ -334,6 +334,8 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
       transactionItemOptionsCache = next
       return next
     })
+
+    return true
   }
 
   async function calculate() {
@@ -363,6 +365,9 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setSaving(true)
     setError('')
     try {
+      addFieldOption('product', form.product)
+      addFieldOption('style', form.style)
+      addFieldOption('packing', form.packing)
       addFieldOption('brand', form.brand)
       addFieldOption('size', form.size)
       const response = await authFetch(item?.id ? `/transactions/${transaction.id}/items/${item.id}` : `/transactions/${transaction.id}/items`, {
@@ -404,9 +409,9 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
 
           <div className="txe-item-editor-grid">
             <div className="txe-item-editor-col">
-              <EditorField label="Product"><SearchableSelect value={form.product} list={fieldOptions.product} onChange={(value) => setValue('product', value)} /></EditorField>
-              <EditorField label="Style"><SearchableSelect value={form.style} list={fieldOptions.style} onChange={(value) => setValue('style', value)} /></EditorField>
-              <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} /></EditorField>
+              <EditorField label="Product"><SearchableSelect value={form.product} list={fieldOptions.product} onChange={(value) => setValue('product', value)} onAdd={(value) => addFieldOption('product', value)} /></EditorField>
+              <EditorField label="Style"><SearchableSelect value={form.style} list={fieldOptions.style} onChange={(value) => setValue('style', value)} onAdd={(value) => addFieldOption('style', value)} /></EditorField>
+              <EditorField label="Packing"><SearchableSelect value={form.packing} list={fieldOptions.packing} onChange={(value) => setValue('packing', value)} onAdd={(value) => addFieldOption('packing', value)} /></EditorField>
               <EditorField label="Media"><input value={form.media} onChange={(event) => setValue('media', event.target.value)} /></EditorField>
               <EditorField label="Notes"><textarea rows="4" value={form.notes} onChange={(event) => setValue('notes', event.target.value)} /></EditorField>
               <EditorField label="Size"><div className="txe-item-inline txe-item-inline-size"><SearchableSelect value={form.size} list={fieldOptions.size} onChange={(value) => setValue('size', value)} onAdd={(value) => addFieldOption('size', value)} /><input value={form.glaze_percentage} onChange={(event) => setValue('glaze_percentage', event.target.value)} placeholder="% glaze" /></div></EditorField>
@@ -422,10 +427,10 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} onAdd={(value) => addFieldOption('brand', value)} /></EditorField>
               <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
               <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
-              <section className="txe-item-calc-panel" aria-label="Calculation controls">
+              {/* <section className="txe-item-calc-panel" aria-label="Calculation controls">
                 <div className="txe-item-calc-panel-header">Calculate</div>
                 <button type="button" className="txe-items-calc-btn" onClick={calculate} disabled={calculating}>{calculating ? 'Calculating...' : 'Calculate'}</button>
-              </section>
+              </section> */}
               <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
               <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
               <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
@@ -583,13 +588,8 @@ function SearchableSelect({ value, list, onChange, onAdd }) {
   const filteredOptions = normalizedSearch
     ? options.filter((option) => option.toLowerCase().includes(normalizedSearch))
     : options
-  const canAdd = Boolean(onAdd && normalizedSearch && !options.some((option) => option.toLowerCase() === normalizedSearch))
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchText('')
-    }
-  }, [isOpen])
+  const typedValue = (searchText || value || '').trim()
+  const canAdd = Boolean(onAdd && typedValue && !options.some((option) => option.toLowerCase() === typedValue.toLowerCase()))
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -645,24 +645,24 @@ function SearchableSelect({ value, list, onChange, onAdd }) {
                 {option}
               </button>
             ))
-          ) : canAdd ? (
+          ) : (
+            <div className="txn-combobox-empty">No matches found</div>
+          )}
+          {canAdd ? (
             <button
               type="button"
-              className="txn-combobox-option"
+              className="txn-combobox-add"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
-                const nextValue = searchText.trim()
-                onAdd(nextValue)
-                onChange(nextValue)
+                onAdd(typedValue)
+                onChange(typedValue)
                 setSearchText('')
                 setIsOpen(false)
               }}
             >
-              Add {searchText.trim()}
+              Add "{typedValue}"
             </button>
-          ) : (
-            <div className="txn-combobox-empty">No matches found</div>
-          )}
+          ) : null}
         </div>
       ) : null}
     </div>

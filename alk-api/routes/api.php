@@ -30,11 +30,6 @@ Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): 
     Route::apiResource('configs', ConfigController::class)->only(['index', 'show']);
     Route::post('configs/options', [ConfigController::class, 'appendOption']);
     Route::apiResource('users', UserController::class)->only(['index', 'show']);
-});
-
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
-    Route::apiResource('configs', ConfigController::class)->only(['store', 'update', 'destroy']);
-    Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy']);
     Route::post('transactions/{transaction}/documents/render', [TransactionDocumentController::class, 'render']);
     Route::get('transaction-item-options', [TransactionItemController::class, 'options']);
     Route::post('transactions/{transaction}/items', [TransactionItemController::class, 'store']);
@@ -42,6 +37,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::delete('transactions/{transaction}/items/{item}', [TransactionItemController::class, 'destroy']);
     Route::post('transactions/{transaction}/items/{item}/duplicate', [TransactionItemController::class, 'duplicate']);
     Route::post('transactions/{transaction}/items/{item}/move', [TransactionItemController::class, 'move']);
+});
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
+    Route::apiResource('configs', ConfigController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy']);
     Route::get('mail/options', [MailController::class, 'options']);
     Route::get('mail/recipients', [MailController::class, 'recipients']);
     Route::post('mail/send', [MailController::class, 'send']);

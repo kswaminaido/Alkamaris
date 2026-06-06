@@ -2,10 +2,11 @@
 
 namespace App\Services\Transactions;
 
+use App\Models\Config;
 use App\Models\TransactionItem;
-use Illuminate\Support\Facades\Log;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Support\Facades\Log;
 use ZipArchive;
 
 final class TransactionItemOptionService
@@ -23,21 +24,58 @@ final class TransactionItemOptionService
         'PREMIUM CATCH / 5 OCEANS',
     ];
 
+    private const CONFIG_TYPES = [
+        'product' => 'transaction_item_products',
+        'style' => 'transaction_item_styles',
+        'packing' => 'transaction_item_packings',
+        'brand' => 'transaction_item_brands',
+        'size' => 'transaction_item_sizes',
+    ];
+
     /**
      * @return array<string, array<int, string>>
      */
     public function all(): array
     {
-        $path = resource_path('xlsx/For ERP.xlsx');
+        $configured = $this->fromConfig();
 
-        if (! is_file($path)) {
-            return $this->withSavedItemOptions($this->emptyOptions());
+        if ($this->hasConfiguredOptions($configured)) {
+            return $this->withSavedItemOptions($configured);
         }
 
-        $archive = new ZipArchive();
+        return $this->withSavedItemOptions($this->extractOptionsFromWorkbook($this->defaultWorkbookPath()));
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public function sync(?string $path = null): array
+    {
+        $options = $this->extractOptionsFromWorkbook($path ?: $this->defaultWorkbookPath());
+
+        foreach (self::CONFIG_TYPES as $field => $type) {
+            Config::query()->updateOrCreate(
+                ['type' => $type],
+                ['data' => $options[$field] ?? []],
+            );
+        }
+
+        return $options;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function extractOptionsFromWorkbook(string $path): array
+    {
+        if (! is_file($path)) {
+            return $this->emptyOptions();
+        }
+
+        $archive = new ZipArchive;
 
         if ($archive->open($path) !== true) {
-            return $this->withSavedItemOptions($this->emptyOptions());
+            return $this->emptyOptions();
         }
 
         try {
@@ -45,20 +83,60 @@ final class TransactionItemOptionService
             $worksheetXml = $archive->getFromName('xl/worksheets/sheet1.xml');
 
             if ($worksheetXml === false) {
-                return $this->withSavedItemOptions($this->emptyOptions());
+                return $this->emptyOptions();
             }
 
-            return $this->withSavedItemOptions($this->extractOptions($worksheetXml, $sharedStrings));
+            return $this->extractOptions($worksheetXml, $sharedStrings);
         } catch (\Throwable $exception) {
             Log::warning('Unable to read transaction item options from workbook.', [
                 'path' => $path,
                 'error' => $exception->getMessage(),
             ]);
 
-            return $this->withSavedItemOptions($this->emptyOptions());
+            return $this->emptyOptions();
         } finally {
             $archive->close();
         }
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function fromConfig(): array
+    {
+        $options = $this->emptyOptions();
+        $configs = Config::query()
+            ->whereIn('type', array_values(self::CONFIG_TYPES))
+            ->get()
+            ->keyBy('type');
+
+        foreach (self::CONFIG_TYPES as $field => $type) {
+            $config = $configs->get($type);
+            $options[$field] = $this->uniqueValues([
+                ...($field === 'brand' ? self::DEFAULT_BRANDS : []),
+                ...(is_array($config?->data) ? $config->data : []),
+            ]);
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param  array<string, array<int, string>>  $options
+     */
+    private function hasConfiguredOptions(array $options): bool
+    {
+        foreach (array_keys(self::CONFIG_TYPES) as $field) {
+            $values = $field === 'brand'
+                ? array_diff($options[$field] ?? [], self::DEFAULT_BRANDS)
+                : ($options[$field] ?? []);
+
+            if ($values !== []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -94,7 +172,7 @@ final class TransactionItemOptionService
             return [];
         }
 
-        $document = new DOMDocument();
+        $document = new DOMDocument;
 
         if (! @$document->loadXML($xml)) {
             return [];
@@ -133,7 +211,7 @@ final class TransactionItemOptionService
      */
     private function extractOptions(string $worksheetXml, array $sharedStrings): array
     {
-        $document = new DOMDocument();
+        $document = new DOMDocument;
 
         if (! @$document->loadXML($worksheetXml)) {
             return $this->emptyOptions();
@@ -149,9 +227,18 @@ final class TransactionItemOptionService
         }
 
         $options = $this->emptyOptions();
-        $section = 'catalog';
+        $section = null;
+        $catalogColumns = [
+            'product' => 'B',
+            'style' => 'E',
+            'packing' => 'G',
+        ];
+        $brandSizeColumns = [
+            'brand' => 'B',
+            'size' => 'E',
+        ];
 
-        foreach ($rows as $rowIndex => $row) {
+        foreach ($rows as $row) {
             $cells = $xpath->query('./x:c', $row);
 
             if ($cells === false) {
@@ -176,41 +263,78 @@ final class TransactionItemOptionService
                 continue;
             }
 
-            if ($rowIndex === 0) {
+            $productColumn = $this->columnFor($rowValues, 'Product');
+            $styleColumn = $this->columnFor($rowValues, 'Style');
+            $packingColumn = $this->columnFor($rowValues, 'Packing');
+
+            if ($productColumn !== null || $styleColumn !== null || $packingColumn !== null) {
+                $section = 'catalog';
+                $catalogColumns = [
+                    'product' => $productColumn ?? $catalogColumns['product'],
+                    'style' => $styleColumn ?? $catalogColumns['style'],
+                    'packing' => $packingColumn ?? $catalogColumns['packing'],
+                ];
+
                 continue;
             }
 
-            if (($rowValues['B'] ?? null) === 'Brand' || ($rowValues['E'] ?? null) === 'Size') {
+            $brandColumn = $this->columnFor($rowValues, 'Brand');
+            $sizeColumn = $this->columnFor($rowValues, 'Size');
+
+            if ($brandColumn !== null || $sizeColumn !== null) {
                 $section = 'brand_size';
+                $brandSizeColumns = [
+                    'brand' => $brandColumn ?? $brandSizeColumns['brand'],
+                    'size' => $sizeColumn ?? $brandSizeColumns['size'],
+                ];
+
                 continue;
             }
 
             if ($section === 'catalog') {
-                if (isset($rowValues['B'])) {
-                    $options['product'][] = $rowValues['B'];
+                if (isset($rowValues[$catalogColumns['product']])) {
+                    $options['product'][] = $rowValues[$catalogColumns['product']];
                 }
 
-                if (isset($rowValues['E'])) {
-                    $options['style'][] = $rowValues['E'];
+                if (isset($rowValues[$catalogColumns['style']])) {
+                    $options['style'][] = $rowValues[$catalogColumns['style']];
                 }
 
-                if (isset($rowValues['G'])) {
-                    $options['packing'][] = $rowValues['G'];
+                if (isset($rowValues[$catalogColumns['packing']])) {
+                    $options['packing'][] = $rowValues[$catalogColumns['packing']];
                 }
 
                 continue;
             }
 
-            if (isset($rowValues['B'])) {
-                $options['brand'][] = $rowValues['B'];
+            if ($section !== 'brand_size') {
+                continue;
             }
 
-            if (isset($rowValues['E'])) {
-                $options['size'][] = $rowValues['E'];
+            if (isset($rowValues[$brandSizeColumns['brand']])) {
+                $options['brand'][] = $rowValues[$brandSizeColumns['brand']];
+            }
+
+            if (isset($rowValues[$brandSizeColumns['size']])) {
+                $options['size'][] = $rowValues[$brandSizeColumns['size']];
             }
         }
 
         return array_map([$this, 'uniqueValues'], $options);
+    }
+
+    /**
+     * @param  array<string, string>  $rowValues
+     */
+    private function columnFor(array $rowValues, string $label): ?string
+    {
+        foreach ($rowValues as $column => $value) {
+            if (strcasecmp($value, $label) === 0) {
+                return $column;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -263,5 +387,10 @@ final class TransactionItemOptionService
             'brand' => self::DEFAULT_BRANDS,
             'size' => [],
         ];
+    }
+
+    private function defaultWorkbookPath(): string
+    {
+        return resource_path('xlsx/For ERP-1.xlsx');
     }
 }

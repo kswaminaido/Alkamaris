@@ -16,6 +16,7 @@ const navActions = [
 function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const isAdmin = currentUser?.role === 'admin'
   const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -265,18 +266,20 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             </div>
           )}
 
-          <NavLink
-            to="/master"
-            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-            onClick={() => {
-              closeMobileMenu()
-              closeSidebarSubmenus()
-            }}
-          >
-            <SidebarIcon icon="transactions" />
-            <span className="sidebar-link-text">Master List</span>
-            <span className="sidebar-link-end" />
-          </NavLink>
+          {isAdmin && (
+            <NavLink
+              to="/master"
+              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+              onClick={() => {
+                closeMobileMenu()
+                closeSidebarSubmenus()
+              }}
+            >
+              <SidebarIcon icon="transactions" />
+              <span className="sidebar-link-text">Master List</span>
+              <span className="sidebar-link-end" />
+            </NavLink>
+          )}
 
           <NavLink
             to="/admin/mail"
@@ -350,7 +353,9 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
 
             {profileMenuOpen ? (
               <div className="dashboard-topbar-profile-menu" role="menu">
-                <Link to="/signup" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Add User</Link>
+                {isAdmin && (
+                  <Link to="/signup" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Add User</Link>
+                )}
                 <Link to="/profile" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Profile</Link>
                 <button type="button" className="dashboard-topbar-profile-menu-item" onClick={onLogout}>Logout</button>
               </div>

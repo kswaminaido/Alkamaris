@@ -57,6 +57,7 @@ final class TransactionDocumentApiTest extends TestCase
             'transaction_id' => $transaction->id,
             'vendor' => 'Contai Contact',
             'packer_number' => 'MANUAL-BCB-999',
+            'packed_by' => 'Factory Line A',
         ]);
 
         RevenueCustomer::query()->create([
@@ -129,6 +130,8 @@ final class TransactionDocumentApiTest extends TestCase
             '/<td class="comment-label">Packer<\/td>\s*<td class="comment-value">CONTAI MARINE FISH EXPORT PRIVATE LIMITED<\/td>/',
             $payload['preview_html'],
         );
+        $this->assertStringContainsString('<strong>Packed By</strong>', $payload['preview_html']);
+        $this->assertStringContainsString('FACTORY LINE A', $payload['preview_html']);
         $this->assertStringContainsString('DDP, JAPAN', $payload['preview_html']);
         $this->assertStringContainsString('30 % DEPOSIT', $payload['preview_html']);
         $this->assertStringNotContainsString('AND BALANCE ADVANCE', $payload['preview_html']);
@@ -190,6 +193,7 @@ final class TransactionDocumentApiTest extends TestCase
             'transaction_id' => $transaction->id,
             'packer_name' => 'Mourya Aquex Private Limited',
             'packer_number' => 'MANUAL-BCV-999',
+            'packed_by' => 'Third Party Cold Storage',
             'prices_packer_type' => 'DAP',
             'prices_packer_rate' => 'Vietnam',
             'payment_packer_type' => 'T/T',
@@ -282,6 +286,8 @@ final class TransactionDocumentApiTest extends TestCase
             '/<td class="comment-label">Packer<\/td>\s*<td class="comment-value">MOURYA AQUEX PRIVATE LIMITED<\/td>/',
             $payload['preview_html'],
         );
+        $this->assertStringContainsString('<strong>Packed By</strong>', $payload['preview_html']);
+        $this->assertStringContainsString('THIRD PARTY COLD STORAGE', $payload['preview_html']);
         $this->assertStringContainsString('DAP, VIETNAM', $payload['preview_html']);
         $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $payload['preview_html']);
         $this->assertStringContainsString('PACK-MOURYA-7788', $payload['preview_html']);

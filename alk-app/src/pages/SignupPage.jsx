@@ -39,6 +39,10 @@ function SignupPage() {
   useEffect(() => {
     if (!currentUser) {
       navigate('/', { replace: true })
+      return
+    }
+    if (currentUser.role !== 'admin') {
+      navigate('/dashboard', { replace: true })
     }
   }, [currentUser, navigate])
 
@@ -98,7 +102,7 @@ function SignupPage() {
     />
   )
 
-  if (currentUser) {
+  if (currentUser?.role === 'admin') {
     return (
       <AdminSidebarLayout currentUser={currentUser} activeKey="" onLogout={handleLogout}>
         {content}

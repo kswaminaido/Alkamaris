@@ -120,7 +120,7 @@ function MasterData() {
       } else {
         setError('Failed to update user')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to update user')
     } finally {
       setUpdating(null)
@@ -138,10 +138,10 @@ function MasterData() {
       if (filters.role) params.append('role', filters.role)
       if (filters.fromDate) params.append('from_date', filters.fromDate)
       if (filters.toDate) params.append('to_date', filters.toDate)
-      
+
       const queryString = params.toString()
       const url = `/users?${queryString}`
-      
+
       const response = await authFetch(url)
       const payload = await response.json()
       if (response.ok) {
@@ -151,7 +151,7 @@ function MasterData() {
       } else {
         setError(payload?.message ?? 'Failed to load users')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load users')
     } finally {
       setLoading(false)
@@ -170,7 +170,7 @@ function MasterData() {
       } else {
         setError('Failed to update user status')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to update user status')
     } finally {
       setUpdating(null)
@@ -186,13 +186,15 @@ function MasterData() {
     return null
   }
 
+  const isAdmin = currentUser.role === 'admin'
+
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>
             <h5>Master Data &gt; Users</h5>
-            
+
             <div className="search-filters">
               <div className="filter-group">
                 <label htmlFor="name-filter">Name:</label>
@@ -204,7 +206,7 @@ function MasterData() {
                   placeholder="Search by name"
                 />
               </div>
-              
+
               <div className="filter-group">
                 <label htmlFor="role-filter">Role:</label>
                 <select
@@ -216,10 +218,11 @@ function MasterData() {
                   <option value="admin">Admin</option>
                   <option value="sales">Sales</option>
                   <option value="packer">Packer</option>
+                  <option value="logistics">Logistics</option>
                   <option value="customer">Customer</option>
                 </select>
               </div>
-              
+
               <div className="filter-group">
                 <label htmlFor="from-date-filter">From Date:</label>
                 <input
@@ -229,7 +232,7 @@ function MasterData() {
                   onChange={(e) => handleFilterChange('fromDate', e.target.value)}
                 />
               </div>
-              
+
               <div className="filter-group">
                 <label htmlFor="to-date-filter">To Date:</label>
                 <input
@@ -242,14 +245,16 @@ function MasterData() {
             </div>
           </div>
 
-          <button 
-            type="button"
-            className="primary-btn"
-            onClick={() => navigate('/signup')}
-            title="Add new user"
-          >
-            Add User
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => navigate('/signup')}
+              title="Add new user"
+            >
+              Add User
+            </button>
+          )}
         </div>
 
         {error && <p className="message error">{error}</p>}
