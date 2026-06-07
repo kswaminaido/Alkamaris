@@ -192,7 +192,7 @@ final class TransactionItemApiTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.items.0.qty_booking', '401.00000')
+            ->assertJsonPath('data.items.0.qty_value', '401.00000')
             ->assertJsonPath('data.items.0.total_weight_value', '4321.00000')
             ->assertJsonPath('data.items.0.selling_total', '38889.00000')
             ->assertJsonPath('data.items.0.buying_total', '17284.00000')

@@ -72,6 +72,7 @@ final class TransactionDocumentViewDataFactory
             'footer_address' => "361/3, S V Raju Classsic Building, Morampudi, Rajahmundry, East Godavari, Andhra Pradesh, India-533107",
             'authorization' => $this->authorizationImages($user),
             'bcv' => $this->bcvLqdData($transaction, $options, $documentType),
+            's_a' => $this->shippingAdviceData($transaction),
         ];
     }
 
@@ -280,6 +281,114 @@ final class TransactionDocumentViewDataFactory
             'bcv_lqd' => $this->noteEntryValue($transaction, 'for_packer'),
             default => '',
         };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function shippingAdviceData(Transaction $transaction): array
+    {
+        $customer = $transaction->generalInfoCustomer;
+        $packer = $transaction->generalInfoPacker;
+        $logistics = $transaction->logistics;
+        $items = $transaction->items ?? collect();
+        $productItems = $items
+            ->map(fn(mixed $item): array => $this->shippingAdviceItem($item))
+            ->values()
+            ->all();
+        $firstItem = $items->first();
+        $cartonValues = collect($productItems)
+            ->pluck('cartons_value')
+            ->filter(fn(mixed $value): bool => $value !== null);
+
+        return [
+            'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
+            'date' => $this->formatDisplayDate($transaction->issue_date ?: Carbon::now()),
+            'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
+            'fax' => '',
+            'to' => $this->displayText($customer?->customer),
+            'attention' => $this->displayText($customer?->attention),
+            'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
+            'packer_reference' => $this->combinedReferenceText($packer?->packer_name ?: $packer?->vendor, $packer?->packer_number),
+            'buyer_name' => $this->displayText($customer?->customer),
+            'packer_name' => $this->upperText($packer?->vendor),
+            'product' => $this->upperText($firstItem?->product ?: $transaction->category),
+            'style' => $this->upperText($firstItem?->style ?: $transaction->type),
+            'packing' => $this->displayText($firstItem?->packing ?: $transaction->container_primary),
+            'brand' => $this->upperText($firstItem?->brand ?: $packer?->vendor),
+            'notes' => $this->displayText($firstItem?->notes ?: $transaction->note?->by_sales),
+            'rows' => $productItems,
+            'groups' => $this->shippingAdviceGroups($productItems),
+            'total_cartons' => $cartonValues->isEmpty() ? '' : $this->quantityOrBlank($cartonValues->sum()),
+            'feeder_vessel' => $this->upperText($logistics?->feeder_vessel),
+            'mother_vessel' => $this->upperText($logistics?->mother_vessel),
+            'container_no' => $this->upperText($logistics?->container_no),
+            'seal_no' => $this->upperText($logistics?->seal_no),
+            'port_of_loading' => $this->upperText($logistics?->port),
+            'etd' => $this->formatDisplayDate($logistics?->etd_date),
+            'bl_of_lading' => $this->combinedInstructionText(
+                $this->upperText($logistics?->bl_no),
+                $this->formatDisplayDate($logistics?->bl_date) !== '' ? 'dated ' . $this->formatDisplayDate($logistics?->bl_date) : '',
+            ),
+            'eta' => $this->combinedInstructionText(
+                $this->formatDisplayDate($logistics?->eta_date),
+                $this->upperText($logistics?->destination ?: $transaction->destination),
+            ),
+            'shipping_line_agent' => $this->upperText($logistics?->shipping_line_agent),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function shippingAdviceItem(mixed $item): array
+    {
+        $quantity = $this->firstNumber($item?->qty_booking, $item?->qty_value);
+
+        return [
+            'product' => $this->upperText($item?->product),
+            'style' => $this->upperText($item?->style),
+            'packing' => $this->displayText($item?->packing),
+            'brand' => $this->upperText($item?->brand),
+            'notes' => $this->displayText($item?->notes),
+            'size' => $this->displayText($item?->size),
+            'cartons' => $this->quantityOrBlank($quantity),
+            'cartons_value' => $quantity,
+        ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function shippingAdviceGroups(array $items): array
+    {
+        return collect($items)
+            ->groupBy(fn(array $item): string => implode('|', [
+                $item['product'] ?? '',
+                $item['style'] ?? '',
+                $item['packing'] ?? '',
+                $item['brand'] ?? '',
+                $item['notes'] ?? '',
+            ]))
+            ->values()
+            ->map(function ($group): array {
+                $first = $group->first();
+                $cartonValues = $group
+                    ->pluck('cartons_value')
+                    ->filter(fn(mixed $value): bool => $value !== null);
+
+                return [
+                    'product' => $this->displayText($first['product'] ?? ''),
+                    'style' => $this->displayText($first['style'] ?? ''),
+                    'packing' => $this->displayText($first['packing'] ?? ''),
+                    'brand' => $this->displayText($first['brand'] ?? ''),
+                    'notes' => $this->displayText($first['notes'] ?? ''),
+                    'rows' => $group->values()->all(),
+                    'total_cartons' => $cartonValues->isEmpty() ? '' : $this->quantityOrBlank($cartonValues->sum()),
+                ];
+            })
+            ->all();
     }
 
     private function combinedInstructionText(mixed ...$values): string

@@ -8,6 +8,7 @@ use App\Models\GeneralInfoPacker;
 use App\Models\RevenueCustomer;
 use App\Models\ShippingDetailsPacker;
 use App\Models\Transaction;
+use App\Models\TransactionLogistics;
 use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
 use App\Models\User;
@@ -311,6 +312,128 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringNotContainsString('The above prices has included commission', $payload['preview_html']);
         $this->assertStringNotContainsString('A Separate invoice will be sent after shipment from our office.', $payload['preview_html']);
         $this->assertStringNotContainsString('8/12', $payload['preview_html']);
+        $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
+    }
+
+    public function test_shipping_advice_document_uses_logistics_and_transaction_items(): void
+    {
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin->value,
+        ]);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIF2602117',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-03-14',
+            'sales_person_id' => $admin->id,
+            'destination' => 'New York, NY, United States',
+            'type' => 'Raw Peeled & Deveined Tail On',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'Stavis Seafoods',
+            'attention' => 'Don Berger',
+            'buyer' => 'PO',
+            'buyer_number' => '26001312',
+        ]);
+
+        GeneralInfoPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'packer_name' => 'Jagadeesh Marine Exports',
+            'vendor' => 'Jagadeesh Vendor Exports',
+        ]);
+
+        TransactionLogistics::query()->create([
+            'transaction_id' => $transaction->id,
+            'feeder_vessel' => 'SM NEYYAR V.070W',
+            'mother_vessel' => 'ONE RECOGNITION V.011E',
+            'container_no' => 'TEMU9566632',
+            'seal_no' => 'INA216791',
+            'port' => 'Kattupalli Port, India',
+            'etd_date' => '2026-05-25',
+            'bl_no' => 'ONEYMAAG16348700',
+            'bl_date' => '2026-05-25',
+            'eta_date' => '2026-07-03',
+            'destination' => 'New York, NY, United States',
+            'shipping_line_agent' => 'ONE',
+        ]);
+
+        $transaction->items()->create([
+            'product' => 'Frozen Vannamei White Shrimp',
+            'style' => 'Raw Peeled & Deveined Tail On',
+            'packing' => '5 x 2 LBS IQF',
+            'brand' => "Buyer's",
+            'notes' => '100% NET WEIGHT & NET COUNT. BRAND: BOSN PRINTED BAGS.',
+            'size' => '13/15',
+            'qty_booking' => 350,
+        ]);
+
+        $transaction->items()->create([
+            'product' => 'Frozen Vannamei White Shrimp',
+            'style' => 'Raw Peeled & Deveined Tail On',
+            'packing' => '5 x 2 LBS IQF',
+            'brand' => "Buyer's",
+            'notes' => '100% NET WEIGHT & NET COUNT. BRAND: BOSN PRINTED BAGS.',
+            'size' => '16/20',
+            'qty_booking' => 1200,
+        ]);
+
+        $transaction->items()->create([
+            'product' => 'Frozen Black Tiger Shrimp',
+            'style' => 'Headless Shell On',
+            'packing' => '6 x 4 LBS IQF',
+            'brand' => 'Ocean Prime',
+            'notes' => '100% NET WEIGHT.',
+            'size' => '21/25',
+            'qty_booking' => 75,
+        ]);
+
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['s_a'],
+                'options' => [],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.type', 's_a')
+            ->assertJsonPath('data.0.pdf.filename', 'SIF2602117-S-A.PDF');
+
+        $payload = $response->json('data.0');
+
+        $this->assertIsArray($payload);
+        $this->assertStringContainsString('SHIPPING ADVICE', $payload['preview_html']);
+        $this->assertStringContainsString('Alkamaris Exports Pvt Ltd', $payload['preview_html']);
+        $this->assertStringContainsString('Stavis Seafoods', $payload['preview_html']);
+        $this->assertStringContainsString('JAGADEESH VENDOR EXPORTS', $payload['preview_html']);
+        $this->assertMatchesRegularExpression(
+            '/<td class="meta-label">Buyer\'s<\/td>\s*<td class="meta-value" colspan="5">Stavis Seafoods<\/td>/',
+            $payload['preview_html'],
+        );
+        $this->assertMatchesRegularExpression(
+            '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="5">JAGADEESH VENDOR EXPORTS<\/td>/',
+            $payload['preview_html'],
+        );
+        $this->assertStringContainsString('FROZEN VANNAMEI WHITE SHRIMP', $payload['preview_html']);
+        $this->assertStringContainsString('FROZEN BLACK TIGER SHRIMP', $payload['preview_html']);
+        $this->assertStringContainsString('HEADLESS SHELL ON', $payload['preview_html']);
+        $this->assertStringContainsString('6 x 4 LBS IQF', $payload['preview_html']);
+        $this->assertSame(2, substr_count($payload['preview_html'], '<td class="product-label">Product</td>'));
+        $this->assertStringContainsString('13/15', $payload['preview_html']);
+        $this->assertStringContainsString('1,200', $payload['preview_html']);
+        $this->assertStringContainsString('1,550', $payload['preview_html']);
+        $this->assertStringContainsString('1,625', $payload['preview_html']);
+        $this->assertStringContainsString('SM NEYYAR V.070W', $payload['preview_html']);
+        $this->assertStringContainsString('TEMU9566632', $payload['preview_html']);
+        $this->assertStringContainsString('KATTUPALLI PORT, INDIA', $payload['preview_html']);
+        $this->assertStringContainsString('ONEYMAAG16348700', $payload['preview_html']);
+        $this->assertStringContainsString('NEW YORK, NY, UNITED STATES', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
     }
 

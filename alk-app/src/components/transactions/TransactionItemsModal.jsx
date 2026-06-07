@@ -226,6 +226,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
 
 function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onSaved }) {
   const [form, setForm] = useState(() => buildForm(transaction, item))
+  const [calculationSource, setCalculationSource] = useState('')
   const [fieldOptions, setFieldOptions] = useState(() => transactionItemOptionsCache ?? EMPTY_ITEM_OPTIONS)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -234,6 +235,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
 
   useEffect(() => {
     setForm(buildForm(transaction, item))
+    setCalculationSource('')
   }, [item, transaction])
 
   useEffect(() => {
@@ -247,7 +249,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   }
 
   useEffect(() => {
-    const nextCalculated = calculateDraft(form)
+    const nextCalculated = calculateDraft(form, calculationSource)
 
     setForm((current) => {
       const hasChanges = Object.entries(nextCalculated).some(([key, value]) => current[key] !== value)
@@ -258,6 +260,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     form.total_weight_value,
     form.qty_value,
     form.qty_booking,
+    calculationSource,
     form.selling_unit_price,
     form.selling_correction,
     form.lqd_price,
@@ -319,6 +322,10 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   }, [])
 
   function setValue(key, value) {
+    if (['total_weight_value', 'qty_value', 'qty_booking'].includes(key)) {
+      setCalculationSource(key)
+    }
+
     setForm((current) => ({ ...current, [key]: value }))
   }
 
@@ -347,7 +354,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     setCalculating(true)
     setError('')
     try {
-      const next = calculateDraft(form)
+      const next = calculateDraft(form, calculationSource)
       setForm((current) => ({ ...current, ...next }))
     } catch {
       setError('Unable to calculate item totals.')
@@ -733,9 +740,15 @@ function buildForm(transaction, item) {
   }
 }
 
-function calculateDraft(form) {
-  const quantity = resolveQuantity(form)
+function calculateDraft(form, calculationSource = '') {
   const packingMultiplier = extractPackingMultiplier(form.packing)
+  const providedWeight = normalizeNumber(form.total_weight_value)
+  const shouldDeriveCartonsFromWeight = calculationSource === 'total_weight_value'
+    || (calculationSource === '' && resolveQuantity(form) <= 0)
+  const quantity = shouldDeriveCartonsFromWeight ? 0 : resolveQuantity(form)
+  const cartonsFromProvidedWeight = shouldDeriveCartonsFromWeight && packingMultiplier > 0 && (providedWeight ?? 0) > 0
+    ? Math.ceil(providedWeight / packingMultiplier)
+    : 0
   const calculatedWeight = packingMultiplier > 0 && quantity > 0 ? packingMultiplier * quantity : 0
   const weight = calculatedWeight > 0 ? calculatedWeight : resolveBaseQuantity(form)
   const commissionBase = weight
@@ -745,6 +758,7 @@ function calculateDraft(form) {
 
   return {
     total_weight_value: calculatedWeight > 0 ? fixed(calculatedWeight) : form.total_weight_value,
+    qty_value: cartonsFromProvidedWeight > 0 ? String(cartonsFromProvidedWeight) : form.qty_value,
     lqd_qty: fixed(weight),
     selling_total: fixed(weight * toNumber(form.selling_unit_price) + toNumber(form.selling_correction)),
     lqd_total: fixed(weight * toNumber(form.lqd_price)),

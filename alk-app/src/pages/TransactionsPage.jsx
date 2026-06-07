@@ -28,7 +28,8 @@ const csvColumns = [
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
   { label: 'ETA', value: (transaction) => displayDate(transaction.shipping_details_packer?.req_eta) },
-  { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
+  // { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
+  { label: 'LSD', value: () => '-' },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
   { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
   { label: 'Destination', value: (transaction) => transaction.destination },
@@ -443,7 +444,8 @@ function TransactionsPage() {
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
                   <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
                   <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
-                  <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td>
+                  {/* <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td> */}
+                  <td>-</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
                   <td>{transaction.destination ?? '-'}</td>

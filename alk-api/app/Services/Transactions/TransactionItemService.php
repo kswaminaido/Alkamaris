@@ -52,7 +52,13 @@ final class TransactionItemService
             $payload['qty_booking'] ?? null,
         );
         $packingMultiplier = $this->extractPackingMultiplier($payload['packing'] ?? null);
-        $calculatedWeight = $packingMultiplier > 0.0 && $quantity > 0.0 ? $packingMultiplier * $quantity : 0.0;
+        $providedWeight = $this->normalizeNumber($payload['total_weight_value'] ?? null);
+        $cartonsFromProvidedWeight = $packingMultiplier > 0.0 && ($providedWeight ?? 0.0) > 0.0
+            ? (float) ceil($providedWeight / $packingMultiplier)
+            : 0.0;
+        $derivedCartons = $quantity <= 0.0 ? $cartonsFromProvidedWeight : 0.0;
+        $usesProvidedWeightCartons = $cartonsFromProvidedWeight > 0.0 && $quantity === $cartonsFromProvidedWeight;
+        $calculatedWeight = $packingMultiplier > 0.0 && $quantity > 0.0 && ! $usesProvidedWeightCartons ? $packingMultiplier * $quantity : 0.0;
         $baseQuantity = $calculatedWeight > 0.0
             ? $calculatedWeight
             : $this->firstDefinedNumber(
@@ -67,6 +73,10 @@ final class TransactionItemService
 
         if ($calculatedWeight > 0.0) {
             $payload['total_weight_value'] = $this->roundValue($calculatedWeight);
+        }
+
+        if ($derivedCartons > 0.0) {
+            $payload['qty_value'] = $this->roundValue($derivedCartons);
         }
 
         $payload['lqd_qty'] = $this->roundValue($baseQuantity);
