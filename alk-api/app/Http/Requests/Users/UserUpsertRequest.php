@@ -95,7 +95,7 @@ abstract class UserUpsertRequest extends FormRequest
     private function allowedRoles(?User $user): array
     {
         return array_values(array_unique(array_filter([
-            ...UserRole::values(),
+            ...UserRole::assignableValues(),
             is_string($user?->role) ? $user?->role : $user?->role?->value,
         ])));
     }

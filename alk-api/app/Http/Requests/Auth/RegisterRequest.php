@@ -33,7 +33,7 @@ final class RegisterRequest extends FormRequest
     {
         $allowedUserTypes = array_values(
             array_intersect(
-                Config::optionsByType('roles'),
+                Config::optionsByType(Config::TYPE_ROLES),
                 UserRole::registrableValues(),
             ),
         );
@@ -47,28 +47,19 @@ final class RegisterRequest extends FormRequest
             'registration_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'firm_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
             'factory_approval_number' => ['nullable', 'string', 'max:100', 'unique:users,registration_number'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ];
-    }
-
-    /**
-     * @return array<int, \Closure(Validator): void>
-     */
-    public function after(): array
-    {
-        return [
-            function (Validator $validator): void {
-                if (UserRegistrationNumberResolver::resolve($this->all()) !== null) {
-                    return;
-                }
-
-                $userType = (string) $this->input('user_type');
-
-                $validator->errors()->add(
-                    UserRegistrationNumberResolver::identifierField($userType),
-                    sprintf('%s is required.', UserRegistrationNumberResolver::identifierLabel($userType)),
-                );
-            },
+            'password' => [
+                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), UserRole::passwordRequiredValues(), true)),
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+            'password_confirmation' => [
+                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), UserRole::passwordRequiredValues(), true)),
+                'nullable',
+                'string',
+                'min:8',
+            ],
         ];
     }
 }

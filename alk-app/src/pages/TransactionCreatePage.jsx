@@ -4,9 +4,16 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../utils/dropdownData'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../utils/countries'
+import {
+  BOOKING_CREATOR_USER_ROLES,
+  BOOKING_PARTY_USER_ROLES,
+  PACKER_USER_ROLES,
+  SALES_PERSON_USER_ROLES,
+  USER_ROLES,
+  hasUserRole,
+  roleCsv,
+} from '../utils/userRoles'
 
-const PACKER_ROLE_VALUES = ['packer', 'vendor']
-const NEW_BOOKING_ROLES = ['admin', 'logistics']
 const BOOKING_PREFIX = 'AME'
 const BOOKING_SEQUENCE_PAD = 3
 
@@ -90,7 +97,7 @@ function TransactionCreatePage() {
     [],
   )
   const dropdownResources = useMemo(
-    () => ({ configMap: dropdownConfigMap, countries, usersByRole: { customer: customers, packer: packers } }),
+    () => ({ configMap: dropdownConfigMap, countries, usersByRole: { [USER_ROLES.CUSTOMER]: customers, [USER_ROLES.PACKER]: packers } }),
     [countries, customers, dropdownConfigMap, packers],
   )
 
@@ -134,13 +141,13 @@ function TransactionCreatePage() {
 
   async function loadBookingParties() {
     try {
-      const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
+      const response = await authFetch(`/users?roles=${roleCsv(BOOKING_PARTY_USER_ROLES)}&per_page=100`)
       const payload = await response.json()
 
       if (response.ok && payload?.data) {
-        const customers = payload.data.filter(user => user.role === 'customer')
-        const packers = payload.data.filter(user => PACKER_ROLE_VALUES.includes(user.role))
-        const salesUsers = payload.data.filter(user => ['sales', 'admin', 'logistics'].includes(user.role))
+        const customers = payload.data.filter(user => user.role === USER_ROLES.CUSTOMER)
+        const packers = payload.data.filter(user => hasUserRole(user.role, PACKER_USER_ROLES))
+        const salesUsers = payload.data.filter(user => hasUserRole(user.role, SALES_PERSON_USER_ROLES))
         setCustomers(extractUserNames(customers))
         setPackers(extractUserNames(packers))
         setSalesPeople(extractSalesPersonOptions(salesUsers, currentUser))
@@ -346,7 +353,7 @@ function extractSalesPersonOptions(users, currentUser) {
 }
 
 function canAccessNewBooking(user) {
-  return NEW_BOOKING_ROLES.includes(user?.role)
+  return hasUserRole(user?.role, BOOKING_CREATOR_USER_ROLES)
 }
 
 function TxnColumn({ title, side, children }) { return (<div className="txn-col"><SectionHeader title={title} side={side} />{children}</div>) }

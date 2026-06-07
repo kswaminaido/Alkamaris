@@ -18,7 +18,7 @@ final class AuthApiTest extends TestCase
         parent::setUp();
 
         Config::query()->updateOrCreate(
-            ['type' => 'roles'],
+            ['type' => Config::TYPE_ROLES],
             ['data' => UserRole::registrableValues()],
         );
     }

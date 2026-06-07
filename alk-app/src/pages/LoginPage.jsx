@@ -40,7 +40,7 @@ function LoginPage() {
 
   return (
     <>
-      <TopNav currentUser={currentUser} showSignupLink />
+      {/* <TopNav currentUser={currentUser} /> */}
       <LoginPanel
         loginForm={loginForm}
         onFieldChange={onFieldChange}

@@ -27,9 +27,9 @@ class GeneralInfoPacker extends Model
     ];
 
     protected $casts = [
-        'prices_packer_rate' => 'decimal:4',
-        'payment_packer_advance_percent' => 'decimal:2',
-        'total_lqd_price' => 'decimal:2',
+        'prices_packer_rate' => '?decimal:4',
+        'payment_packer_advance_percent' => '?decimal:2',
+        'total_lqd_price' => '?decimal:2',
     ];
 
     public function transaction(): BelongsTo

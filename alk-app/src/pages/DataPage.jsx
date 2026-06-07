@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions, normalizeOptions } from '../utils/dropdownData'
+import { DATA_USER_ROLES, USER_ROLES, isAdminRole, roleCsv } from '../utils/userRoles'
 
-const PACKER_ROLE_VALUES = ['packer']
+const EMPTY_USERS_BY_ROLE = { [USER_ROLES.CUSTOMER]: [], [USER_ROLES.PACKER]: [] }
 
 function DataPage() {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
   const [configMap, setConfigMap] = useState({})
-  const [usersByRole, setUsersByRole] = useState({ customer: [], packer: [] })
+  const [usersByRole, setUsersByRole] = useState(EMPTY_USERS_BY_ROLE)
   const [drafts, setDrafts] = useState({})
   const [previewSelection, setPreviewSelection] = useState({})
   const [loading, setLoading] = useState(false)
@@ -56,7 +57,7 @@ function DataPage() {
 
   useEffect(() => {
     if (!currentUser) return
-    if (currentUser.role !== 'admin') {
+    if (!isAdminRole(currentUser.role)) {
       navigate('/dashboard', { replace: true })
       return
     }
@@ -72,7 +73,7 @@ function DataPage() {
     try {
       const [configResponse, usersResponse] = await Promise.all([
         authFetch('/configs'),
-        authFetch('/users?roles=customer,packer&per_page=100'),
+        authFetch(`/users?roles=${roleCsv(DATA_USER_ROLES)}&per_page=100`),
       ])
 
       const [configPayload, usersPayload] = await Promise.all([
@@ -82,8 +83,8 @@ function DataPage() {
 
       const nextConfigMap = configResponse.ok ? buildConfigMap(configPayload?.data) : {}
       const nextUsersByRole = {
-        customer: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'customer')) : [],
-        packer: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === 'packer')) : [],
+        [USER_ROLES.CUSTOMER]: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === USER_ROLES.CUSTOMER)) : [],
+        [USER_ROLES.PACKER]: usersResponse.ok ? extractUserNames(usersPayload?.data?.filter(u => u.role === USER_ROLES.PACKER)) : [],
       }
 
       setConfigMap(nextConfigMap)
@@ -152,7 +153,7 @@ function DataPage() {
     navigate('/', { replace: true })
   }
 
-  if (!currentUser || currentUser.role !== 'admin') return null
+  if (!currentUser || !isAdminRole(currentUser.role)) return null
 
   return (
     <AdminSidebarLayout
@@ -432,7 +433,7 @@ function ReadonlyOptionBrowser({ fieldKey, options, selectedValue, onChangeSelec
 
 function sourceLabel(field) {
   if (field.source === 'config') return 'Config'
-  if (field.source === 'users') return `${field.role === 'packer' ? 'Packer' : 'Customer'} Users`
+  if (field.source === 'users') return `${field.role === USER_ROLES.PACKER ? 'Packer' : 'Customer'} Users`
   return 'Resource'
 }
 

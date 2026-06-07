@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useGlobalLoading } from './GlobalLoadingContext'
 import { API_BASE } from '../config/api'
+import { dashboardTitleForRole, normalizeRole } from '../utils/userRoles'
 
 const TOKEN_KEY = 'alkamaris_access_token'
 const DEFAULT_USER_TYPES = []
@@ -33,13 +34,7 @@ export function AuthProvider({ children }) {
   }, [token])
 
   const dashboardTitle = useMemo(() => {
-    if (!currentUser?.role) return 'User Dashboard'
-    if (currentUser.role === 'admin') return 'Admin Dashboard'
-    if (currentUser.role === 'sales') return 'Sales Dashboard'
-    if (currentUser.role === 'logistics') return 'Logistics Dashboard'
-    if (currentUser.role === 'accounts') return 'Accounts Dashboard'
-    if (currentUser.role === 'packer' || currentUser.role === 'vendor') return 'Packer Dashboard'
-    return 'Customer Dashboard'
+    return dashboardTitleForRole(currentUser?.role)
   }, [currentUser])
 
   async function loadUserTypeOptions() {
@@ -236,8 +231,7 @@ export function AuthProvider({ children }) {
 
   function normalizeUser(user) {
     if (!user) return null
-    const normalizedRole = typeof user.role === 'string' ? user.role.trim().toLowerCase() : user.role
-    return { ...user, role: normalizedRole }
+    return { ...user, role: normalizeRole(user.role) }
   }
 
   function mergeUserTypeOptions(options) {

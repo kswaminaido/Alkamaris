@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
 
 class Config extends Model
 {
+    public const TYPE_ROLES = 'roles';
+
     /**
      * @var list<string>
      */
@@ -29,6 +32,10 @@ class Config extends Model
      */
     public static function optionsByType(string $type): array
     {
+        if ($type === self::TYPE_ROLES) {
+            return UserRole::registrableValues();
+        }
+
         $config = self::query()
             ->where('type', $type)
             ->first();

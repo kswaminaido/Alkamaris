@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { displayUserRole } from '../../utils/userRoles'
 
 function DashboardPanel({ currentUser }) {
   const navigate = useNavigate()
@@ -71,7 +72,7 @@ function DashboardPanel({ currentUser }) {
       {placeholderMessage && <p className="dashboard-placeholder-note">{placeholderMessage}</p>}
 
       <p className="dashboard-footnote">
-        Signed in as <strong>{currentUser.name}</strong> ({currentUser.role})
+        Signed in as <strong>{currentUser.name}</strong> ({displayUserRole(currentUser.role)})
       </p>
     </div>
   )

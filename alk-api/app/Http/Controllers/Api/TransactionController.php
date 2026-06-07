@@ -9,7 +9,9 @@ use App\Http\Requests\Transactions\UpdateTransactionRequest;
 use App\Http\Resources\Transactions\TransactionCollection;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\Transactions\TransactionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -28,20 +30,10 @@ class TransactionController extends Controller
         $query = Transaction::query()
             ->with(Transaction::detailRelations());
 
-        // Filter transactions based on user role
         $user = request()->user();
-        if ($user->role->value === 'sales') {
-            $query->where('sales_person_id', $user->id);
-        } elseif ($user->role->value === 'customer') {
-            $query->whereHas('generalInfoCustomer', function ($q) use ($user) {
-                $q->where('customer', $user->name);
-            });
-        } elseif (in_array($user->role->value, [UserRole::Packer->value], true)) {
-            $query->whereHas('generalInfoPacker', function ($q) use ($user) {
-                $q->where('vendor', $user->name);
-            });
+        if ($user instanceof User) {
+            $this->applyUserRoleScope($query, $user);
         }
-        // Admin sees all transactions (no additional filtering)
 
         if ($bookingNo = request('booking_no')) {
             $query->where('booking_no', 'like', "%{$bookingNo}%");
@@ -72,7 +64,7 @@ class TransactionController extends Controller
         }
 
         $paginator = $query
-            ->orderByDesc('id')
+            ->orderByDesc('updated_at')
             ->paginate($perPage);
 
         return (new TransactionCollection($paginator))->response();
@@ -86,18 +78,9 @@ class TransactionController extends Controller
         $query = Transaction::query()
             ->with(Transaction::detailRelations());
 
-        // Filter transactions based on user role
         $user = request()->user();
-        if ($user->role->value === 'sales') {
-            $query->where('sales_person_id', $user->id);
-        } elseif ($user->role->value === 'customer') {
-            $query->whereHas('generalInfoCustomer', function ($q) use ($user) {
-                $q->where('customer', $user->name);
-            });
-        } elseif (in_array($user->role->value, [UserRole::Packer->value], true)) {
-            $query->whereHas('generalInfoPacker', function ($q) use ($user) {
-                $q->where('vendor', $user->name);
-            });
+        if ($user instanceof User) {
+            $this->applyUserRoleScope($query, $user);
         }
 
         if ($bookingNo = request('booking_no')) {
@@ -128,7 +111,7 @@ class TransactionController extends Controller
         }
 
         $paginator = $query
-            ->orderByDesc('id')
+            ->orderByDesc('updated_at')
             ->paginate($perPage);
 
         return (new TransactionCollection($paginator))->response();
@@ -164,5 +147,35 @@ class TransactionController extends Controller
             ['data' => TransactionResource::make($duplicate), 'message' => 'Transaction duplicated successfully.'],
             Response::HTTP_CREATED,
         );
+    }
+
+    /**
+     * @param  Builder<Transaction>  $query
+     */
+    private function applyUserRoleScope(Builder $query, User $user): void
+    {
+        $role = $user->role instanceof UserRole
+            ? $user->role
+            : UserRole::fromValue($user->role);
+
+        if ($role === UserRole::Sales) {
+            $query->where('sales_person_id', $user->id);
+
+            return;
+        }
+
+        if ($role === UserRole::Customer) {
+            $query->whereHas('generalInfoCustomer', function ($q) use ($user): void {
+                $q->where('customer', $user->name);
+            });
+
+            return;
+        }
+
+        if ($role?->isPackerLike()) {
+            $query->whereHas('generalInfoPacker', function ($q) use ($user): void {
+                $q->where('vendor', $user->name);
+            });
+        }
     }
 }

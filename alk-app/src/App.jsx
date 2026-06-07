@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
 import TransactionCreatePage from './pages/TransactionCreatePage'
 import TransactionsPage from './pages/TransactionsPage'
+import { REPORT_USER_ROLES } from './utils/userRoles'
 
 function App() {
   return (
@@ -29,7 +30,6 @@ function App() {
 
 function AppShell() {
   const { isGlobalLoading, loadingLabel } = useGlobalLoading()
-  const reportRoles = ['admin', 'accounts']
 
   return (
     <>
@@ -161,7 +161,7 @@ function AppShell() {
           path="/reports/packer-sales"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Packer Sales" allowedRoles={reportRoles} />
+              <ModulePlaceholderPage title="Packer Sales" allowedRoles={REPORT_USER_ROLES} />
             </RequireAuth>
           }
         />
@@ -169,7 +169,7 @@ function AppShell() {
           path="/reports/payment-status"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Payment Status" allowedRoles={reportRoles} />
+              <ModulePlaceholderPage title="Payment Status" allowedRoles={REPORT_USER_ROLES} />
             </RequireAuth>
           }
         />

@@ -1,4 +1,4 @@
-import { getUserIdentifierLabel } from '../../utils/userType'
+import { PASSWORD_REQUIRED_USER_ROLES, USER_ROLES } from '../../utils/userRoles'
 
 function SignupPanel({
   registerForm,
@@ -9,7 +9,9 @@ function SignupPanel({
   message,
   error,
 }) {
-  const identifierLabel = getUserIdentifierLabel(registerForm.user_type)
+  const nameLabel = registerForm.user_type === USER_ROLES.CUSTOMER ? 'Customer Name' : 'Name'
+  const shouldShowFirmName = registerForm.user_type === USER_ROLES.PACKER
+  const shouldShowPasswordFields = PASSWORD_REQUIRED_USER_ROLES.includes(registerForm.user_type)
 
   return (
     <section className="signup-wrap">

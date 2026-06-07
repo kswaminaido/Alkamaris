@@ -23,11 +23,11 @@ class RevenuePacker extends Model
     ];
 
     protected $casts = [
-        'total_buying_value' => 'decimal:2',
+        'total_buying_value' => '?decimal:2',
         'commission_enabled' => 'boolean',
-        'commission_percent' => 'decimal:2',
-        'amount' => 'decimal:2',
-        'overcharge_sc_amount' => 'decimal:2',
+        'commission_percent' => '?decimal:2',
+        'amount' => '?decimal:2',
+        'overcharge_sc_amount' => '?decimal:2',
     ];
 
     public function transaction(): BelongsTo

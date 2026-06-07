@@ -4,6 +4,7 @@ import UserDashboardPanel from '../components/dashboard/UserDashboardPanel'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
+import { isAdminRole } from '../utils/userRoles'
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ function DashboardPage() {
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
-      {currentUser.role === 'admin' ? (
+      {isAdminRole(currentUser.role) ? (
         <DashboardPanel
           currentUser={currentUser}
           dashboardTitle={dashboardTitle}

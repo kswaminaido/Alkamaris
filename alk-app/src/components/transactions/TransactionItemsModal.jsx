@@ -363,7 +363,10 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
             <div className="txe-items-title">{item ? 'Edit Transaction Item' : 'Add Transaction Item'}</div>
             <div className="txe-items-breadcrumb">Transaction &gt; All Transaction &gt; Items Detail &gt; Add/Edit</div>
           </div>
-          <div className="txe-items-status">Booking <strong>{transaction.booking_no || '-'}</strong></div>
+          <div className="txe-items-topbar-actions">
+            <div className="txe-items-status">Booking <strong>{transaction.booking_no || '-'}</strong></div>
+            <button type="button" className="txe-items-close-btn" onClick={onClose} aria-label="Close item editor">x</button>
+          </div>
         </div>
         <div className="txe-item-editor-body">
           <div className="txe-item-editor-summary">

@@ -2,6 +2,8 @@
 
 namespace App\DataTransferObjects\Auth;
 
+use App\Enums\UserRole;
+
 final readonly class RegisterData
 {
     public function __construct(
@@ -36,10 +38,9 @@ final readonly class RegisterData
     private static function resolveRegistrationNumber(array $data): string
     {
         $registrationNumber = trim((string) ($data['registration_number'] ?? ''));
-
-        return match ($data['user_type'] ?? '') {
-            'customer' => trim((string) ($data['firm_number'] ?? $registrationNumber)),
-            'sales' => trim((string) ($data['factory_approval_number'] ?? $registrationNumber)),
+        $resolved = match ($data['user_type'] ?? '') {
+            UserRole::Customer->value => trim((string) ($data['firm_number'] ?? $registrationNumber)),
+            UserRole::Sales->value => trim((string) ($data['factory_approval_number'] ?? $registrationNumber)),
             default => $registrationNumber,
         };
     }

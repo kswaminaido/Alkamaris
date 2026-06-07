@@ -34,7 +34,7 @@ class Transaction extends Model
         'issue_date' => 'date',
         'lc_set_at' => 'date',
         'certified' => 'boolean',
-        'net_margin' => 'decimal:2',
+        'net_margin' => '?decimal:2',
         'status' => TransactionStatus::class,
     ];
 

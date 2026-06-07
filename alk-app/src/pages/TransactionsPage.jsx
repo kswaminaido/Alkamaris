@@ -409,7 +409,11 @@ function TransactionsPage() {
                 <th>SH Date</th>
                 <th>Destination</th>
                 <th>Date Modified</th>
-                <th>Duplicate</th>
+                <th style={{ color: '#FFF' }}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 9h10v10H9zM5 5h10v2H7v8H5z" />
+                  </svg>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -433,7 +437,8 @@ function TransactionsPage() {
                   <td>{transaction.revenue_customer?.description ?? '-'}</td>
                   <td>{transaction.general_info_packer?.packer_name ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
+                  {/* <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td> */}
+                  <td>-</td>
                   <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>

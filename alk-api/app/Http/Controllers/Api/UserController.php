@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
@@ -27,11 +28,17 @@ class UserController extends Controller
             $query->where('name', 'like', "%{$name}%");
         }
 
-        $roles = request('roles') ? explode(',', request('roles')) : [];
-        if (!empty($roles)) {
-            $query->whereIn('role', $roles);
-        } elseif ($role = request('role')) {
-            $query->where('role', $role);
+        $rolesParameter = request('roles');
+        if (is_string($rolesParameter) && trim($rolesParameter) !== '') {
+            $roles = UserRole::queryValuesFromCsv($rolesParameter);
+            $roles !== []
+                ? $query->whereIn('role', $roles)
+                : $query->whereRaw('1 = 0');
+        } elseif (is_string($role = request('role')) && trim($role) !== '') {
+            $userRole = UserRole::fromValue($role);
+            $userRole !== null
+                ? $query->whereIn('role', $userRole->queryValues())
+                : $query->whereRaw('1 = 0');
         }
 
         if ($fromDate = request('from_date')) {

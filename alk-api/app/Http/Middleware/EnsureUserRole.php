@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRole;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,9 +20,12 @@ class EnsureUserRole
             return $this->unauthorized('Unauthenticated.');
         }
 
-        $userRole = is_string($user->role) ? $user->role : $user->role?->value;
+        $userRole = $user->role instanceof UserRole
+            ? $user->role->value
+            : UserRole::fromValue($user->role)?->value;
+        $allowedRoles = UserRole::queryValuesFromCsv(implode(',', $roles));
 
-        if (! in_array($userRole, $roles, true)) {
+        if ($userRole === null || ! in_array($userRole, $allowedRoles, true)) {
             return response()->json(
                 ['message' => 'Forbidden: role not allowed for this action.'],
                 Response::HTTP_FORBIDDEN,

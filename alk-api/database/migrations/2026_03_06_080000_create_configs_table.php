@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Config;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ return new class extends Migration
         });
 
         DB::table('configs')->insert([
-            'type' => 'roles',
+            'type' => Config::TYPE_ROLES,
             'data' => json_encode(UserRole::registrableValues(), JSON_THROW_ON_ERROR),
             'created_at' => now(),
             'updated_at' => now(),

@@ -4,6 +4,7 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 import { getUserIdentifierLabel } from '../utils/userType'
+import { isPackerRole } from '../utils/userRoles'
 
 function ProfilePage() {
   const navigate = useNavigate()
@@ -45,6 +46,7 @@ function ProfilePage() {
   }
 
   const identifierLabel = getUserIdentifierLabel(currentUser.role)
+  const isPacker = isPackerRole(currentUser.role)
 
   function updateProfileField(field, value) {
     setProfileForm((previous) => ({ ...previous, [field]: value }))

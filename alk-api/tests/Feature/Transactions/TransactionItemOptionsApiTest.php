@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Transactions;
 
+use App\Enums\UserRole;
+use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,7 +15,7 @@ class TransactionItemOptionsApiTest extends TestCase
     public function test_admin_can_fetch_transaction_item_options(): void
     {
         $user = User::factory()->create([
-            'role' => 'admin',
+            'role' => UserRole::Admin->value,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/transaction-item-options');

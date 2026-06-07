@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { REPORT_USER_ROLES, hasUserRole, isAdminRole } from '../../utils/userRoles'
 
 const SIDEBAR_STATE_KEY = 'alk-dashboard-sidebar-open'
 const navActions = [
@@ -22,7 +23,8 @@ const navActions = [
 function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout, authFetch }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
+  const isAdmin = isAdminRole(currentUser?.role)
+  const canViewReports = hasUserRole(currentUser?.role, REPORT_USER_ROLES)
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
     const savedValue = window.localStorage.getItem(SIDEBAR_STATE_KEY)

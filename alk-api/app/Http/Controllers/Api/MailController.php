@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
@@ -47,7 +48,7 @@ class MailController extends Controller
         ]);
 
         $customerUsers = User::query()
-            ->where('role', 'customer')
+            ->where('role', UserRole::Customer->value)
             ->get(['id', 'name', 'email', 'address', 'created_at'])
             ->keyBy(fn (User $user): string => Str::lower(trim($user->name)));
 

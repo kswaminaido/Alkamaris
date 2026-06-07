@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Config::query()->updateOrCreate(
-            ['type' => 'roles'],
+            ['type' => Config::TYPE_ROLES],
             ['data' => UserRole::registrableValues()],
         );
 

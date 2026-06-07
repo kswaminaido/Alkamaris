@@ -139,14 +139,14 @@ final class TransactionDocumentViewDataFactory
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
             'packer_block' => $this->partyBlock(
-                $this->firstFilled($packer?->packer_name, $packer?->vendor),
-                UserRole::Packer->value,
+                $packer?->vendor,
+                UserRole::Packer,
                 'GSTIN NO',
                 $packer?->packer_number,
             ),
             'customer_block' => $this->partyBlock(
                 $customer?->customer,
-                UserRole::Customer->value,
+                UserRole::Customer,
                 'TAX ID',
                 $customer?->buyer_number,
             ),
@@ -625,13 +625,17 @@ final class TransactionDocumentViewDataFactory
     /**
      * @return array{name: string, lines: array<int, string>, registration: string}
      */
-    private function partyBlock(mixed $name, string $role, string $registrationLabel, mixed $fallbackRegistration): array
+    private function partyBlock(mixed $name, UserRole $role, string $registrationLabel, mixed $fallbackRegistration): array
     {
         $partyName = $this->displayText($name);
         $user = $partyName !== ''
             ? User::query()
-                ->where('role', $role)
-                ->where('name', $partyName)
+            ->whereIn('role', $this->partyRoles($role))
+            ->where(function ($query) use ($partyName): void {
+                $query
+                    ->where('name', $partyName)
+                    ->orWhere('firm_name', $partyName);
+            })
                 ->first(['address', 'registration_number'])
             : null;
 
@@ -650,5 +654,63 @@ final class TransactionDocumentViewDataFactory
             'lines' => array_map(fn (string $line): string => Str::upper($line), $addressLines),
             'registration' => $registration !== '' ? $registrationLabel . ': ' . Str::upper($registration) : '',
         ];
+    }
+
+    private function packerRegistrationNumber(mixed $packerName, mixed $vendorName): string
+    {
+        $names = collect([$packerName, $vendorName])
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
+            ->unique()
+            ->values();
+
+        if ($names->isNotEmpty()) {
+            $user = User::query()
+                ->whereIn('role', $this->partyRoles(UserRole::Packer))
+                ->where(function ($query) use ($names): void {
+                    $query
+                        ->whereIn('name', $names->all())
+                        ->orWhereIn('firm_name', $names->all());
+                })
+                ->first(['registration_number', 'firm_name']);
+
+            $registration = $this->firstFilled($user?->registration_number, $user?->firm_name);
+
+            if ($registration !== '') {
+                return $registration;
+            }
+        }
+
+        return '';
+    }
+
+    private function associatedPackerName(mixed $packerName, mixed $vendorName): string
+    {
+        $names = collect([$packerName, $vendorName])
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
+            ->unique()
+            ->values();
+
+        $user = $names->isNotEmpty()
+            ? User::query()
+            ->whereIn('role', $this->partyRoles(UserRole::Packer))
+            ->where(function ($query) use ($names): void {
+                $query
+                    ->whereIn('name', $names->all())
+                    ->orWhereIn('firm_name', $names->all());
+            })
+            ->first(['firm_name', 'name'])
+            : null;
+
+        return $this->firstFilled($packerName, $user?->firm_name, $vendorName, $user?->name);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function partyRoles(UserRole $role): array
+    {
+        return $role->queryValues();
     }
 }

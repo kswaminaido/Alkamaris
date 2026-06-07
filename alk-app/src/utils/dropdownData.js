@@ -1,3 +1,10 @@
+import { APP_ENV } from '../config/api'
+import { USER_ROLES } from './userRoles'
+
+const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
+const PACKER_PRICE_TERMS = ['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']
+const PRICE_TERMS = PACKER_PRICE_TERMS
+
 export const DROPDOWN_FIELD_GROUPS = [
   {
     key: 'transaction',
@@ -17,7 +24,7 @@ export const DROPDOWN_FIELD_GROUPS = [
     key: 'general_customer',
     title: 'General Info - Customer',
     fields: [
-      { key: 'general_info_customer.customer', label: 'Customer', source: 'users', role: 'customer', fallback: [], pages: ['New Booking'] },
+      { key: 'general_info_customer.customer', label: 'Customer', source: 'users', role: USER_ROLES.CUSTOMER, type: 'customer_names', fallback: [], pages: ['New Booking'] },
       { key: 'general_info_customer.attention', label: 'Attn', source: 'config', type: 'customer_attention', fallback: ['Accounts', 'Purchase', 'Logistics'], pages: ['New Booking'] },
       { key: 'general_info_customer.ship_to', label: 'Ship To', source: 'config', type: 'customer_ship_to', fallback: ['Main Warehouse', 'Port Facility', 'Client Yard'], pages: ['New Booking'] },
       { key: 'general_info_customer.buyer', label: 'Buyer', source: 'config', type: 'customer_buyer', fallback: ['Buyer A', 'Buyer B', 'Buyer C'], pages: ['New Booking'] },
@@ -32,7 +39,7 @@ export const DROPDOWN_FIELD_GROUPS = [
     key: 'general_packer',
     title: 'General Info - Packer',
     fields: [
-      { key: 'general_info_packer.vendor', label: 'Packer', source: 'users', role: 'packer', fallback: [], pages: ['New Booking'] },
+      { key: 'general_info_packer.vendor', label: 'Packer', source: 'users', role: USER_ROLES.PACKER, type: 'packer_names', fallback: [], pages: ['New Booking'] },
       { key: 'general_info_packer.packer_name', label: 'Packer Name', source: 'config', type: 'packer_name', fallback: ['Packer One', 'Packer Two', 'Packer Three'], pages: ['New Booking'] },
       { key: 'general_info_packer.packed_by', label: 'Packed By', source: 'config', type: 'packer_packed_by', fallback: ['Factory', 'Third Party', 'Packer'], pages: ['New Booking'] },
       { key: 'general_info_packer.prices_packer_type', label: 'Prices Packer Type', source: 'config', type: 'packer_price_type', fallback: ['USD/MT', 'INR/MT', 'SGD/MT'], pages: ['New Booking'] },

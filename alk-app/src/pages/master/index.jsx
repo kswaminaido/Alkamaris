@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../../components/layout/AdminSidebarLayout'
 import { useAuth } from '../../context/AuthContext'
+import { MASTER_ROLE_OPTIONS, displayUserRole, isAdminRole, isPackerRole } from '../../utils/userRoles'
 
 function MasterData() {
   const navigate = useNavigate()
@@ -37,6 +38,7 @@ function MasterData() {
   }
 
   function openEditModal(user) {
+    if (!isAdminRole(currentUser?.role)) return
     setEditingUser({ ...user })
     setShowEditModal(true)
   }
@@ -47,6 +49,7 @@ function MasterData() {
   }
 
   async function saveUserChanges() {
+    if (!isAdminRole(currentUser?.role)) return
     if (!editingUser) return
     setUpdating(editingUser.id)
     try {
@@ -105,6 +108,7 @@ function MasterData() {
   }
 
   async function toggleUserStatus(userId, currentStatus) {
+    if (!isAdminRole(currentUser?.role)) return
     setUpdating(userId)
     try {
       const response = await authFetch(`/users/${userId}`, {
@@ -131,6 +135,9 @@ function MasterData() {
   if (!currentUser) {
     return null
   }
+
+  const isAdmin = isAdminRole(currentUser.role)
+  const tableColumnCount = isAdmin ? 7 : 6
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
@@ -159,10 +166,9 @@ function MasterData() {
                   onChange={(e) => handleFilterChange('role', e.target.value)}
                 >
                   <option value="">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="sales">Sales</option>
-                  <option value="packer">Packer</option>
-                  <option value="customer">Customer</option>
+                  {MASTER_ROLE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
                 </select>
               </div>
               
@@ -225,8 +231,8 @@ function MasterData() {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.phone_number}</td>
-                  <td>{formatRole(user.role)}</td>
-                  <td>{user.registration_number}</td>
+                  <td>{displayUserRole(user.role)}</td>
+                  <td>{displayRegistrationNumber(user)}</td>
                   <td>
                     <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
                       {user.is_active ? 'Active' : 'Inactive'}
@@ -277,8 +283,48 @@ function MasterData() {
           </button>
         </div>
 
-        {showEditModal && editingUser && (
-          <div className="modal-overlay">
+        {viewingUser && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="User details">
+            <div className="modal-content p-4 user-detail-modal">
+              <div className="modal-header p-0">
+                <h3>User Details</h3>
+                <button type="button" className="close-btn" onClick={closeDetailsModal}>x</button>
+              </div>
+              <div className="modal-body user-detail-grid">
+                <DetailItem label="ID" value={viewingUser.id} />
+                <DetailItem label="Name" value={viewingUser.name} />
+                <DetailItem label="Contact Name" value={viewingUser.contact_name} />
+                <DetailItem label="Firm Name" value={viewingUser.firm_name} />
+                <DetailItem label="Email" value={viewingUser.email} />
+                <DetailItem label="Phone" value={viewingUser.phone_number} />
+                <DetailItem label="Role" value={displayUserRole(viewingUser.role)} />
+                <DetailItem label="Registration Number" value={displayRegistrationNumber(viewingUser)} />
+                <DetailItem label="Status" value={viewingUser.is_active ? 'Active' : 'Inactive'} />
+                <DetailItem label="Address" value={viewingUser.address} wide />
+                <DetailItem label="Created At" value={formatDateTime(viewingUser.created_at)} />
+                <DetailItem label="Updated At" value={formatDateTime(viewingUser.updated_at)} />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="secondary-btn" onClick={closeDetailsModal}>Close</button>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => {
+                      closeDetailsModal()
+                      openEditModal(viewingUser)
+                    }}
+                  >
+                    Edit User
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isAdmin && showEditModal && editingUser && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
             <div className="modal-content p-4">
               <div className="modal-header p-0">
                 <h3>Edit User</h3>
@@ -292,6 +338,35 @@ function MasterData() {
                     type="text"
                     value={editingUser.name || ''}
                     onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-contact-name">Contact Name:</label>
+                  <input
+                    id="edit-contact-name"
+                    type="text"
+                    value={editingUser.contact_name || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, contact_name: e.target.value })}
+                  />
+                </div>
+                {isPackerRole(editingUser.role) && (
+                  <div className="form-group">
+                    <label htmlFor="edit-firm-name">Firm Name:</label>
+                    <input
+                      id="edit-firm-name"
+                      type="text"
+                      value={editingUser.firm_name || ''}
+                      onChange={(e) => setEditingUser({ ...editingUser, firm_name: e.target.value })}
+                    />
+                  </div>
+                )}
+                <div className="form-group">
+                  <label htmlFor="edit-email">Email:</label>
+                  <input
+                    id="edit-email"
+                    type="email"
+                    value={editingUser.email || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                   />
                 </div>
                 <div className="form-group">
@@ -328,10 +403,9 @@ function MasterData() {
                     value={editingUser.role || ''}
                     onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                   >
-                    <option value="admin">Admin</option>
-                    <option value="sales">Sales</option>
-                    <option value="packer">Packer</option>
-                    <option value="customer">Customer</option>
+                    {MASTER_ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -351,8 +425,27 @@ function MasterData() {
 
 export default MasterData
 
-function formatRole(role) {
-  if (role === 'packer' || role === 'vendor') return 'Packer'
-  if (!role) return ''
-  return role.charAt(0).toUpperCase() + role.slice(1)
+function displayRegistrationNumber(user) {
+  if (isPackerRole(user?.role) && user?.firm_name) {
+    return user.firm_name
+  }
+
+  return user?.registration_number
+} 
+
+function formatDateTime(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return date.toLocaleString()
+}
+
+function DetailItem({ label, value, wide = false }) {
+  return (
+    <div className={`user-detail-item ${wide ? 'wide' : ''}`}>
+      <span>{label}</span>
+      <strong>{value || '-'}</strong>
+    </div>
+  )
 }

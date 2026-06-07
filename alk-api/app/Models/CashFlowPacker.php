@@ -19,9 +19,9 @@ class CashFlowPacker extends Model
 
     protected $casts = [
         'date_advance' => 'date',
-        'amount_advance' => 'decimal:2',
+        'amount_advance' => '?decimal:2',
         'date_balance' => 'date',
-        'amount_balance' => 'decimal:2',
+        'amount_balance' => '?decimal:2',
     ];
 
     public function transaction(): BelongsTo

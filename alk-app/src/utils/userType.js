@@ -1,11 +1,13 @@
-export function getUserIdentifierLabel(userType) {
-  const normalizedUserType = typeof userType === 'string' ? userType.trim().toLowerCase() : ''
+import { USER_ROLES, normalizeRole } from './userRoles'
 
-  if (normalizedUserType === 'customer') {
+export function getUserIdentifierLabel(userType) {
+  const normalizedUserType = normalizeRole(userType)
+
+  if (normalizedUserType === USER_ROLES.CUSTOMER) {
     return 'Firm Number'
   }
 
-  if (normalizedUserType === 'sales') {
+  if (normalizedUserType === USER_ROLES.SALES) {
     return 'Factory Approval Number'
   }
 

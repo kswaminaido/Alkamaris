@@ -17,7 +17,7 @@ final class AdminApiTest extends TestCase
         parent::setUp();
 
         Config::query()->updateOrCreate(
-            ['type' => 'roles'],
+            ['type' => Config::TYPE_ROLES],
             ['data' => UserRole::registrableValues()],
         );
     }
@@ -86,7 +86,7 @@ final class AdminApiTest extends TestCase
 
         $usersResponse = $this
             ->withHeader('Authorization', "Bearer {$token}")
-            ->getJson('/api/users?roles=customer,packer,vendor&per_page=100');
+            ->getJson('/api/users?roles=' . UserRole::queryCsv(UserRole::Customer, UserRole::Packer) . '&per_page=100');
 
         $usersResponse
             ->assertOk()

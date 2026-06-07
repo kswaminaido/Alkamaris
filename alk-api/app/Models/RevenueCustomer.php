@@ -25,12 +25,12 @@ class RevenueCustomer extends Model
     ];
 
     protected $casts = [
-        'total_selling_value' => 'decimal:2',
+        'total_selling_value' => '?decimal:2',
         'commission_enabled' => 'boolean',
-        'commission_percent' => 'decimal:2',
-        'amount' => 'decimal:2',
-        'rebate_memo_amount' => 'decimal:2',
-        'overcharge_sc_amount' => 'decimal:2',
+        'commission_percent' => '?decimal:2',
+        'amount' => '?decimal:2',
+        'rebate_memo_amount' => '?decimal:2',
+        'overcharge_sc_amount' => '?decimal:2',
     ];
 
     public function transaction(): BelongsTo

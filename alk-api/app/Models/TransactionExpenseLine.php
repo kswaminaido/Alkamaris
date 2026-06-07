@@ -22,7 +22,7 @@ class TransactionExpenseLine extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount' => '?decimal:2',
         'sort_order' => 'integer',
     ];
 
