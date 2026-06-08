@@ -300,6 +300,7 @@ final class TransactionDocumentViewDataFactory
         $cartonValues = collect($productItems)
             ->pluck('cartons_value')
             ->filter(fn(mixed $value): bool => $value !== null);
+        $etaDate = $this->formatDisplayDate($logistics?->eta_date);
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -330,10 +331,12 @@ final class TransactionDocumentViewDataFactory
                 $this->upperText($logistics?->bl_no),
                 $this->formatDisplayDate($logistics?->bl_date) !== '' ? 'dated ' . $this->formatDisplayDate($logistics?->bl_date) : '',
             ),
-            'eta' => $this->combinedInstructionText(
-                $this->formatDisplayDate($logistics?->eta_date),
-                $this->upperText($logistics?->destination ?: $transaction->destination),
-            ),
+            'eta' => $etaDate === ''
+                ? ''
+                : $this->combinedInstructionText(
+                    $etaDate,
+                    $this->upperText($logistics?->destination ?: $transaction->destination),
+                ),
             'shipping_line_agent' => $this->upperText($logistics?->shipping_line_agent),
         ];
     }

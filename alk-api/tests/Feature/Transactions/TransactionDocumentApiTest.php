@@ -413,13 +413,10 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Stavis Seafoods', $payload['preview_html']);
         $this->assertStringContainsString('JAGADEESH VENDOR EXPORTS', $payload['preview_html']);
         $this->assertMatchesRegularExpression(
-            '/<td class="meta-label">Buyer\'s<\/td>\s*<td class="meta-value" colspan="5">Stavis Seafoods<\/td>/',
+            '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="4">JAGADEESH VENDOR EXPORTS<\/td>/',
             $payload['preview_html'],
         );
-        $this->assertMatchesRegularExpression(
-            '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="5">JAGADEESH VENDOR EXPORTS<\/td>/',
-            $payload['preview_html'],
-        );
+        $this->assertStringContainsString('background: #061173;', $payload['preview_html']);
         $this->assertStringContainsString('FROZEN VANNAMEI WHITE SHRIMP', $payload['preview_html']);
         $this->assertStringContainsString('FROZEN BLACK TIGER SHRIMP', $payload['preview_html']);
         $this->assertStringContainsString('HEADLESS SHELL ON', $payload['preview_html']);
@@ -435,6 +432,64 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('ONEYMAAG16348700', $payload['preview_html']);
         $this->assertStringContainsString('NEW YORK, NY, UNITED STATES', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
+    }
+
+    public function test_shipping_advice_document_hides_blank_bottom_detail_fields(): void
+    {
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin->value,
+        ]);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIF2602118',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-03-15',
+            'sales_person_id' => $admin->id,
+            'destination' => 'New York, NY, United States',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'Stavis Seafoods',
+        ]);
+
+        TransactionLogistics::query()->create([
+            'transaction_id' => $transaction->id,
+            'container_no' => 'TEMU9566632',
+            'destination' => 'New York, NY, United States',
+        ]);
+
+        $transaction->items()->create([
+            'product' => 'Frozen Shrimp',
+            'size' => '31/40',
+        ]);
+
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['s_a'],
+                'options' => [],
+            ]);
+
+        $response->assertOk();
+
+        $payload = $response->json('data.0');
+
+        $this->assertIsArray($payload);
+        $this->assertStringContainsString('CONTAINER #', $payload['preview_html']);
+        $this->assertStringContainsString('TEMU9566632', $payload['preview_html']);
+        $this->assertStringNotContainsString('TOTAL CARTONS', $payload['preview_html']);
+        $this->assertStringNotContainsString('FEEDER VESSEL', $payload['preview_html']);
+        $this->assertStringNotContainsString('MOTHER VESSEL', $payload['preview_html']);
+        $this->assertStringNotContainsString('SEAL #', $payload['preview_html']);
+        $this->assertStringNotContainsString('PORT OF LOADING', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="details-label">ETD</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('B/L OF LADING #', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="details-label">ETA</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('SHIPPING LINE / AGENT', $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_falls_back_to_item_selling_price_and_keeps_missing_amounts_blank(): void
