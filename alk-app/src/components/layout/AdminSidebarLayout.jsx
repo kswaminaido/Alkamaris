@@ -6,11 +6,15 @@ const navActions = [
   {
     key: 'new_booking_trade',
     title: 'New Booking',
-    subtitle: 'Trade & Commission',
+    // subtitle: 'Trade & Commission',
     mode: 'trade_commission',
   },
-  { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
-  { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
+  {
+    key: 'all_transactions', title: 'All Transactions', // subtitle: 'Track and verify'
+  },
+  {
+    key: 'mail', title: 'Mail', // subtitle: 'Send Emails'
+  },
 ]
 
 function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout }) {
@@ -331,7 +335,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                   onClick={() => handleTopNavAction(action)}
                 >
                   <span>{action.title}</span>
-                  <small>{action.subtitle}</small>
+                  {action.subtitle ? <small>{action.subtitle}</small> : null}
                 </button>
               ))}
             </nav>

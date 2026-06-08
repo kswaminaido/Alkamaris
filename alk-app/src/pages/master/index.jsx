@@ -7,7 +7,7 @@ function ShowIcon() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path
-        d="M12 5c5 0 8.5 4.6 9.7 6.4.2.4.2.8 0 1.2C20.5 14.4 17 19 12 19s-8.5-4.6-9.7-6.4a1.1 1.1 0 0 1 0-1.2C3.5 9.6 7 5 12 5zm0 2c-3.5 0-6.2 3-7.6 5 1.4 2 4.1 5 7.6 5s6.2-3 7.6-5C18.2 10 15.5 7 12 7zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"
+        d="M12 5c5 0 8.5 4.6 9.7 6.4.2.4.2.8 0 1.2C20.5 14.4 17 19 12 19s-8.5-4.6-9.7-6.4a1.1 1.1 0 0 1 0-1.2C3.5 9.6 7 5 12 5zm0 2c-3.5 0-6.2 3-7.6 5 1.4 2 4.1 5 7.6 5s6.2-3 7.6-5Cser.2 10 15.5 7 12 7zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6z"
         fill="currentColor"
       />
     </svg>
@@ -194,14 +194,17 @@ function MasterData() {
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
-      <div className="transactions-page">
+      <div className="transactions-page master-page">
         <div className="transactions-toolbar">
           <div>
-            <h5>Master Data &gt; Users</h5>
+            <div className="master-page-title">
+              <span>Master Data</span>
+              <h5>Users</h5>
+            </div>
 
             <div className="search-filters">
               <div className="filter-group">
-                <label htmlFor="name-filter">Name:</label>
+                <label htmlFor="name-filter">Name</label>
                 <input
                   id="name-filter"
                   type="text"
@@ -212,7 +215,7 @@ function MasterData() {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="role-filter">Role:</label>
+                <label htmlFor="role-filter">Role</label>
                 <select
                   id="role-filter"
                   value={searchFilters.role}
@@ -228,7 +231,7 @@ function MasterData() {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="from-date-filter">From Date:</label>
+                <label htmlFor="from-date-filter">From Date</label>
                 <input
                   id="from-date-filter"
                   type="date"
@@ -238,7 +241,7 @@ function MasterData() {
               </div>
 
               <div className="filter-group">
-                <label htmlFor="to-date-filter">To Date:</label>
+                <label htmlFor="to-date-filter">To Date</label>
                 <input
                   id="to-date-filter"
                   type="date"
@@ -255,6 +258,7 @@ function MasterData() {
               className="primary-btn"
               onClick={() => navigate('/signup')}
               title="Add new user"
+              style={{ marginTop: '4px' }}
             >
               Add User
             </button>
@@ -355,9 +359,12 @@ function MasterData() {
 
         {viewingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="User details">
-            <div className="modal-content p-4 user-detail-modal">
-              <div className="modal-header p-0">
-                <h3>User Details</h3>
+            <div className="modal-content user-detail-modal">
+              <div className="modal-header user-detail-modal-header">
+                <div>
+                  <span>User Details</span>
+                  <h3>{viewingUser.name || 'User Profile'}</h3>
+                </div>
                 <button type="button" className="close-btn" onClick={closeDetailsModal}>x</button>
               </div>
               <div className="modal-body user-detail-grid">
@@ -371,10 +378,10 @@ function MasterData() {
                 <DetailItem label="Registration Number" value={displayRegistrationNumber(viewingUser)} />
                 <DetailItem label="Status" value={viewingUser.is_active ? 'Active' : 'Inactive'} />
                 <DetailItem label="Address" value={viewingUser.address} wide />
-                <DetailItem label="Created At" value={formatDateTime(viewingUser.created_at)} />
-                <DetailItem label="Updated At" value={formatDateTime(viewingUser.updated_at)} />
+                {/* <DetailItem label="Created At" value={formatDateTime(viewingUser.created_at)} />
+                <DetailItem label="Updated At" value={formatDateTime(viewingUser.updated_at)} /> */}
               </div>
-              <div className="modal-footer">
+              <div className="modal-footer user-detail-modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeDetailsModal}>Close</button>
                 {isAdmin ? (
                   <button
@@ -395,14 +402,17 @@ function MasterData() {
 
         {isAdmin && showEditModal && editingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
-            <div className="modal-content p-4">
-              <div className="modal-header p-0">
-                <h3>Edit User</h3>
+            <div className="modal-content user-edit-modal">
+              <div className="modal-header user-edit-modal-header">
+                <div>
+                  <span>Edit User</span>
+                  <h3>{editingUser.name || 'User Details'}</h3>
+                </div>
                 <button type="button" className="close-btn" onClick={closeEditModal}>x</button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body user-edit-form">
                 <div className="form-group">
-                  <label htmlFor="edit-name">Name:</label>
+                  <label htmlFor="edit-name">Name</label>
                   <input
                     id="edit-name"
                     type="text"
@@ -411,7 +421,7 @@ function MasterData() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-contact-name">Contact Name:</label>
+                  <label htmlFor="edit-contact-name">Contact Name</label>
                   <input
                     id="edit-contact-name"
                     type="text"
@@ -421,7 +431,7 @@ function MasterData() {
                 </div>
                 {editingUser.role === 'packer' && (
                   <div className="form-group">
-                    <label htmlFor="edit-firm-name">Firm Name:</label>
+                    <label htmlFor="edit-firm-name">Firm Name</label>
                     <input
                       id="edit-firm-name"
                       type="text"
@@ -431,7 +441,7 @@ function MasterData() {
                   </div>
                 )}
                 <div className="form-group">
-                  <label htmlFor="edit-email">Email:</label>
+                  <label htmlFor="edit-email">Email</label>
                   <input
                     id="edit-email"
                     type="email"
@@ -440,7 +450,7 @@ function MasterData() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-phone">Phone:</label>
+                  <label htmlFor="edit-phone">Phone</label>
                   <input
                     id="edit-phone"
                     type="text"
@@ -449,7 +459,7 @@ function MasterData() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-address">Address:</label>
+                  <label htmlFor="edit-address">Address</label>
                   <input
                     id="edit-address"
                     type="text"
@@ -458,7 +468,7 @@ function MasterData() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-reg-number">Registration Number:</label>
+                  <label htmlFor="edit-reg-number">Registration Number</label>
                   <input
                     id="edit-reg-number"
                     type="text"
@@ -467,7 +477,7 @@ function MasterData() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-role">Role:</label>
+                  <label htmlFor="edit-role">Role</label>
                   <select
                     id="edit-role"
                     value={editingUser.role || ''}
@@ -480,7 +490,7 @@ function MasterData() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="edit-status">Status:</label>
+                  <label htmlFor="edit-status">Status</label>
                   <select
                     id="edit-status"
                     value={editingUser.is_active ? 'active' : 'inactive'}
@@ -491,13 +501,13 @@ function MasterData() {
                   </select>
                 </div>
                 <div className="user-edit-meta">
-                  <DetailItem label="ID" value={editingUser.id} />
-                  <DetailItem label="Created At" value={formatDateTime(editingUser.created_at)} />
-                  <DetailItem label="Updated At" value={formatDateTime(editingUser.updated_at)} />
+                  {/* <DetailItem label="ID" value={editingUser.id} /> */}
+                  {/* <DetailItem label="Created At" value={formatDateTime(editingUser.created_at)} />
+                  <DetailItem label="Updated At" value={formatDateTime(editingUser.updated_at)} /> */}
                 </div>
               </div>
-              <div className="modal-footer">
-                <button type="button" className="secondary-btn" onClick={closeEditModal}>Cancel</button> &nbsp; &nbsp;
+              <div className="modal-footer user-edit-modal-footer">
+                <button type="button" className="secondary-btn" onClick={closeEditModal}>Cancel</button>
                 <button type="button" className="save-btn primary-btn" onClick={saveUserChanges} disabled={updating === editingUser.id}>
                   {updating === editingUser.id ? 'Saving...' : 'Save Changes'}
                 </button>

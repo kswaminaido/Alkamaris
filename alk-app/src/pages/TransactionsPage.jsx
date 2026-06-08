@@ -41,6 +41,10 @@ function getStatusLabel(value) {
   return option ? option.label : value
 }
 
+function getStatusClass(value) {
+  return `status-pill status-${String(value ?? 'U').toLowerCase()}`
+}
+
 function TransactionsPage() {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
@@ -235,6 +239,7 @@ function TransactionsPage() {
   const lastPage = Math.max(1, pagination.last_page ?? 1)
   const canGoPrevious = currentPage > 1
   const canGoNext = currentPage < lastPage
+  const activeFilterCount = Object.values(searchFilters).filter((value) => String(value ?? '').trim() !== '').length
 
   function getVisiblePageNumbers() {
     if (lastPage <= MAX_VISIBLE_PAGES) {
@@ -305,7 +310,17 @@ function TransactionsPage() {
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>
-            <h5>Transaction &gt; All Transaction</h5>
+            <div className="transactions-page-title">
+              <div>
+                <span>Transaction</span>
+                <h5>All Transactions</h5>
+              </div>
+              <div className="transactions-summary" aria-live="polite">
+                <span>{totalRecords} records</span>
+                <span>Page {currentPage} of {lastPage}</span>
+                {activeFilterCount > 0 && <span>{activeFilterCount} filters</span>}
+              </div>
+            </div>
             <div className="search-filters">
               <div className="filter-group">
                 <label htmlFor="booking-no-filter">Transaction Id / Code:</label>
@@ -382,7 +397,7 @@ function TransactionsPage() {
                 />
               </div>
 
-              <div className="filter-group" style={{ marginLeft: 'auto' }}>
+              <div className="filter-group filter-group-actions">
                 <label>&nbsp;</label>
                 <div className="filter-actions">
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
@@ -446,7 +461,11 @@ function TransactionsPage() {
                   <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td> */}
                   <td>-</td>
-                  <td>{getStatusLabel(transaction.status ?? 'U')}</td>
+                  <td>
+                    <span className={getStatusClass(transaction.status)}>
+                      {getStatusLabel(transaction.status ?? 'U')}
+                    </span>
+                  </td>
                   <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
                   <td>{transaction.destination ?? '-'}</td>
                   <td>{displayDate(transaction.updated_at)}</td>

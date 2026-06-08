@@ -14,9 +14,12 @@ function SignupPanel({
   return (
     <section className="signup-wrap">
       <article className="signup-card">
-        <h3 className="signup-title">Create Account</h3>
+        <div className="signup-card-head">
+          <span>Master Access</span>
+          <h3 className="signup-title">Create Account</h3>
+        </div>
 
-        <form className="form-grid register-grid" onSubmit={onSubmit}>
+        <form className="form-grid register-grid signup-form-grid" onSubmit={onSubmit}>
           <div className="register-field">
             <label htmlFor="name">{nameLabel}</label>
             <input
@@ -132,9 +135,11 @@ function SignupPanel({
             </div>
           )}
 
-          <button type="submit" className="primary-btn" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create Account'}
-          </button>
+          <div className="signup-form-actions">
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </div>
         </form>
 
         {message && <p className="message success">{message}</p>}

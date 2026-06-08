@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LoginPanel from '../components/auth/LoginPanel'
-import TopNav from '../components/layout/TopNav'
 import { useAuth } from '../context/AuthContext'
 
 const defaultLoginForm = {
@@ -39,17 +38,14 @@ function LoginPage() {
   }
 
   return (
-    <>
-      <TopNav currentUser={currentUser} />
-      <LoginPanel
-        loginForm={loginForm}
-        onFieldChange={onFieldChange}
-        onSubmit={handleSubmit}
-        loading={loading}
-        message={message}
-        error={error}
-      />
-    </>
+    <LoginPanel
+      loginForm={loginForm}
+      onFieldChange={onFieldChange}
+      onSubmit={handleSubmit}
+      loading={loading}
+      message={message}
+      error={error}
+    />
   )
 }
 
