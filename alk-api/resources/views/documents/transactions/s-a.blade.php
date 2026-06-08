@@ -188,6 +188,7 @@
 
     .size-wrap .items {
       font-size: 10px;
+      border: 0;
     }
 
     .size-wrap .items th {
@@ -201,6 +202,14 @@
 
     .size-wrap .items tfoot td {
       text-align: right;
+    }
+
+    .size-wrap .items tfoot .total-spacer {
+      border-top: 1px solid #000 !important;
+      border-right: 0 !important;
+      border-bottom: 0 !important;
+      border-left: 0 !important;
+      padding: 0;
     }
 
     .details {
@@ -310,7 +319,7 @@
         </tr>
         <tr class="title-row">
           <td class="title-pad"></td>
-          <td class="title-band" colspan="3">SHIPPING ADVICE</td>
+          <td class="title-band" colspan="3">SHIPPING DETAILS</td>
           <td class="title-pad"></td>
         </tr>
         <tr>
@@ -373,7 +382,7 @@
             <thead>
               <tr>
                 <th>Size</th>
-                <th>cartons</th>
+                <th>Cartons</th>
               </tr>
             </thead>
             <tbody>
@@ -391,9 +400,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="2" class="num total-cell">
-                  {{ $group['total_cartons'] }}
-                </td>
+                <td class="total-spacer">&nbsp;</td>
+                <td class="num total-cell">{{ $group['total_cartons'] }}</td>
               </tr>
             </tfoot>
           </table>
@@ -444,8 +452,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td>&nbsp;</td>
-                <td class="num">{{ $sa['total_cartons'] }}</td>
+                <td class="total-spacer">&nbsp;</td>
+                <td class="num total-cell">{{ $sa['total_cartons'] }}</td>
               </tr>
             </tfoot>
           </table>
