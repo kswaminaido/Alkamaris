@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { getUserIdentifierLabel, getVisibleUserTypeOptions } from '../../utils/userType'
+import { getVisibleUserTypeOptions } from '../../utils/userType'
 
 function EditIcon() {
   return (
@@ -49,9 +49,8 @@ function AdminUsersPanel({
   const menuItems = useMemo(() => [{ id: 'users', label: 'Users' }], [])
   const visibleUserTypeOptions = getVisibleUserTypeOptions(userTypeOptions, form.user_type)
   const hideAccountCredentials = ['packer', 'customer'].includes(form.user_type)
-  const identifierLabel = hideAccountCredentials ? '' : getUserIdentifierLabel(form.user_type)
   const isAdmin = currentUser?.role === 'admin'
-  const tableColumnCount = isAdmin ? 6 : 5
+  const tableColumnCount = isAdmin ? 5 : 4
 
   return (
     <section className="admin-shell">
@@ -110,7 +109,6 @@ function AdminUsersPanel({
                       <th>Email</th>
                       <th>Phone</th>
                       <th>Role</th>
-                      <th>Identifier</th>
                       {isAdmin ? <th>Actions</th> : null}
                     </tr>
                   </thead>
@@ -121,7 +119,6 @@ function AdminUsersPanel({
                         <td>{user.email}</td>
                         <td>{user.phone_number}</td>
                         <td>{user.role}</td>
-                        <td>{displayIdentifier(user)}</td>
                         {isAdmin ? (
                           <td>
                             <div className="users-actions">
@@ -192,19 +189,6 @@ function AdminUsersPanel({
                 />
               </div>
 
-              {form.user_type === 'packer' && (
-                <div className="register-field">
-                  <label htmlFor="admin-firm-name">Firm Name</label>
-                  <input
-                    id="admin-firm-name"
-                    type="text"
-                    value={form.firm_name || ''}
-                    onChange={(event) => onFieldChange('firm_name', event.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
               <div className="register-field">
                 <label htmlFor="admin-email">Email</label>
                 <input
@@ -226,19 +210,6 @@ function AdminUsersPanel({
                   required
                 />
               </div>
-
-              {!hideAccountCredentials && (
-                <div className="register-field">
-                  <label htmlFor="admin-registration">{identifierLabel}</label>
-                  <input
-                    id="admin-registration"
-                    type="text"
-                    value={form.registration_number}
-                    onChange={(event) => onFieldChange('registration_number', event.target.value)}
-                    required
-                  />
-                </div>
-              )}
 
               <div className="register-field">
                 <label htmlFor="admin-role">User Type</label>
@@ -320,11 +291,3 @@ function AdminUsersPanel({
 }
 
 export default AdminUsersPanel
-
-function displayIdentifier(user) {
-  if (['packer', 'vendor'].includes(user?.role) && user?.firm_name) {
-    return user.firm_name
-  }
-
-  return user?.registration_number
-}

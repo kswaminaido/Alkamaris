@@ -3,18 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 import { BACKEND_URL } from '../config/api'
-import { getUserIdentifierLabel } from '../utils/userType'
 
 function ProfilePage() {
   const navigate = useNavigate()
   const { currentUser, logout, authFetch, syncCurrentUser } = useAuth()
   const [profileForm, setProfileForm] = useState({
     name: '',
-    firm_name: '',
     phone_number: '',
     email: '',
     address: '',
-    registration_number: '',
   })
   const [passwordForm, setPasswordForm] = useState({
     password: '',
@@ -49,11 +46,9 @@ function ProfilePage() {
     if (!currentUser) return
     setProfileForm({
       name: currentUser.name ?? '',
-      firm_name: currentUser.firm_name ?? '',
       phone_number: currentUser.phone_number ?? '',
       email: currentUser.email ?? '',
       address: currentUser.address ?? '',
-      registration_number: currentUser.registration_number ?? '',
     })
   }, [currentUser])
 
@@ -71,9 +66,6 @@ function ProfilePage() {
   if (!currentUser) {
     return null
   }
-
-  const identifierLabel = getUserIdentifierLabel(currentUser.role)
-  const isPacker = currentUser.role === 'packer'
 
   function updateProfileField(field, value) {
     setProfileForm((previous) => ({ ...previous, [field]: value }))
@@ -245,19 +237,6 @@ function ProfilePage() {
               />
             </div>
 
-            {isPacker ? (
-              <div className="register-field">
-                <label htmlFor="profile-firm-name">Firm Name</label>
-                <input
-                  id="profile-firm-name"
-                  type="text"
-                  value={profileForm.firm_name}
-                  onChange={(event) => updateProfileField('firm_name', event.target.value)}
-                  required
-                />
-              </div>
-            ) : null}
-
             <div className="register-field">
               <label htmlFor="profile-email">Email</label>
               <input
@@ -265,17 +244,6 @@ function ProfilePage() {
                 type="email"
                 value={profileForm.email}
                 onChange={(event) => updateProfileField('email', event.target.value)}
-                required
-              />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="profile-registration">{identifierLabel}</label>
-              <input
-                id="profile-registration"
-                type="text"
-                value={profileForm.registration_number}
-                onChange={(event) => updateProfileField('registration_number', event.target.value)}
                 required
               />
             </div>

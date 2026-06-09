@@ -17,21 +17,18 @@ class PackerSeeder extends Seeder
                 'phone_number' => '9000002001',
                 'email' => 'packer.prime@example.com',
                 'address' => 'Visakhapatnam, India',
-                'registration_number' => 'PACK-PRIME-001',
             ],
             [
                 'name' => 'Packer Delta Marine',
                 'phone_number' => '9000002002',
                 'email' => 'packer.delta@example.com',
                 'address' => 'Mangalore, India',
-                'registration_number' => 'PACK-DELTA-002',
             ],
             [
                 'name' => 'Packer Nova Packers',
                 'phone_number' => '9000002003',
                 'email' => 'packer.nova@example.com',
                 'address' => 'Tuticorin, India',
-                'registration_number' => 'PACK-NOVA-003',
             ],
         ];
 

@@ -19,7 +19,7 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
           {(currentUser.role === 'packer' || currentUser.role === 'vendor') && (
             <section className="dash-card">
               <h3>Packer Workspace</h3>
-              <p>Track your profile, registration details, and account information.</p>
+              <p>Track your profile and account information.</p>
               <code>GET /api/auth/me</code>
             </section>
           )}
@@ -27,7 +27,7 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
           {currentUser.role === 'customer' && (
             <section className="dash-card">
               <h3>Customer Workspace</h3>
-              <p>Track your profile, registration and account details.</p>
+              <p>Track your profile and account details.</p>
               <code>GET /api/auth/me</code>
             </section>
           )}

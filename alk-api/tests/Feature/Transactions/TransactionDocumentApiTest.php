@@ -39,8 +39,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Contai Contact',
-            'firm_name' => 'Contai Marine Fish Export Private Limited',
-            'registration_number' => 'PACK-CONT-4455',
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -142,8 +140,7 @@ final class TransactionDocumentApiTest extends TestCase
         );
         $this->assertStringContainsString('<td class="comment-label">Destination</td>', $payload['preview_html']);
         $this->assertStringContainsString('AQABA, JORDAN', $payload['preview_html']);
-        $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $payload['preview_html']);
-        $this->assertStringContainsString('PACK-CONT-4455', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $payload['preview_html']);
         $this->assertDoesNotMatchRegularExpression(
             '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">MANUAL-BCB-999<\/td>/',
             $payload['preview_html'],
@@ -176,8 +173,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Mourya Contact',
-            'firm_name' => 'Mourya Aquex Private Limited',
-            'registration_number' => 'PACK-MOURYA-7788',
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -607,11 +602,7 @@ final class TransactionDocumentApiTest extends TestCase
         $response->assertOk()->assertJsonCount(2, 'data');
 
         foreach ($response->json('data') as $document) {
-            $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td class="order-ref-label">Buyer\'s</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td>PO 123</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td class="order-ref-label">Packer\'s</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td>PI 456</td>', $document['preview_html']);
+            $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
             $this->assertDoesNotMatchRegularExpression(
                 '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">PI 456<\/td>/',
                 $document['preview_html'],
@@ -619,7 +610,7 @@ final class TransactionDocumentApiTest extends TestCase
         }
     }
 
-    public function test_bcv_and_bcb_factory_approval_number_uses_packer_firm_when_registration_is_missing(): void
+    public function test_bcv_and_bcb_factory_approval_number_does_not_use_user_profile_identifiers(): void
     {
         $admin = User::factory()->create([
             'role' => UserRole::Admin->value,
@@ -636,8 +627,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Fallback Packer Contact',
-            'firm_name' => 'FIRM-PACKER-4455',
-            'registration_number' => null,
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -647,7 +636,7 @@ final class TransactionDocumentApiTest extends TestCase
 
         GeneralInfoPacker::query()->create([
             'transaction_id' => $transaction->id,
-            'packer_name' => 'FIRM-PACKER-4455',
+            'packer_name' => 'Fallback Packer',
             'packer_number' => 'PACKER-FORM-NO-456',
         ]);
 
@@ -673,8 +662,7 @@ final class TransactionDocumentApiTest extends TestCase
         $response->assertOk()->assertJsonCount(2, 'data');
 
         foreach ($response->json('data') as $document) {
-            $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
-            $this->assertStringContainsString('FIRM-PACKER-4455', $document['preview_html']);
+            $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
             $this->assertDoesNotMatchRegularExpression(
                 '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">PACKER-FORM-NO-456<\/td>/',
                 $document['preview_html'],

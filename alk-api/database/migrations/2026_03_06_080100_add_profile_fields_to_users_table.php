@@ -15,10 +15,9 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table): void {
             $table->string('phone_number')->nullable()->after('name');
             $table->text('address')->nullable()->after('email');
-            $table->string('registration_number')->nullable()->unique()->after('address');
             $table->string('role')
                 ->default(UserRole::Customer->value)
-                ->after('registration_number');
+                ->after('address');
         });
     }
 
@@ -28,11 +27,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table): void {
-            $table->dropUnique(['registration_number']);
             $table->dropColumn([
                 'phone_number',
                 'address',
-                'registration_number',
                 'role',
             ]);
         });

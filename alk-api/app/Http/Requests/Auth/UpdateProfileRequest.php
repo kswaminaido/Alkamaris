@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,27 +21,9 @@ final class UpdateProfileRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'firm_name' => [
-                Rule::requiredIf(fn (): bool => ($user?->role?->value ?? $user?->role) === UserRole::Packer->value),
-                'nullable',
-                'string',
-                'max:255',
-            ],
             'phone_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'address' => ['required', 'string', 'max:1000'],
-            'registration_number' => ['required', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
         ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function validatedWithRegistrationNumber(): array
-    {
-        $validated = $this->validated();
-        $validated['resolved_registration_number'] = $validated['registration_number'];
-
-        return $validated;
     }
 }

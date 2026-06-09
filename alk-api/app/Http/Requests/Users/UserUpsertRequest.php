@@ -34,46 +34,13 @@ abstract class UserUpsertRequest extends FormRequest
         return [
             'name' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:255'],
             'contact_name' => ['nullable', 'string', 'max:255'],
-            'firm_name' => ['nullable', 'string', 'max:255'],
             'phone_number' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:20'],
             'email' => [$isUpdate ? 'nullable' : 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'address' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:1000'],
-            'registration_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
-            'firm_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
-            'factory_approval_number' => ['nullable', 'string', 'max:100', Rule::unique('users', 'registration_number')->ignore($user?->id)],
             'user_type' => [$isUpdate ? 'nullable' : 'required', 'string', Rule::in($this->allowedRoles($user))],
             'password' => ['nullable', 'string', 'min:8'],
             'is_active' => ['nullable', 'boolean'],
         ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function validatedWithRegistrationNumber(): array
-    {
-        $validated = $this->validated();
-        if ($this->has('user_type')) {
-            $validated['resolved_registration_number'] = $this->resolveRegistrationNumber($validated);
-        }
-
-        return $validated;
-    }
-
-    /**
-     * @param  array<string, mixed>  $validated
-     */
-    private function resolveRegistrationNumber(array $validated): ?string
-    {
-        foreach (['firm_number', 'factory_approval_number', 'registration_number'] as $field) {
-            $value = trim((string) ($validated[$field] ?? ''));
-
-            if ($value !== '') {
-                return $value;
-            }
-        }
-
-        return null;
     }
 
     /**

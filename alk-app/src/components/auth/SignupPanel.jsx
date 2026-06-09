@@ -8,7 +8,6 @@ function SignupPanel({
   error,
 }) {
   const nameLabel = registerForm.user_type === 'customer' ? 'Customer Name' : 'Name'
-  const shouldShowFirmName = registerForm.user_type === 'packer'
   const shouldShowPasswordFields = ['admin', 'logistics', 'accounts'].includes(registerForm.user_type)
 
   return (
@@ -38,19 +37,6 @@ function SignupPanel({
               required
             />
           </div>
-
-          {shouldShowFirmName && (
-            <div className="register-field">
-              <label htmlFor="firm_name">Firm Name</label>
-              <input
-                id="firm_name"
-                type="text"
-                value={registerForm.firm_name}
-                onChange={(event) => onFieldChange('firm_name', event.target.value)}
-                required
-              />
-            </div>
-          )}
 
           <div className="register-field">
             <label htmlFor="phone_number">Phone Number</label>
