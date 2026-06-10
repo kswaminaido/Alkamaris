@@ -7,7 +7,7 @@ function SignupPanel({
   message,
   error,
 }) {
-  const nameLabel = registerForm.user_type === 'customer' ? 'Customer Name' : 'Name'
+  const nameLabel = registerForm.user_type === 'customer' || registerForm.user_type === 'packer' ? 'Company Name' : 'Name'
   const shouldShowPasswordFields = ['admin', 'logistics', 'accounts'].includes(registerForm.user_type)
 
   return (

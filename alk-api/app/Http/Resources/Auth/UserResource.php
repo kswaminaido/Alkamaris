@@ -19,6 +19,7 @@ final class UserResource extends JsonResource
             'phone_number' => $this->phone_number,
             'email' => $this->email,
             'address' => $this->address,
+            'is_active' => (bool) $this->is_active,
             'authorization_signature_url' => $this->authorizationUrl($request, $this->authorization_signature_path, 'images/signature.png'),
             'authorization_stamp_url' => $this->authorizationUrl($request, $this->authorization_stamp_path, 'images/stamp.jpg'),
             'role' => $this->role?->value ?? $this->role,
