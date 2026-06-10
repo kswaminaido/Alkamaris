@@ -45,7 +45,7 @@ class Transaction extends Model
     {
         return [
             'salesPerson:id,name,email',
-            'createdBy:id,name,email',
+            'createdBy:id,name,email,authorization_signature_path,authorization_stamp_path',
             'generalInfoCustomer',
             'generalInfoPacker',
             'revenueCustomer',

@@ -13,6 +13,7 @@ use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class TransactionDocumentApiTest extends TestCase
@@ -153,6 +154,93 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringNotContainsString('Latest Shipment Date', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Customer</td>', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Commission</td>', $payload['preview_html']);
+    }
+
+    public function test_transaction_document_uses_transaction_creator_signature_and_stamp(): void
+    {
+        $creator = User::factory()->create([
+            'role' => UserRole::Admin->value,
+            'authorization_signature_path' => 'signatures/creator-signature.png',
+            'authorization_stamp_path' => 'signatures/creator-stamp.png',
+        ]);
+
+        $viewer = User::factory()->create([
+            'role' => UserRole::Admin->value,
+            'authorization_signature_path' => 'signatures/viewer-signature.png',
+            'authorization_stamp_path' => 'signatures/viewer-stamp.png',
+        ]);
+
+        $creatorSignature = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=');
+        $creatorStamp = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mNgYGD4z8DAwMDAwAQAAP//AwAEXDZJAAAAAElFTkSuQmCC');
+        $viewerSignature = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8AARAIiAAYQX5h9AAAAAElFTkSuQmCC');
+        $viewerStamp = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mNgYGBgYGBgYQAAAP//AwCiX8iPAAAAAElFTkSuQmCC');
+
+        Storage::disk('public')->put($creator->authorization_signature_path, $creatorSignature);
+        Storage::disk('public')->put($creator->authorization_stamp_path, $creatorStamp);
+        Storage::disk('public')->put($viewer->authorization_signature_path, $viewerSignature);
+        Storage::disk('public')->put($viewer->authorization_stamp_path, $viewerStamp);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIN2605802',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-01-24',
+            'sales_person_id' => $creator->id,
+            'destination' => 'AQABA, JORDAN',
+            'type' => 'Trade',
+            'container_primary' => '10 x 1 KG(S) IQF',
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'Leader Food Supply Institution',
+            'attention' => 'Mr. Yousef Aziz',
+            'prices_customer_type' => 'DDP',
+            'prices_customer_rate' => 'Japan',
+            'payment_customer_advance_percent' => 30,
+            'payment_customer_term' => 'Advance',
+            'description' => 'Customer delivery by appointment only.',
+        ]);
+
+        GeneralInfoPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'vendor' => 'Contai Contact',
+            'packer_number' => 'MANUAL-BCB-999',
+            'packed_by' => 'Factory Line A',
+        ]);
+
+        RevenueCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'description' => 'Frozen Vannamei White Shrimp',
+        ]);
+
+        ShippingDetailsPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'lsd_max' => '2026-02-28',
+        ]);
+
+        TransactionNote::query()->create([
+            'transaction_id' => $transaction->id,
+            'by_sales' => '35% glaze frozen weight & frozen count. EU standard treatment',
+        ]);
+
+        $token = $viewer->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['bcv_lqd'],
+                'options' => [],
+            ]);
+
+        $response->assertOk();
+
+        $payload = $response->json('data.0');
+
+        $this->assertStringContainsString(base64_encode($creatorSignature), $payload['preview_html']);
+        $this->assertStringContainsString(base64_encode($creatorStamp), $payload['preview_html']);
+        $this->assertStringNotContainsString(base64_encode($viewerSignature), $payload['preview_html']);
+        $this->assertStringNotContainsString(base64_encode($viewerStamp), $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_uses_transaction_items(): void

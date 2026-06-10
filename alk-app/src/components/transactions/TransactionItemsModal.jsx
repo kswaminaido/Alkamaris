@@ -278,7 +278,6 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     async function loadFieldOptions() {
       if (transactionItemOptionsCache) {
         setFieldOptions(transactionItemOptionsCache)
-        return
       }
 
       try {

@@ -12,8 +12,7 @@ class TransactionDocumentController extends Controller
 {
     public function __construct(
         private readonly TransactionDocumentService $documentService,
-    ) {
-    }
+    ) {}
 
     public function render(RenderTransactionDocumentRequest $request, Transaction $transaction): JsonResponse
     {
@@ -24,7 +23,6 @@ class TransactionDocumentController extends Controller
             $transaction,
             $validated['document_types'],
             $validated['options'] ?? [],
-            $request->user(),
         );
 
         return response()->json(['data' => $documents]);
