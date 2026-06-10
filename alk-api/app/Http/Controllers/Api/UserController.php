@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
+use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
@@ -47,7 +48,7 @@ class UserController extends Controller
             ->paginate($perPage);
 
         return response()->json([
-            'data' => $paginator->items(),
+            'data' => UserResource::collection($paginator->items())->resolve(),
             'pagination' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),
@@ -59,20 +60,20 @@ class UserController extends Controller
 
     public function show(User $user): JsonResponse
     {
-        return response()->json(['data' => $user]);
+        return response()->json(['data' => UserResource::make($user)->resolve()]);
     }
 
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $user = $this->userService->create($request->validatedWithRegistrationNumber());
+        $user = $this->userService->create($request->validated());
 
-        return response()->json(['data' => $user], Response::HTTP_CREATED);
+        return response()->json(['data' => UserResource::make($user)->resolve()], Response::HTTP_CREATED);
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         return response()->json([
-            'data' => $this->userService->update($user, $request->validatedWithRegistrationNumber()),
+            'data' => UserResource::make($this->userService->update($user, $request->validated()))->resolve(),
         ]);
     }
 

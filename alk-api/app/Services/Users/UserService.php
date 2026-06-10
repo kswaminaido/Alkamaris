@@ -40,9 +40,6 @@ final class UserService
         if (isset($validated['contact_name'])) {
             $payload['contact_name'] = $validated['contact_name'];
         }
-        if (isset($validated['firm_name'])) {
-            $payload['firm_name'] = $validated['firm_name'];
-        }
         if (isset($validated['phone_number'])) {
             $payload['phone_number'] = $validated['phone_number'];
         }
@@ -51,9 +48,6 @@ final class UserService
         }
         if (isset($validated['address'])) {
             $payload['address'] = $validated['address'];
-        }
-        if (isset($validated['resolved_registration_number'])) {
-            $payload['registration_number'] = $validated['resolved_registration_number'];
         }
         if (isset($validated['user_type'])) {
             $payload['role'] = $validated['user_type'];

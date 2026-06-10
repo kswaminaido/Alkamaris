@@ -22,11 +22,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'contact_name',
-        'firm_name',
         'phone_number',
         'email',
         'address',
-        'registration_number',
         'authorization_signature_path',
         'authorization_stamp_path',
         'role',

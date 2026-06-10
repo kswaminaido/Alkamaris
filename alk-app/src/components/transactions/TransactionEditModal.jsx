@@ -825,7 +825,7 @@ function ShipTab({ transaction, optionsFor, addOption }) {
             <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', localFallback('VISAKHAPATNAM, IND'))} /></Row>
             <Row label="Destination"><NamedSearchableSelect name="logistics.destination" value={destination} list={mergeCountryOptions(optionsFor('transaction.destination'), destination)} onAdd={(value) => addOption('transaction.destination', value)} /></Row>
             <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', localFallback('MAERSK'))} /></Row>
-            <Row label="SC Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row>
+            <Row label="AME Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row>
             <Row label="Packer Inv Date"><DateInput name="logistics.packer_inv_date" value={logisticsDate('packer_inv_date', localFallback('26/12/2025'))} /></Row>
             <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', localFallback('MAA/286/2025-26'))} /></Row>
           </div>

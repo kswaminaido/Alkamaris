@@ -106,7 +106,7 @@
 
     .title-band {
       width: 66%;
-      background: #000;
+      background: #061173;
       color: #fff;
       text-align: center;
       font-weight: 800;
@@ -159,7 +159,7 @@
     }
 
     .product-head td {
-      background: #000;
+      background: #061173;
       color: #fff;
       font-weight: 800;
       font-size: 11px;
@@ -188,11 +188,10 @@
 
     .size-wrap .items {
       font-size: 10px;
+      border: 0;
     }
 
     .size-wrap .items th {
-      background: #fff;
-      color: #000;
       text-align: center;
       font-weight: 800;
     }
@@ -203,6 +202,14 @@
 
     .size-wrap .items tfoot td {
       text-align: right;
+    }
+
+    .size-wrap .items tfoot .total-spacer {
+      border-top: 1px solid #000 !important;
+      border-right: 0 !important;
+      border-bottom: 0 !important;
+      border-left: 0 !important;
+      padding: 0;
     }
 
     .details {
@@ -276,6 +283,18 @@
 
 <body>
   @php($sa = $view['s_a'])
+  @php($saDetails = [
+  ['label' => 'TOTAL CARTONS', 'value' => $sa['total_cartons']],
+  ['label' => 'FEEDER VESSEL', 'value' => $sa['feeder_vessel']],
+  ['label' => 'MOTHER VESSEL', 'value' => $sa['mother_vessel']],
+  ['label' => 'CONTAINER #', 'value' => $sa['container_no']],
+  ['label' => 'SEAL #', 'value' => $sa['seal_no']],
+  ['label' => 'PORT OF LOADING', 'value' => $sa['port_of_loading']],
+  ['label' => 'ETD', 'value' => $sa['etd']],
+  ['label' => 'B/L OF LADING #', 'value' => $sa['bl_of_lading']],
+  ['label' => 'ETA', 'value' => $sa['eta']],
+  ['label' => 'SHIPPING LINE / AGENT', 'value' => $sa['shipping_line_agent']],
+  ])
   <div class="doc-wrap">
     <section class="doc-page" data-company-alias="{{ $view['header_company'] }}">
       <table class="main meta">
@@ -300,7 +319,7 @@
         </tr>
         <tr class="title-row">
           <td class="title-pad"></td>
-          <td class="title-band" colspan="3">SHIPPING ADVICE</td>
+          <td class="title-band" colspan="3">SHIPPING DETAILS</td>
           <td class="title-pad"></td>
         </tr>
         <tr>
@@ -328,7 +347,7 @@
           <td class="meta-value" colspan="4">{{ $sa['packer_name'] }}</td>
         </tr>
       </table>
-
+      <br>
       @forelse ($sa['groups'] as $group)
       <div class="product-section">
         <table class="main product">
@@ -363,7 +382,7 @@
             <thead>
               <tr>
                 <th>Size</th>
-                <th>cartons</th>
+                <th>Cartons</th>
               </tr>
             </thead>
             <tbody>
@@ -381,9 +400,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="2" class="num total-cell">
-                  {{ $group['total_cartons'] }}
-                </td>
+                <td class="total-spacer">&nbsp;</td>
+                <td class="num total-cell">{{ $group['total_cartons'] }}</td>
               </tr>
             </tfoot>
           </table>
@@ -434,8 +452,8 @@
             </tbody>
             <tfoot>
               <tr>
-                <td>&nbsp;</td>
-                <td class="num">{{ $sa['total_cartons'] }}</td>
+                <td class="total-spacer">&nbsp;</td>
+                <td class="num total-cell">{{ $sa['total_cartons'] }}</td>
               </tr>
             </tfoot>
           </table>
@@ -443,52 +461,28 @@
       </div>
       @endforelse
 
+      @if (collect($saDetails)->contains(fn($row) => trim((string) $row['value']) !== ''))
       <table class="main details">
         <colgroup>
           <col style="width:42%">
           <col style="width:58%">
         </colgroup>
+        @foreach ($saDetails as $row)
+        @if (trim((string) $row['value']) !== '')
         <tr>
-          <td class="details-label">TOTAL CARTONS</td>
-          <td class="details-value">{{ $sa['total_cartons'] }}</td>
+          <td class="details-label">{{ $row['label'] }}</td>
+          <td class="details-value">
+            @if (!empty($row['multiline']))
+            {!! nl2br(e($row['value'])) !!}
+            @else
+            {{ $row['value'] }}
+            @endif
+          </td>
         </tr>
-        <tr>
-          <td class="details-label">FEEDER VESSEL</td>
-          <td class="details-value">{{ $sa['feeder_vessel'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">MOTHER VESSEL</td>
-          <td class="details-value">{{ $sa['mother_vessel'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">CONTAINER #</td>
-          <td class="details-value">{{ $sa['container_no'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">SEAL #</td>
-          <td class="details-value">{{ $sa['seal_no'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">PORT OF LOADING</td>
-          <td class="details-value">{{ $sa['port_of_loading'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">ETD</td>
-          <td class="details-value">{{ $sa['etd'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">B/L OF LADING #</td>
-          <td class="details-value">{{ $sa['bl_of_lading'] }}</td>
-        </tr>
-        <tr>
-          <td class="details-label">ETA</td>
-          <td class="details-value">{!! nl2br(e($sa['eta'])) !!}</td>
-        </tr>
-        <tr>
-          <td class="details-label">SHIPPING LINE / AGENT</td>
-          <td class="details-value">{{ $sa['shipping_line_agent'] }}</td>
-        </tr>
+        @endif
+        @endforeach
       </table>
+      @endif
 
       <div class="disclaimer">
         {{ $view['footer_note'] }}

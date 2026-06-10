@@ -449,8 +449,8 @@
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
-            @if ($bcv['packer_block']['registration'] !== '')
-            <div>{{ $bcv['packer_block']['registration'] }}</div>
+            @if ($bcv['packer_block']['tax_identifier'] !== '')
+            <div>{{ $bcv['packer_block']['tax_identifier'] }}</div>
             @endif
             @if ($bcv['packed_by'] !== '')
             <div><strong>Packed By</strong></div>
@@ -462,8 +462,8 @@
             @foreach ($bcv['customer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
-            @if ($bcv['customer_block']['registration'] !== '')
-            <div>{{ $bcv['customer_block']['registration'] }}</div>
+            @if ($bcv['customer_block']['tax_identifier'] !== '')
+            <div>{{ $bcv['customer_block']['tax_identifier'] }}</div>
             @endif
           </td>
         </tr>
@@ -557,10 +557,6 @@
                   <td class="comment-label">Customer</td>
                   <td class="comment-value">{{ $bcv['customer'] }}</td>
                 </tr>
-                <!-- <tr>
-                  <td class="comment-label">Factory Approval Number</td>`
-                  <td class="comment-value">{{ $bcv['factory_approval_number'] }}</td>
-                </tr> -->
                 <tr>
                   <td class="comment-label">Commission</td>
                   <td class="comment-value">{{ $bcv['commission'] }}</td>

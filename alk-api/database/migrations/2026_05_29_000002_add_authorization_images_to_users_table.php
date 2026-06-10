@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table): void {
-            $table->string('authorization_signature_path')->nullable()->after('registration_number');
+            $table->string('authorization_signature_path')->nullable()->after('address');
             $table->string('authorization_stamp_path')->nullable()->after('authorization_signature_path');
         });
     }

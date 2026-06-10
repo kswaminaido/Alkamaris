@@ -198,4 +198,32 @@ final class TransactionItemApiTest extends TestCase
             ->assertJsonPath('data.items.0.buying_total', '17284.00000')
             ->assertJsonPath('data.items.0.total_packer_commission', '432.10000');
     }
+
+    public function test_item_can_calculate_weight_from_oz_packing_description(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-ITEM-OZ-1',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/items", [
+                'item' => [
+                    'product' => 'Frozen Vannamei',
+                    'packing' => '30 × 12 oz',
+                    'qty_booking' => 1510,
+                    'selling_unit_price' => 4.35,
+                ],
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.items.0.total_weight_value', '33975.00000')
+            ->assertJsonPath('data.items.0.selling_total', '147791.25000');
+    }
 }

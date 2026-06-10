@@ -13,6 +13,7 @@ use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class TransactionDocumentApiTest extends TestCase
@@ -39,8 +40,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Contai Contact',
-            'firm_name' => 'Contai Marine Fish Export Private Limited',
-            'registration_number' => 'PACK-CONT-4455',
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -142,8 +141,7 @@ final class TransactionDocumentApiTest extends TestCase
         );
         $this->assertStringContainsString('<td class="comment-label">Destination</td>', $payload['preview_html']);
         $this->assertStringContainsString('AQABA, JORDAN', $payload['preview_html']);
-        $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $payload['preview_html']);
-        $this->assertStringContainsString('PACK-CONT-4455', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $payload['preview_html']);
         $this->assertDoesNotMatchRegularExpression(
             '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">MANUAL-BCB-999<\/td>/',
             $payload['preview_html'],
@@ -156,6 +154,93 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringNotContainsString('Latest Shipment Date', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Customer</td>', $payload['preview_html']);
         $this->assertStringNotContainsString('<td class="comment-label">Commission</td>', $payload['preview_html']);
+    }
+
+    public function test_transaction_document_uses_transaction_creator_signature_and_stamp(): void
+    {
+        $creator = User::factory()->create([
+            'role' => UserRole::Admin->value,
+            'authorization_signature_path' => 'signatures/creator-signature.png',
+            'authorization_stamp_path' => 'signatures/creator-stamp.png',
+        ]);
+
+        $viewer = User::factory()->create([
+            'role' => UserRole::Admin->value,
+            'authorization_signature_path' => 'signatures/viewer-signature.png',
+            'authorization_stamp_path' => 'signatures/viewer-stamp.png',
+        ]);
+
+        $creatorSignature = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=');
+        $creatorStamp = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mNgYGD4z8DAwMDAwAQAAP//AwAEXDZJAAAAAElFTkSuQmCC');
+        $viewerSignature = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8AARAIiAAYQX5h9AAAAAElFTkSuQmCC');
+        $viewerStamp = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mNgYGBgYGBgYQAAAP//AwCiX8iPAAAAAElFTkSuQmCC');
+
+        Storage::disk('public')->put($creator->authorization_signature_path, $creatorSignature);
+        Storage::disk('public')->put($creator->authorization_stamp_path, $creatorStamp);
+        Storage::disk('public')->put($viewer->authorization_signature_path, $viewerSignature);
+        Storage::disk('public')->put($viewer->authorization_stamp_path, $viewerStamp);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIN2605802',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-01-24',
+            'sales_person_id' => $creator->id,
+            'destination' => 'AQABA, JORDAN',
+            'type' => 'Trade',
+            'container_primary' => '10 x 1 KG(S) IQF',
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'Leader Food Supply Institution',
+            'attention' => 'Mr. Yousef Aziz',
+            'prices_customer_type' => 'DDP',
+            'prices_customer_rate' => 'Japan',
+            'payment_customer_advance_percent' => 30,
+            'payment_customer_term' => 'Advance',
+            'description' => 'Customer delivery by appointment only.',
+        ]);
+
+        GeneralInfoPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'vendor' => 'Contai Contact',
+            'packer_number' => 'MANUAL-BCB-999',
+            'packed_by' => 'Factory Line A',
+        ]);
+
+        RevenueCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'description' => 'Frozen Vannamei White Shrimp',
+        ]);
+
+        ShippingDetailsPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'lsd_max' => '2026-02-28',
+        ]);
+
+        TransactionNote::query()->create([
+            'transaction_id' => $transaction->id,
+            'by_sales' => '35% glaze frozen weight & frozen count. EU standard treatment',
+        ]);
+
+        $token = $viewer->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['bcv_lqd'],
+                'options' => [],
+            ]);
+
+        $response->assertOk();
+
+        $payload = $response->json('data.0');
+
+        $this->assertStringContainsString(base64_encode($creatorSignature), $payload['preview_html']);
+        $this->assertStringContainsString(base64_encode($creatorStamp), $payload['preview_html']);
+        $this->assertStringNotContainsString(base64_encode($viewerSignature), $payload['preview_html']);
+        $this->assertStringNotContainsString(base64_encode($viewerStamp), $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_uses_transaction_items(): void
@@ -176,8 +261,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Mourya Contact',
-            'firm_name' => 'Mourya Aquex Private Limited',
-            'registration_number' => 'PACK-MOURYA-7788',
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -413,13 +496,10 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Stavis Seafoods', $payload['preview_html']);
         $this->assertStringContainsString('JAGADEESH VENDOR EXPORTS', $payload['preview_html']);
         $this->assertMatchesRegularExpression(
-            '/<td class="meta-label">Buyer\'s<\/td>\s*<td class="meta-value" colspan="5">Stavis Seafoods<\/td>/',
+            '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="4">JAGADEESH VENDOR EXPORTS<\/td>/',
             $payload['preview_html'],
         );
-        $this->assertMatchesRegularExpression(
-            '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="5">JAGADEESH VENDOR EXPORTS<\/td>/',
-            $payload['preview_html'],
-        );
+        $this->assertStringContainsString('background: #061173;', $payload['preview_html']);
         $this->assertStringContainsString('FROZEN VANNAMEI WHITE SHRIMP', $payload['preview_html']);
         $this->assertStringContainsString('FROZEN BLACK TIGER SHRIMP', $payload['preview_html']);
         $this->assertStringContainsString('HEADLESS SHELL ON', $payload['preview_html']);
@@ -435,6 +515,64 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('ONEYMAAG16348700', $payload['preview_html']);
         $this->assertStringContainsString('NEW YORK, NY, UNITED STATES', $payload['preview_html']);
         $this->assertStringNotContainsString('119,300.00', $payload['preview_html']);
+    }
+
+    public function test_shipping_advice_document_hides_blank_bottom_detail_fields(): void
+    {
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin->value,
+        ]);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIF2602118',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-03-15',
+            'sales_person_id' => $admin->id,
+            'destination' => 'New York, NY, United States',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'Stavis Seafoods',
+        ]);
+
+        TransactionLogistics::query()->create([
+            'transaction_id' => $transaction->id,
+            'container_no' => 'TEMU9566632',
+            'destination' => 'New York, NY, United States',
+        ]);
+
+        $transaction->items()->create([
+            'product' => 'Frozen Shrimp',
+            'size' => '31/40',
+        ]);
+
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['s_a'],
+                'options' => [],
+            ]);
+
+        $response->assertOk();
+
+        $payload = $response->json('data.0');
+
+        $this->assertIsArray($payload);
+        $this->assertStringContainsString('CONTAINER #', $payload['preview_html']);
+        $this->assertStringContainsString('TEMU9566632', $payload['preview_html']);
+        $this->assertStringNotContainsString('TOTAL CARTONS', $payload['preview_html']);
+        $this->assertStringNotContainsString('FEEDER VESSEL', $payload['preview_html']);
+        $this->assertStringNotContainsString('MOTHER VESSEL', $payload['preview_html']);
+        $this->assertStringNotContainsString('SEAL #', $payload['preview_html']);
+        $this->assertStringNotContainsString('PORT OF LOADING', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="details-label">ETD</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('B/L OF LADING #', $payload['preview_html']);
+        $this->assertStringNotContainsString('<td class="details-label">ETA</td>', $payload['preview_html']);
+        $this->assertStringNotContainsString('SHIPPING LINE / AGENT', $payload['preview_html']);
     }
 
     public function test_bcv_lqd_document_falls_back_to_item_selling_price_and_keeps_missing_amounts_blank(): void
@@ -552,11 +690,7 @@ final class TransactionDocumentApiTest extends TestCase
         $response->assertOk()->assertJsonCount(2, 'data');
 
         foreach ($response->json('data') as $document) {
-            $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td class="order-ref-label">Buyer\'s</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td>PO 123</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td class="order-ref-label">Packer\'s</td>', $document['preview_html']);
-            $this->assertStringContainsString('<td>PI 456</td>', $document['preview_html']);
+            $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
             $this->assertDoesNotMatchRegularExpression(
                 '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">PI 456<\/td>/',
                 $document['preview_html'],
@@ -564,7 +698,7 @@ final class TransactionDocumentApiTest extends TestCase
         }
     }
 
-    public function test_bcv_and_bcb_factory_approval_number_uses_packer_firm_when_registration_is_missing(): void
+    public function test_bcv_and_bcb_factory_approval_number_does_not_use_user_profile_identifiers(): void
     {
         $admin = User::factory()->create([
             'role' => UserRole::Admin->value,
@@ -581,8 +715,6 @@ final class TransactionDocumentApiTest extends TestCase
         User::factory()->create([
             'role' => UserRole::Packer->value,
             'name' => 'Fallback Packer Contact',
-            'firm_name' => 'FIRM-PACKER-4455',
-            'registration_number' => null,
         ]);
 
         GeneralInfoCustomer::query()->create([
@@ -592,7 +724,7 @@ final class TransactionDocumentApiTest extends TestCase
 
         GeneralInfoPacker::query()->create([
             'transaction_id' => $transaction->id,
-            'packer_name' => 'FIRM-PACKER-4455',
+            'packer_name' => 'Fallback Packer',
             'packer_number' => 'PACKER-FORM-NO-456',
         ]);
 
@@ -618,8 +750,7 @@ final class TransactionDocumentApiTest extends TestCase
         $response->assertOk()->assertJsonCount(2, 'data');
 
         foreach ($response->json('data') as $document) {
-            $this->assertStringContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
-            $this->assertStringContainsString('FIRM-PACKER-4455', $document['preview_html']);
+            $this->assertStringNotContainsString('<td class="comment-label">Factory Approval Number</td>', $document['preview_html']);
             $this->assertDoesNotMatchRegularExpression(
                 '/<td class="comment-label">Factory Approval Number<\/td>\s*<td class="comment-value">PACKER-FORM-NO-456<\/td>/',
                 $document['preview_html'],

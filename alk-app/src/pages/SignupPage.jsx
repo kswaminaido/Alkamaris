@@ -12,7 +12,6 @@ function initialSignupForm(userType = '') {
   return {
     name: '',
     contact_name: '',
-    firm_name: '',
     phone_number: '',
     email: '',
     address: '',
@@ -77,10 +76,6 @@ function SignupPage() {
         nextForm.password = ''
         nextForm.password_confirmation = ''
       }
-      if (value !== 'packer') {
-        nextForm.firm_name = ''
-      }
-
       return nextForm
     })
   }

@@ -35,10 +35,10 @@ class TransactionDocumentService
      * @param  array<string, mixed>  $options
      * @return array<int, array<string, mixed>>
      */
-    public function render(Transaction $transaction, array $documentTypes, array $options = [], ?User $user = null): array
+    public function render(Transaction $transaction, array $documentTypes, array $options = []): array
     {
         return $this->normalizeTypes($documentTypes)
-            ->map(fn (string $documentType): array => $this->buildDocument($transaction, $documentType, $options, $user))
+            ->map(fn(string $documentType): array => $this->buildDocument($transaction, $documentType, $options))
             ->all();
     }
 
@@ -49,8 +49,8 @@ class TransactionDocumentService
     private function normalizeTypes(array $documentTypes)
     {
         $normalizedTypes = collect($documentTypes)
-            ->map(fn (mixed $value): string => Str::of((string) $value)->lower()->replace('-', '_')->value())
-            ->filter(fn (string $value): bool => array_key_exists($value, self::DOCUMENT_LABELS))
+            ->map(fn(mixed $value): string => Str::of((string) $value)->lower()->replace('-', '_')->value())
+            ->filter(fn(string $value): bool => array_key_exists($value, self::DOCUMENT_LABELS))
             ->unique()
             ->values();
 
@@ -60,7 +60,7 @@ class TransactionDocumentService
 
         if ($normalizedTypes->contains('all')) {
             return collect(array_keys(self::DOCUMENT_LABELS))
-                ->reject(fn (string $type): bool => $type === 'all')
+                ->reject(fn(string $type): bool => $type === 'all')
                 ->values();
         }
 
@@ -71,10 +71,12 @@ class TransactionDocumentService
      * @param  array<string, mixed>  $options
      * @return array<string, mixed>
      */
-    private function buildDocument(Transaction $transaction, string $documentType, array $options, ?User $user): array
+    private function buildDocument(Transaction $transaction, string $documentType, array $options): array
     {
         $label = self::DOCUMENT_LABELS[$documentType] ?? Str::headline($documentType);
-        $view = $this->viewDataFactory->build($transaction, $documentType, $options, $label, $user);
+        $transaction->load(['createdBy:id,name,email,authorization_signature_path,authorization_stamp_path']);
+        $authorizationUser = $transaction->createdBy;
+        $view = $this->viewDataFactory->build($transaction, $documentType, $options, $label, $authorizationUser);
         $previewHtml = $this->renderPreviewHtml($view);
 
         return [

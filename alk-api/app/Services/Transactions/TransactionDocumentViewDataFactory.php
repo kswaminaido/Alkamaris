@@ -264,7 +264,7 @@ final class TransactionDocumentViewDataFactory
             'packer' => $this->upperText($packerName),
             'packed_by' => $this->upperText($packer?->packed_by),
             'customer' => $this->upperText($customer?->customer),
-            'factory_approval_number' => $this->upperText($this->packerRegistrationNumber($packer?->packer_name, $packer?->vendor)),
+            'factory_approval_number' => '',
             'commission' => $firstCommission !== null && $firstCommission !== ''
                 ? $firstCommission
                 : $this->commissionText($revenueCustomer?->commission_enabled, $revenueCustomer?->commission_percent),
@@ -300,6 +300,7 @@ final class TransactionDocumentViewDataFactory
         $cartonValues = collect($productItems)
             ->pluck('cartons_value')
             ->filter(fn(mixed $value): bool => $value !== null);
+        $etaDate = $this->formatDisplayDate($logistics?->eta_date);
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -330,10 +331,12 @@ final class TransactionDocumentViewDataFactory
                 $this->upperText($logistics?->bl_no),
                 $this->formatDisplayDate($logistics?->bl_date) !== '' ? 'dated ' . $this->formatDisplayDate($logistics?->bl_date) : '',
             ),
-            'eta' => $this->combinedInstructionText(
-                $this->formatDisplayDate($logistics?->eta_date),
-                $this->upperText($logistics?->destination ?: $transaction->destination),
-            ),
+            'eta' => $etaDate === ''
+                ? ''
+                : $this->combinedInstructionText(
+                    $etaDate,
+                    $this->upperText($logistics?->destination ?: $transaction->destination),
+                ),
             'shipping_line_agent' => $this->upperText($logistics?->shipping_line_agent),
         ];
     }
@@ -858,20 +861,16 @@ final class TransactionDocumentViewDataFactory
     }
 
     /**
-     * @return array{name: string, lines: array<int, string>, registration: string}
+     * @return array{name: string, lines: array<int, string>, tax_identifier: string}
      */
-    private function partyBlock(mixed $name, string $role, string $registrationLabel, mixed $fallbackRegistration): array
+    private function partyBlock(mixed $name, string $role, string $identifierLabel, mixed $fallbackIdentifier): array
     {
         $partyName = $this->displayText($name);
         $user = $partyName !== ''
             ? User::query()
             ->whereIn('role', $this->partyRoles($role))
-            ->where(function ($query) use ($partyName): void {
-                $query
-                    ->where('name', $partyName)
-                    ->orWhere('firm_name', $partyName);
-            })
-            ->first(['address', 'registration_number'])
+            ->where('name', $partyName)
+            ->first(['address'])
             : null;
 
         $addressLines = collect(preg_split('/\r\n|\r|\n/', $this->displayText($user?->address)) ?: [])
@@ -880,43 +879,13 @@ final class TransactionDocumentViewDataFactory
             ->values()
             ->all();
 
-        $registration = $this->displayText($fallbackRegistration) !== ''
-            ? $this->displayText($fallbackRegistration)
-            : $this->displayText($user?->registration_number);
+        $taxIdentifier = $this->displayText($fallbackIdentifier);
 
         return [
             'name' => Str::upper($partyName),
             'lines' => array_map(fn(string $line): string => Str::upper($line), $addressLines),
-            'registration' => $registration !== '' ? $registrationLabel . ': ' . Str::upper($registration) : '',
+            'tax_identifier' => $taxIdentifier !== '' ? $identifierLabel . ': ' . Str::upper($taxIdentifier) : '',
         ];
-    }
-
-    private function packerRegistrationNumber(mixed $packerName, mixed $vendorName): string
-    {
-        $names = collect([$packerName, $vendorName])
-            ->map(fn(mixed $name): string => $this->displayText($name))
-            ->filter(fn(string $name): bool => $name !== '')
-            ->unique()
-            ->values();
-
-        if ($names->isNotEmpty()) {
-            $user = User::query()
-                ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
-                ->where(function ($query) use ($names): void {
-                    $query
-                        ->whereIn('name', $names->all())
-                        ->orWhereIn('firm_name', $names->all());
-                })
-                ->first(['registration_number', 'firm_name']);
-
-            $registration = $this->firstFilled($user?->registration_number, $user?->firm_name);
-
-            if ($registration !== '') {
-                return $registration;
-            }
-        }
-
-        return '';
     }
 
     private function associatedPackerName(mixed $packerName, mixed $vendorName): string
@@ -930,15 +899,11 @@ final class TransactionDocumentViewDataFactory
         $user = $names->isNotEmpty()
             ? User::query()
             ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
-            ->where(function ($query) use ($names): void {
-                $query
-                    ->whereIn('name', $names->all())
-                    ->orWhereIn('firm_name', $names->all());
-            })
-            ->first(['firm_name', 'name'])
+            ->whereIn('name', $names->all())
+            ->first(['name'])
             : null;
 
-        return $this->firstFilled($packerName, $user?->firm_name, $vendorName, $user?->name);
+        return $this->firstFilled($packerName, $vendorName, $user?->name);
     }
 
     /**

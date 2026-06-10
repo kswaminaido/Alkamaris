@@ -22,7 +22,7 @@ final class ProfileController extends Controller
     {
         $user = $this->userService->update(
             $request->user(),
-            $request->validatedWithRegistrationNumber(),
+            $request->validated(),
         );
 
         return response()->json([

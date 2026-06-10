@@ -57,7 +57,6 @@ class TransactionSeeder extends Seeder
                     'role' => UserRole::Sales->value,
                     'phone_number' => '9000000001',
                     'address' => 'Sales address 1',
-                    'registration_number' => 'REG-SALES-0001',
                 ]),
                 User::factory()->create([
                     'name' => 'Sales Two',
@@ -65,7 +64,6 @@ class TransactionSeeder extends Seeder
                     'role' => UserRole::Sales->value,
                     'phone_number' => '9000000002',
                     'address' => 'Sales address 2',
-                    'registration_number' => 'REG-SALES-0002',
                 ]),
             ]);
         }

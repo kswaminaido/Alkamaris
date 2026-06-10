@@ -39,7 +39,7 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
                 <WorkspaceIcon type="packer" />
               </span>
               <h3>Packer Workspace</h3>
-              <p>Track your profile, registration details, and account information.</p>
+              <p>Track your profile and account information.</p>
               <code>GET /api/auth/me</code>
             </section>
           )}
@@ -50,7 +50,7 @@ function UserDashboardPanel({ currentUser, dashboardTitle }) {
                 <WorkspaceIcon type="customer" />
               </span>
               <h3>Customer Workspace</h3>
-              <p>Track your profile, registration and account details.</p>
+              <p>Track your profile and account details.</p>
               <code>GET /api/auth/me</code>
             </section>
           )}
