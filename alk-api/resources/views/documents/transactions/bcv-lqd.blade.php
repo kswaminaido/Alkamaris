@@ -376,6 +376,25 @@
       .main {
         width: 100%;
       }
+
+      .info-order {
+        padding: 0 !important;
+      }
+
+      .order-confirmation-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .order-confirmation-table td {
+        padding: 3px 5px;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      .order-confirmation-table tr:not(:last-child) td {
+        border-bottom: 1px solid #000;
+      }
     }
   </style>
 </head>
@@ -418,24 +437,35 @@
           <td class="info-date">
             <div>Date :{{ $bcv['date'] }}</div>
           </td>
-          <td class="info-order" colspan="2">
-            <div>Order Confirmation No:</div>
-            <div style="margin-top:8px">{{ $bcv['order_confirmation_no'] }}</div>
-            @if ($bcv['buyer_reference'] !== '' || $bcv['packer_reference'] !== '')
-            <table class="order-ref-table">
-              @if ($bcv['buyer_reference'] !== '')
-              <tr>
-                <td class="info-order">Buyer's PO#</td>
-                <td>{{ str_replace(' ', '', $bcv['buyer_reference']) }}</td>
-              </tr>
-              @endif
-              @if ($bcv['packer_reference'] !== '')
-              <tr>
-                <td class="info-order">Packer's PI#</td>
-                <td>{{ str_replace(' ', '', $bcv['packer_reference']) }}</td>
-              </tr>
-              @endif
-            </table>
+          <td class="info-order" colspan="2" style="padding:0;">
+            <div style="padding:3px 5px;border-bottom:1px solid #000;font-weight:bold;">
+              Order Confirmation No:
+            </div>
+
+            <div style="padding:3px 5px;border-bottom:1px solid #000;">
+              {{ $bcv['order_confirmation_no'] }}
+            </div>
+
+            @if ($bcv['buyer_reference'] !== '')
+            <div style="display:flex;border-bottom:1px solid #000;">
+              <div style="width:40%;padding:3px 5px;border-right:1px solid #000;font-weight:bold;">
+                Buyer's PO#
+              </div>
+              <div style="flex:1;padding:3px 5px;">
+                {{ str_replace(' ', '', $bcv['buyer_reference']) }}
+              </div>
+            </div>
+            @endif
+
+            @if ($bcv['packer_reference'] !== '')
+            <div style="display:flex;">
+              <div style="width:40%;padding:3px 5px;border-right:1px solid #000;font-weight:bold;">
+                Packer's PI#
+              </div>
+              <div style="flex:1;padding:3px 5px;">
+                {{ str_replace(' ', '', $bcv['packer_reference']) }}
+              </div>
+            </div>
             @endif
           </td>
         </tr>
