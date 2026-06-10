@@ -40,7 +40,7 @@ function SignupPage() {
       navigate('/', { replace: true })
       return
     }
-    if (currentUser.role !== 'admin') {
+    if (!['admin', 'logistics'].includes(currentUser.role)) {
       navigate('/dashboard', { replace: true })
     }
   }, [currentUser, navigate])
@@ -97,7 +97,7 @@ function SignupPage() {
     />
   )
 
-  if (currentUser?.role === 'admin') {
+  if (['admin', 'logistics'].includes(currentUser?.role)) {
     return (
       <AdminSidebarLayout currentUser={currentUser} activeKey="" onLogout={handleLogout}>
         {content}

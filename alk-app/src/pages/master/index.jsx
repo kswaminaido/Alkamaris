@@ -188,6 +188,7 @@ function MasterData() {
   }
 
   const isAdmin = currentUser.role === 'admin'
+  const canAddUsers = ['admin', 'logistics'].includes(currentUser.role)
   const tableColumnCount = isAdmin ? 6 : 5
 
   return (
@@ -247,7 +248,7 @@ function MasterData() {
             </div>
           </div>
 
-          {isAdmin && (
+          {canAddUsers && (
             <button
               type="button"
               className="primary-btn"

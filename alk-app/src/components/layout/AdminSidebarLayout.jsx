@@ -17,6 +17,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
   const navigate = useNavigate()
   const location = useLocation()
   const isAdmin = currentUser?.role === 'admin'
+  const canAddUsers = ['admin', 'logistics'].includes(currentUser?.role)
   const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -351,7 +352,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
 
             {profileMenuOpen ? (
               <div className="dashboard-topbar-profile-menu" role="menu">
-                {isAdmin && (
+                {canAddUsers && (
                   <Link to="/signup" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Add User</Link>
                 )}
                 <Link to="/profile" className="dashboard-topbar-profile-menu-item" onClick={() => setProfileMenuOpen(false)}>Profile</Link>
