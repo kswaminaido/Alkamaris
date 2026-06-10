@@ -110,17 +110,26 @@ final class TransactionItemService
             return 0.0;
         }
 
-        preg_match_all('/-?\d+(?:\.\d+)?/', trim((string) $value), $matches);
+        $text = trim((string) $value);
+        preg_match_all('/-?\d+(?:\.\d+)?/', $text, $matches);
         $factors = array_values(array_filter(
-            array_map(static fn (string $part): float => (float) $part, $matches[0] ?? []),
-            static fn (float $part): bool => $part > 0
+            array_map(static fn(string $part): float => (float) $part, $matches[0] ?? []),
+            static fn(float $part): bool => $part > 0
         ));
 
         if ($factors === []) {
             return 0.0;
         }
 
-        return array_reduce($factors, static fn (float $product, float $factor): float => $product * $factor, 1.0);
+        $containsOz = str_contains(strtolower($text), 'oz');
+        if ($containsOz && count($factors) >= 2) {
+            $packingQty = $factors[0];
+            $packingWeightOz = $factors[1];
+            $weightPerCarton = ($packingQty * $packingWeightOz) / 16.0;
+            return array_reduce(array_slice($factors, 2), static fn(float $product, float $factor): float => $product * $factor, $weightPerCarton);
+        }
+
+        return array_reduce($factors, static fn(float $product, float $factor): float => $product * $factor, 1.0);
     }
 
     private function toNumber(mixed $value): float

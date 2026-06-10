@@ -828,6 +828,13 @@ function extractPackingMultiplier(value) {
 
   if (factors.length === 0) return 0
 
+  const containsOz = /oz/i.test(text)
+  if (containsOz && factors.length >= 2) {
+    const [packingQty, packingWeightOz, ...rest] = factors
+    const weightPerCarton = (packingQty * packingWeightOz) / 16
+    return rest.reduce((product, factor) => product * factor, weightPerCarton)
+  }
+
   return factors.reduce((product, factor) => product * factor, 1)
 }
 
