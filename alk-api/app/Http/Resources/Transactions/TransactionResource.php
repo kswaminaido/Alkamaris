@@ -3,6 +3,8 @@
 namespace App\Http\Resources\Transactions;
 
 use App\Enums\TransactionStatus;
+use App\Models\User;
+use App\Models\UsersEventLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,6 +37,7 @@ final class TransactionResource extends JsonResource
             'updated_at' => optional($this->updated_at)->toJSON(),
             'sales_person' => $this->whenLoaded('salesPerson'),
             'created_by' => $this->whenLoaded('createdBy'),
+            'updated_by' => $this->lastModifiedBy(),
             'general_info_customer' => $this->whenLoaded('generalInfoCustomer'),
             'general_info_packer' => $this->whenLoaded('generalInfoPacker'),
             'revenue_customer' => $this->whenLoaded('revenueCustomer'),
@@ -47,5 +50,52 @@ final class TransactionResource extends JsonResource
             'note_entries' => $this->whenLoaded('noteEntries'),
             'items' => TransactionItemResource::collection($this->whenLoaded('items')),
         ];
+    }
+
+    /**
+     * @return array{id: int|null, name: string|null, email: string|null}|null
+     */
+    private function lastModifiedBy(): ?array
+    {
+        $event = $this->latestTransactionEvent([
+            'Transaction updated',
+            'Status updated',
+        ])
+            ?? $this->latestTransactionEvent(['Transaction created']);
+
+        if ($event) {
+            return [
+                'id' => $event->user?->id ?? $event->user_id,
+                'name' => $event->user?->name ?? $event->user_name,
+                'email' => $event->user?->email,
+            ];
+        }
+
+        $creator = $this->whenLoaded('createdBy');
+
+        if ($creator instanceof User) {
+            return [
+                'id' => $creator->id,
+                'name' => $creator->name,
+                'email' => $creator->email,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<string>  $actions
+     */
+    private function latestTransactionEvent(array $actions): ?UsersEventLog
+    {
+        return UsersEventLog::query()
+            ->with('user:id,name,email')
+            ->where('event_type', 'Transaction')
+            ->where('data->record_id', $this->id)
+            ->whereIn('data->action', $actions)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\Auth\UserResource;
+use App\Services\Audit\UserEventLogger;
 use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,13 +17,25 @@ final class ProfileController extends Controller
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly UserEventLogger $userEventLogger,
     ) {}
 
     public function update(UpdateProfileRequest $request): JsonResponse
     {
+        $oldValues = $request->user()->only(['name', 'contact_name', 'phone_number', 'email', 'address']);
         $user = $this->userService->update(
             $request->user(),
             $request->validated(),
+        );
+
+        $this->userEventLogger->log(
+            $user,
+            'Profile',
+            'Profile updated',
+            $user->id,
+            oldValues: $oldValues,
+            newValues: $user->only(['name', 'contact_name', 'phone_number', 'email', 'address']),
+            description: "Profile updated with ID {$user->id}",
         );
 
         return response()->json([
@@ -33,9 +46,17 @@ final class ProfileController extends Controller
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
-        $this->userService->update($request->user(), [
+        $user = $this->userService->update($request->user(), [
             'password' => $request->validated('password'),
         ]);
+
+        $this->userEventLogger->log(
+            $user,
+            'Authentication',
+            'Password changed',
+            $user->id,
+            description: "Password changed with ID {$user->id}",
+        );
 
         return response()->json([
             'message' => 'Password updated successfully.',
@@ -50,6 +71,7 @@ final class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $oldValues = $user->only(['authorization_signature_path', 'authorization_stamp_path']);
         $payload = [];
 
         if ($request->hasFile('signature_image')) {
@@ -70,6 +92,16 @@ final class ProfileController extends Controller
             $user->update($payload);
             $user = $user->fresh();
         }
+
+        $this->userEventLogger->log(
+            $user,
+            'Profile',
+            'Authorization images updated',
+            $user->id,
+            oldValues: $oldValues,
+            newValues: $user->only(['authorization_signature_path', 'authorization_stamp_path']),
+            description: "Authorization images updated with ID {$user->id}",
+        );
 
         return response()->json([
             'message' => 'Authorization images updated successfully.',

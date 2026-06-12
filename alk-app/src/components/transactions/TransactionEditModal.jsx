@@ -484,18 +484,17 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
 function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
   const salesPersonName = transaction.sales_person?.name ?? ''
   const salesPersonId = transaction.sales_person_id ?? transaction.sales_person?.id ?? ''
+  const lastModifiedBy = transactionLastModifiedBy(transaction)
   const issueDate = toInputDate(transaction.issue_date)
   const updatedAt = formatDate(transaction.updated_at)
   const category = transaction.category ?? ''
   const origin = transaction.product_origin ?? ''
   const type = transaction.type ?? ''
-  const country = transaction.country ?? ''
   const destination = transaction.destination ?? ''
   const container = transaction.container_primary ?? ''
   const containerSecondary = transaction.container_secondary ?? ''
   const certified = transaction.certified ? 'Yes' : 'No'
   const originOptions = mergeCountryOptions(optionsFor('transaction.product_origin'), origin)
-  const countrySelectOptions = mergeCountryOptions(optionsFor('transaction.country'), country)
   const destinationOptions = mergeCountryOptions(optionsFor('transaction.destination'), destination)
 
   return (
@@ -505,7 +504,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
         <LabelField label="Issue Date"><DateInput name="transaction.issue_date" value={issueDate} /></LabelField>
         <LabelField label="Category"><NamedSearchableSelect name="transaction.category" value={category} list={withCurrent(optionsFor('transaction.category'), category)} onAdd={(value) => addOption('transaction.category', value)} /></LabelField>
         <LabelField label="Status"><select name="transaction.status" defaultValue={transaction.status ?? 'P'}>{STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></LabelField>
-        <LabelField label="Last Modified By"><input defaultValue={salesPersonName} /></LabelField>
+        <LabelField label="Last Modified By"><input readOnly value={lastModifiedBy} /></LabelField>
 
         <LabelField label="Sales Person"><SalesPersonSelect value={salesPersonId} list={salesPeople} currentName={salesPersonName} /></LabelField>
         <LabelField label="Product Origin"><NamedSearchableSelect name="transaction.product_origin" value={origin} list={originOptions} onAdd={(value) => addOption('transaction.product_origin', value)} /></LabelField>
@@ -892,7 +891,7 @@ function PrintDialog({
   onPrintDocument,
 }) {
   const transactionId = displayValue(transaction.booking_no)
-  const lastModifiedBy = transaction.updated_by?.name ?? transaction.sales_person?.name ?? transaction.created_by?.name ?? localFallback('Noree Naknava')
+  const lastModifiedBy = transactionLastModifiedBy(transaction) || localFallback('Noree Naknava')
   const lastModifiedDate = formatDate(transaction.updated_at) || localFallback('31/03/2026')
 
   return (
@@ -1473,6 +1472,13 @@ function extractSalesPersonOptions(users) {
 
 function localFallback(value) {
   return IS_LOCAL_ENV ? value : ''
+}
+
+function transactionLastModifiedBy(transaction) {
+  return normalizeText(transaction?.updated_by?.name)
+    ?? normalizeText(transaction?.last_modified_by?.name)
+    ?? normalizeText(transaction?.created_by?.name)
+    ?? ''
 }
 
 function displayValue(value) {

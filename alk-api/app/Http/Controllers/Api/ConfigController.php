@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Config;
+use App\Services\Audit\UserEventLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -12,6 +13,10 @@ use Illuminate\Validation\Rule;
 
 class ConfigController extends Controller
 {
+    public function __construct(
+        private readonly UserEventLogger $userEventLogger,
+    ) {}
+
     public function index(): JsonResponse
     {
         return response()->json([
@@ -34,6 +39,15 @@ class ConfigController extends Controller
 
         $config = Config::query()->create($validated);
 
+        $this->userEventLogger->log(
+            $request->user(),
+            'Config',
+            'Config created',
+            $config->id,
+            newValues: $config->toArray(),
+            description: "Config created with ID {$config->id}",
+        );
+
         return response()->json(['data' => $config], Response::HTTP_CREATED);
     }
 
@@ -50,14 +64,36 @@ class ConfigController extends Controller
             'data.*' => ['required', 'string', 'max:255'],
         ]);
 
+        $oldValues = $config->toArray();
         $config->update($validated);
+        $updated = $config->fresh();
 
-        return response()->json(['data' => $config->fresh()]);
+        $this->userEventLogger->log(
+            $request->user(),
+            'Config',
+            'Config updated',
+            $updated->id,
+            oldValues: $oldValues,
+            newValues: $updated->toArray(),
+            description: "Config updated with ID {$updated->id}",
+        );
+
+        return response()->json(['data' => $updated]);
     }
 
     public function destroy(Config $config): JsonResponse
     {
+        $oldValues = $config->toArray();
         $config->delete();
+
+        $this->userEventLogger->log(
+            request()->user(),
+            'Config',
+            'Config deleted',
+            $config->id,
+            oldValues: $oldValues,
+            description: "Config deleted with ID {$config->id}",
+        );
 
         return response()->json(
             ['message' => 'Config deleted successfully.'],
@@ -88,6 +124,7 @@ class ConfigController extends Controller
             ['data' => []],
         );
 
+        $oldValues = $config->toArray();
         $options = collect(is_array($config->data) ? $config->data : [])
             ->filter(fn(mixed $option): bool => is_string($option) && trim($option) !== '')
             ->map(fn(string $option): string => trim($option))
@@ -98,8 +135,20 @@ class ConfigController extends Controller
         }
 
         $config->forceFill(['data' => $options->unique()->sort()->values()->all()])->save();
+        $updated = $config->fresh();
 
-        return response()->json(['data' => $config->fresh()]);
+        $this->userEventLogger->log(
+            $request->user(),
+            'Config',
+            'Config option appended',
+            $updated->id,
+            oldValues: $oldValues,
+            newValues: $updated->toArray(),
+            description: "Config option appended with ID {$updated->id}",
+            context: ['option' => $value],
+        );
+
+        return response()->json(['data' => $updated]);
     }
 
     public function countries(): JsonResponse

@@ -9,6 +9,7 @@ use App\Http\Requests\Transactions\UpdateTransactionItemRequest;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionItemOptionService;
 use App\Services\Transactions\TransactionItemService;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,7 @@ class TransactionItemController extends Controller
     public function __construct(
         private readonly TransactionItemService $transactionItemService,
         private readonly TransactionItemOptionService $transactionItemOptionService,
+        private readonly UserEventLogger $userEventLogger,
     ) {}
 
     public function options(): JsonResponse
@@ -32,6 +34,17 @@ class TransactionItemController extends Controller
     {
         $validated = $request->validated();
         $updated = $this->transactionItemService->create($transaction, $validated['item'] ?? []);
+        $createdItem = $updated->items->sortByDesc('id')->first();
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction Item',
+            'Transaction item created',
+            $createdItem?->id,
+            newValues: $createdItem?->toArray() ?? [],
+            description: "Transaction item created for transaction ID {$transaction->id}",
+            context: ['transaction_id' => $transaction->id],
+        );
 
         return response()->json([
             'data' => TransactionResource::make($updated),
@@ -43,8 +56,21 @@ class TransactionItemController extends Controller
     {
         $this->ensureBelongsToTransaction($transaction, $item);
 
+        $oldValues = $item->toArray();
         $validated = $request->validated();
         $updated = $this->transactionItemService->update($transaction, $item, $validated['item'] ?? []);
+        $updatedItem = $updated->items->firstWhere('id', $item->id);
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction Item',
+            'Transaction item updated',
+            $item->id,
+            oldValues: $oldValues,
+            newValues: $updatedItem?->toArray() ?? [],
+            description: "Transaction item updated with ID {$item->id}",
+            context: ['transaction_id' => $transaction->id],
+        );
 
         return response()->json([
             'data' => TransactionResource::make($updated),
@@ -56,7 +82,18 @@ class TransactionItemController extends Controller
     {
         $this->ensureBelongsToTransaction($transaction, $item);
 
+        $oldValues = $item->toArray();
         $updated = $this->transactionItemService->delete($transaction, $item);
+
+        $this->userEventLogger->log(
+            request()->user(),
+            'Transaction Item',
+            'Transaction item deleted',
+            $item->id,
+            oldValues: $oldValues,
+            description: "Transaction item deleted with ID {$item->id}",
+            context: ['transaction_id' => $transaction->id],
+        );
 
         return response()->json([
             'data' => TransactionResource::make($updated),
@@ -69,6 +106,21 @@ class TransactionItemController extends Controller
         $this->ensureBelongsToTransaction($transaction, $item);
 
         $updated = $this->transactionItemService->duplicate($transaction, $item);
+        $duplicatedItem = $updated->items
+            ->where('id', '!=', $item->id)
+            ->sortByDesc('id')
+            ->first();
+
+        $this->userEventLogger->log(
+            request()->user(),
+            'Transaction Item',
+            'Transaction item duplicated',
+            $duplicatedItem?->id,
+            oldValues: $item->toArray(),
+            newValues: $duplicatedItem?->toArray() ?? [],
+            description: "Transaction item duplicated for transaction ID {$transaction->id}",
+            context: ['transaction_id' => $transaction->id],
+        );
 
         return response()->json([
             'data' => TransactionResource::make($updated),
@@ -80,7 +132,23 @@ class TransactionItemController extends Controller
     {
         $this->ensureBelongsToTransaction($transaction, $item);
 
+        $oldValues = $item->toArray();
         $updated = $this->transactionItemService->move($transaction, $item, (string) $request->validated('direction'));
+        $updatedItem = $updated->items->firstWhere('id', $item->id);
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction Item',
+            'Transaction item reordered',
+            $item->id,
+            oldValues: $oldValues,
+            newValues: $updatedItem?->toArray() ?? [],
+            description: "Transaction item reordered with ID {$item->id}",
+            context: [
+                'transaction_id' => $transaction->id,
+                'direction' => $request->validated('direction'),
+            ],
+        );
 
         return response()->json([
             'data' => TransactionResource::make($updated),

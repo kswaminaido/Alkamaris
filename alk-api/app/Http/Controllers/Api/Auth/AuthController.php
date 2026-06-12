@@ -10,6 +10,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\Auth\AuthTokenResource;
 use App\Http\Resources\Auth\UserResource;
+use App\Services\Audit\UserEventLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,12 +20,22 @@ final class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthServiceInterface $authService,
+        private readonly UserEventLogger $userEventLogger,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
         $result = $this->authService->register(
             RegisterData::fromArray($request->validated()),
+        );
+
+        $this->userEventLogger->log(
+            $result->user,
+            'Authentication',
+            'User registered',
+            $result->user->id,
+            newValues: $result->user->only(['id', 'name', 'email', 'role', 'is_active']),
+            description: "User registered with ID {$result->user->id}",
         );
 
         return AuthTokenResource::make($result)
@@ -47,6 +58,15 @@ final class AuthController extends Controller
             ]);
         }
 
+        $this->userEventLogger->log(
+            $result->user,
+            'Authentication',
+            'Login',
+            $result->user->id,
+            newValues: ['email' => $result->user->email],
+            description: "User logged in with ID {$result->user->id}",
+        );
+
         return AuthTokenResource::make($result)->response();
     }
 
@@ -57,7 +77,16 @@ final class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        $user = $request->user();
         $this->authService->logout($request->user());
+
+        $this->userEventLogger->log(
+            $user,
+            'Authentication',
+            'Logout',
+            $user?->id,
+            description: "User logged out with ID {$user?->id}",
+        );
 
         return response()->json(
             ['message' => 'Logged out successfully.'],

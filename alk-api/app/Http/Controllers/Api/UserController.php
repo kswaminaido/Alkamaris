@@ -7,6 +7,7 @@ use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
+use App\Services\Audit\UserEventLogger;
 use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -15,6 +16,7 @@ class UserController extends Controller
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly UserEventLogger $userEventLogger,
     ) {}
 
     public function index(): JsonResponse
@@ -67,19 +69,55 @@ class UserController extends Controller
     {
         $user = $this->userService->create($request->validated());
 
+        $this->userEventLogger->log(
+            $request->user(),
+            'User',
+            'User created',
+            $user->id,
+            newValues: $user->only(['id', 'name', 'email', 'role', 'is_active']),
+            description: "User created with ID {$user->id}",
+        );
+
         return response()->json(['data' => UserResource::make($user)->resolve()], Response::HTTP_CREATED);
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
+        $oldValues = $user->only(['name', 'contact_name', 'phone_number', 'email', 'address', 'role', 'is_active']);
+        $updated = $this->userService->update($user, $request->validated());
+        $action = array_key_exists('is_active', $request->validated())
+            && (bool) ($oldValues['is_active'] ?? false) !== (bool) $updated->is_active
+                ? ((bool) $updated->is_active ? 'Record activated' : 'Record deactivated')
+                : 'User details updated';
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'User',
+            $action,
+            $updated->id,
+            oldValues: $oldValues,
+            newValues: $updated->only(['name', 'contact_name', 'phone_number', 'email', 'address', 'role', 'is_active']),
+            description: "{$action} with ID {$updated->id}",
+        );
+
         return response()->json([
-            'data' => UserResource::make($this->userService->update($user, $request->validated()))->resolve(),
+            'data' => UserResource::make($updated)->resolve(),
         ]);
     }
 
     public function destroy(User $user): JsonResponse
     {
+        $oldValues = $user->only(['id', 'name', 'email', 'role', 'is_active']);
         $user->delete();
+
+        $this->userEventLogger->log(
+            request()->user(),
+            'User',
+            'User deleted',
+            $user->id,
+            oldValues: $oldValues,
+            description: "User deleted with ID {$user->id}",
+        );
 
         return response()->json(
             ['message' => 'User deleted successfully.'],

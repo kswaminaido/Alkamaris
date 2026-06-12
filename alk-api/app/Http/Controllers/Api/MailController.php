@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Services\Audit\UserEventLogger;
 use App\Services\Mail\MailchimpCampaignMailer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,10 @@ use RuntimeException;
 
 class MailController extends Controller
 {
+    public function __construct(
+        private readonly UserEventLogger $userEventLogger,
+    ) {}
+
     public function options(): JsonResponse
     {
         return response()->json([
@@ -160,6 +165,20 @@ class MailController extends Controller
                 return response()->json(['message' => $exception->getMessage()], 422);
             }
 
+            $this->userEventLogger->log(
+                $request->user(),
+                'Mail',
+                'Mail sent',
+                null,
+                newValues: [
+                    'delivery' => 'mailchimp',
+                    'recipient_count' => $recipients->count(),
+                    'subject' => $validated['subject'],
+                    'title' => $validated['title'] ?? null,
+                ],
+                description: 'Mail sent through Mailchimp',
+            );
+
             return response()->json([
                 'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s) through Mailchimp.',
             ]);
@@ -177,6 +196,21 @@ class MailController extends Controller
                 }
             });
         }
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Mail',
+            'Mail sent',
+            null,
+            newValues: [
+                'delivery' => 'smtp',
+                'recipient_count' => $recipients->count(),
+                'subject' => $validated['subject'],
+                'title' => $validated['title'] ?? null,
+                'attachment_count' => count($attachments),
+            ],
+            description: 'Mail sent through SMTP',
+        );
 
         return response()->json([
             'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s).',

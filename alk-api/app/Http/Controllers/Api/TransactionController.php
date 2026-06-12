@@ -9,6 +9,7 @@ use App\Http\Requests\Transactions\UpdateTransactionRequest;
 use App\Http\Resources\Transactions\TransactionCollection;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
+use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class TransactionController extends Controller
 {
     public function __construct(
         private readonly TransactionService $transactionService,
+        private readonly UserEventLogger $userEventLogger,
     ) {}
 
     public function index(): JsonResponse
@@ -144,6 +146,19 @@ class TransactionController extends Controller
     {
         $transaction = $this->transactionService->create($request->validated(), $request->user());
 
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction',
+            'Transaction created',
+            $transaction->id,
+            newValues: [
+                'id' => $transaction->id,
+                'booking_no' => $transaction->booking_no,
+                'status' => $transaction->status?->value ?? $transaction->status,
+            ],
+            description: "Transaction created with ID {$transaction->id}",
+        );
+
         return TransactionResource::make($transaction)
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
@@ -151,7 +166,22 @@ class TransactionController extends Controller
 
     public function update(UpdateTransactionRequest $request, Transaction $transaction): JsonResponse
     {
+        $transaction->load(Transaction::detailRelations());
+        $oldValues = $transaction->toArray();
+        $oldStatus = $transaction->status?->value ?? $transaction->status;
         $updated = $this->transactionService->update($transaction, $request->validated());
+        $newStatus = $updated->status?->value ?? $updated->status;
+        $action = $oldStatus !== $newStatus ? 'Status updated' : 'Transaction updated';
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction',
+            $action,
+            $updated->id,
+            oldValues: $oldValues,
+            newValues: $updated->toArray(),
+            description: "{$action} with ID {$updated->id}",
+        );
 
         return TransactionResource::make($updated)->response();
     }
@@ -159,6 +189,22 @@ class TransactionController extends Controller
     public function duplicate(Request $request, Transaction $transaction): JsonResponse
     {
         $duplicate = $this->transactionService->duplicate($transaction, $request->user());
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'Transaction',
+            'Transaction duplicated',
+            $duplicate->id,
+            oldValues: [
+                'source_transaction_id' => $transaction->id,
+                'source_booking_no' => $transaction->booking_no,
+            ],
+            newValues: [
+                'id' => $duplicate->id,
+                'booking_no' => $duplicate->booking_no,
+            ],
+            description: "Transaction duplicated with ID {$duplicate->id}",
+        );
 
         return response()->json(
             ['data' => TransactionResource::make($duplicate), 'message' => 'Transaction duplicated successfully.'],

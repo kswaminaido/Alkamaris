@@ -5,6 +5,7 @@ namespace Tests\Feature\Transactions;
 use App\Enums\UserRole;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UsersEventLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -200,6 +201,82 @@ final class TransactionApiTest extends TestCase
             'transaction_id' => $transaction->id,
             'line_key' => 'old-line',
         ]);
+    }
+
+    public function test_transaction_resource_uses_latest_audit_user_for_last_modified_by(): void
+    {
+        $creator = User::factory()->create([
+            'name' => 'Original Creator',
+            'role' => UserRole::Admin->value,
+        ]);
+        $updater = User::factory()->create([
+            'name' => 'Recent Updater',
+            'role' => UserRole::Admin->value,
+        ]);
+        $salesPerson = User::factory()->create([
+            'name' => 'Assigned Sales',
+            'role' => UserRole::Sales->value,
+        ]);
+
+        $token = $creator->createToken('creator-token')->plainTextToken;
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-AUDIT',
+            'booking_mode' => 'trade_commission',
+            'sales_person_id' => $salesPerson->id,
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        UsersEventLog::query()->create([
+            'user_id' => $creator->id,
+            'user_name' => $creator->name,
+            'event_type' => 'Transaction',
+            'data' => [
+                'action' => 'Transaction created',
+                'record_id' => $transaction->id,
+            ],
+            'created_at' => now()->subMinutes(2),
+            'updated_at' => now()->subMinutes(2),
+        ]);
+        UsersEventLog::query()->create([
+            'user_id' => $updater->id,
+            'user_name' => $updater->name,
+            'event_type' => 'Transaction',
+            'data' => [
+                'action' => 'Transaction updated',
+                'record_id' => $transaction->id,
+            ],
+            'created_at' => now()->subMinute(),
+            'updated_at' => now()->subMinute(),
+        ]);
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/transactions/{$transaction->id}")
+            ->assertOk()
+            ->assertJsonPath('data.updated_by.name', 'Recent Updater');
+    }
+
+    public function test_transaction_resource_falls_back_to_creator_when_no_audit_events_exist(): void
+    {
+        $creator = User::factory()->create([
+            'name' => 'Creator Without Logs',
+            'role' => UserRole::Admin->value,
+        ]);
+        $token = $creator->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-NO-LOGS',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        UsersEventLog::query()->delete();
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/transactions/{$transaction->id}")
+            ->assertOk()
+            ->assertJsonPath('data.updated_by.name', 'Creator Without Logs');
     }
 
     public function test_admin_can_update_transaction_status_without_replacing_nested_rows(): void
