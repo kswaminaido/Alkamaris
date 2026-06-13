@@ -80,7 +80,7 @@ function AppShell() {
           path="/transactions"
           element={
             <RequireAuth>
-              <TransactionsPage />
+              <TransactionsPage key="transactions" />
             </RequireAuth>
           }
         />
@@ -128,7 +128,7 @@ function AppShell() {
           path="/transactions/overdue-invoice"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Overdue Invoice" />
+              <TransactionsPage key="overdue-invoice" overdueOnly />
             </RequireAuth>
           }
         />

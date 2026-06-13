@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TransactionStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transactions\StoreTransactionRequest;
@@ -11,6 +12,7 @@ use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -61,7 +63,21 @@ class TransactionController extends Controller
             });
         }
 
-        if ($status = request('status')) {
+        if (request()->boolean('overdue_invoice')) {
+            $today = CarbonImmutable::now()->toDateString();
+
+            $query
+                ->where('status', TransactionStatus::Unshipped->value)
+                ->where(function ($query) use ($today) {
+                    $query
+                        ->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
+                            $query->where('lsd_min', '<', $today);
+                        })
+                        ->orWhereHas('shippingDetailsPacker', function ($query) use ($today) {
+                            $query->where('lsd_min', '<', $today);
+                        });
+                });
+        } elseif ($status = request('status')) {
             $query->where('status', $status);
         }
 

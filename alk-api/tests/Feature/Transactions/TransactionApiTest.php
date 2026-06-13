@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Transactions;
 
+use App\Enums\TransactionStatus;
 use App\Enums\UserRole;
 use App\Models\Transaction;
 use App\Models\User;
@@ -362,5 +363,62 @@ final class TransactionApiTest extends TestCase
             ->assertJsonCount(5, 'data')
             ->assertJsonPath('pagination.per_page', 5)
             ->assertJsonPath('pagination.total', 6);
+    }
+
+    public function test_index_can_filter_overdue_invoice_transactions(): void
+    {
+        CarbonImmutable::setTestNow('2026-06-13 08:00:00');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $customerOverdue = Transaction::query()->create([
+            'booking_no' => 'TRX-CUSTOMER-OVERDUE',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $customerOverdue->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-12']);
+
+        $packerOverdue = Transaction::query()->create([
+            'booking_no' => 'TRX-PACKER-OVERDUE',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $packerOverdue->shippingDetailsPacker()->create(['lsd_min' => '2026-06-11']);
+
+        $futureUnshipped = Transaction::query()->create([
+            'booking_no' => 'TRX-FUTURE',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $futureUnshipped->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-14']);
+
+        $invoiceOverdue = Transaction::query()->create([
+            'booking_no' => 'TRX-INVOICE',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Invoice->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $invoiceOverdue->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-10']);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?overdue_invoice=1&per_page=10');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('pagination.total', 2);
+
+        $bookingNumbers = collect($response->json('data'))->pluck('booking_no')->all();
+
+        $this->assertEqualsCanonicalizing([
+            'TRX-CUSTOMER-OVERDUE',
+            'TRX-PACKER-OVERDUE',
+        ], $bookingNumbers);
+
+        CarbonImmutable::setTestNow();
     }
 }

@@ -117,7 +117,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
           </div>
           <div className="txe-items-topbar-actions">
             <div className="txe-items-status">Linked to booking <strong>{transaction.booking_no || '-'}</strong></div>
-            <button type="button" className="txe-items-close-btn" onClick={onClose} aria-label="Close transaction items">x</button>
+            <button type="button" className="txe-items-close-btn" onClick={onClose} aria-label="Close transaction items"><CloseIcon /></button>
           </div>
         </div>
 
@@ -230,7 +230,6 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
   const [fieldOptions, setFieldOptions] = useState(() => transactionItemOptionsCache ?? EMPTY_ITEM_OPTIONS)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [calculating, setCalculating] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
@@ -344,24 +343,6 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
     return true
   }
 
-  async function calculate() {
-    if (needsCommissionWeight(form)) {
-      showToast('Please enter Total Weight to calculate commission.', 'error')
-      return
-    }
-
-    setCalculating(true)
-    setError('')
-    try {
-      const next = calculateDraft(form, calculationSource)
-      setForm((current) => ({ ...current, ...next }))
-    } catch {
-      setError('Unable to calculate item totals.')
-    } finally {
-      setCalculating(false)
-    }
-  }
-
   async function save() {
     if (needsCommissionWeight(form)) {
       showToast('Please enter Total Weight to calculate commission.', 'error')
@@ -402,7 +383,10 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
             <div className="txe-items-title">{item ? 'Edit Transaction Item' : 'Add Transaction Item'}</div>
             <div className="txe-items-breadcrumb">Transaction &gt; All Transaction &gt; Items Detail &gt; Add/Edit</div>
           </div>
-          <div className="txe-items-status">Booking <strong>{transaction.booking_no || '-'}</strong></div>
+          <div className="txe-items-topbar-actions">
+            <div className="txe-items-status">Booking <strong>{transaction.booking_no || '-'}</strong></div>
+            <button type="button" className="txe-items-close-btn" onClick={onClose} aria-label="Close transaction item form"><CloseIcon /></button>
+          </div>
         </div>
         <div className="txe-item-editor-body">
           <div className="txe-item-editor-summary">
@@ -433,10 +417,6 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
               <EditorField label="Brand"><SearchableSelect value={form.brand} list={fieldOptions.brand} onChange={(value) => setValue('brand', value)} onAdd={(value) => addFieldOption('brand', value)} /></EditorField>
               <EditorField label="Packaging"><input value={form.secondary_packaging} onChange={(event) => setValue('secondary_packaging', event.target.value)} /></EditorField>
               <EditorField label="Customer/Lot No. / Item Code"><input value={form.customer_lot_item_code} onChange={(event) => setValue('customer_lot_item_code', event.target.value)} /></EditorField>
-              {/* <section className="txe-item-calc-panel" aria-label="Calculation controls">
-                <div className="txe-item-calc-panel-header">Calculate</div>
-                <button type="button" className="txe-items-calc-btn" onClick={calculate} disabled={calculating}>{calculating ? 'Calculating...' : 'Calculate'}</button>
-              </section> */}
               <EditorField label="Lqd-Qty"><input readOnly value={form.lqd_qty} /></EditorField>
               <EditorField label="Selling Total"><div className="txe-item-inline"><input readOnly value={form.selling_total} /><input value={form.selling_correction} onChange={(event) => setValue('selling_correction', event.target.value)} placeholder="Correction" /></div></EditorField>
               <EditorField label="Lqd-Total"><input readOnly value={form.lqd_total} /></EditorField>
@@ -475,7 +455,7 @@ function TransactionItemEditorModal({ transaction, authFetch, item, onClose, onS
 
           <div className="txe-item-editor-actions">
             <div className="txe-item-editor-actions-left">
-              <button type="button" className="txe-items-primary-btn" onClick={save} disabled={saving || calculating}>{saving ? 'Saving...' : 'Save'}</button>
+              <button type="button" className="txe-items-primary-btn" onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
               <button type="button" className="txe-items-secondary-btn" onClick={onClose} disabled={saving}>Cancel</button>
             </div>
             <div className="txe-items-nav">
@@ -677,6 +657,14 @@ function SearchableSelect({ value, list, onChange, onAdd }) {
 
 function MiniAction({ children, onClick, tone = '', busy = false }) {
   return <button type="button" className={`txe-items-icon-btn${tone ? ` ${tone}` : ''}`} onClick={onClick} disabled={busy}>{busy ? '…' : children}</button>
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  )
 }
 
 function buildForm(transaction, item) {

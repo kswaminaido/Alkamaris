@@ -41,9 +41,10 @@ function getStatusLabel(value) {
   return option ? option.label : value
 }
 
-function TransactionsPage() {
+function TransactionsPage({ overdueOnly = false }) {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
+  const defaultStatus = overdueOnly ? 'U' : ''
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -54,7 +55,7 @@ function TransactionsPage() {
     bookingNo: '',
     vendor: '',
     customer: '',
-    status: '',
+    status: defaultStatus,
     fromDate: '',
     toDate: '',
   })
@@ -78,11 +79,11 @@ function TransactionsPage() {
     setLoading(true)
     setError('')
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE)
+      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, { overdueOnly })
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
-        setError(payload?.message ?? 'Unable to load transactions.')
+        setError(payload?.message ?? `Unable to load ${overdueOnly ? 'overdue invoices' : 'transactions'}.`)
         return
       }
       setTransactions(payload?.data ?? [])
@@ -105,7 +106,7 @@ function TransactionsPage() {
       bookingNo: '',
       vendor: '',
       customer: '',
-      status: '',
+      status: defaultStatus,
       fromDate: '',
       toDate: '',
     })
@@ -123,11 +124,11 @@ function TransactionsPage() {
       let lastExportPage = 1
 
       do {
-        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE)
+        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE, { overdueOnly })
         const response = await authFetch(`/transactions?${params.toString()}`)
         const payload = await response.json()
         if (!response.ok) {
-          setError(payload?.message ?? 'Unable to export transactions.')
+          setError(payload?.message ?? `Unable to export ${overdueOnly ? 'overdue invoices' : 'transactions'}.`)
           return
         }
 
@@ -140,7 +141,7 @@ function TransactionsPage() {
 
       downloadTransactionsCsv(rowsToExport)
     } catch {
-      setError('Unable to export transactions.')
+      setError(`Unable to export ${overdueOnly ? 'overdue invoices' : 'transactions'}.`)
     } finally {
       setExporting(false)
     }
@@ -156,7 +157,7 @@ function TransactionsPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
+    link.download = `${overdueOnly ? 'overdue-invoices' : 'transactions'}-${new Date().toISOString().slice(0, 10)}.csv`
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -301,11 +302,11 @@ function TransactionsPage() {
   if (!currentUser) return null
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Transaction Data" activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
+    <AdminSidebarLayout currentUser={currentUser} title={overdueOnly ? 'Overdue Invoice' : 'Transaction Data'} activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
       <div className="transactions-page">
         <div className="transactions-toolbar">
           <div>
-            <h5>Transaction &gt; All Transaction</h5>
+            <h5>Transaction &gt; {overdueOnly ? 'Overdue Invoice' : 'All Transaction'}</h5>
             <div className="search-filters">
               <div className="filter-group">
                 <label htmlFor="booking-no-filter">Transaction Id / Code:</label>
@@ -349,7 +350,7 @@ function TransactionsPage() {
                   id="status-filter"
                   value={searchFilters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
-                  disabled={loading}
+                  disabled={loading || overdueOnly}
                 >
                   <option value="">All Status</option>
                   {statusOptions.map((option) => (
@@ -496,10 +497,11 @@ function displayDate(value) {
   return date.toLocaleDateString('en-GB')
 }
 
-function buildTransactionParams(filters, targetPage, perPage) {
+function buildTransactionParams(filters, targetPage, perPage, options = {}) {
   const params = new URLSearchParams()
   params.append('page', targetPage)
   params.append('per_page', perPage)
+  if (options.overdueOnly) params.append('overdue_invoice', '1')
   if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
