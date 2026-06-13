@@ -39,7 +39,7 @@ function LoginPage() {
   }
 
   return (
-    <>
+    <div className="login-page">
       <TopNav currentUser={currentUser} />
       <LoginPanel
         loginForm={loginForm}
@@ -49,7 +49,7 @@ function LoginPage() {
         message={message}
         error={error}
       />
-    </>
+    </div>
   )
 }
 

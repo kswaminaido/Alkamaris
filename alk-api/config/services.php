@@ -46,4 +46,11 @@ return [
         'from_name' => env('MAILCHIMP_FROM_NAME', env('MAIL_FROM_NAME', env('APP_NAME', 'Alkamaris'))),
         'reply_to' => env('MAILCHIMP_REPLY_TO', env('MAIL_FROM_ADDRESS')),
     ],
+
+    'overdue_emails_to' => array_filter(
+        array_map(
+            'trim',
+            explode(',', env('OVERDUE_EMAILS_TO', 'info@alkamaris.com'))
+        )
+    ),
 ];

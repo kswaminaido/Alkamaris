@@ -42,6 +42,39 @@
   background: var(--page-bg);
 }
 
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #f7f4fb;
+}
+
+.login-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("./assets/Images/BG3.jpeg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.login-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
+.login-page .top-nav,
+.login-page .login-wrap {
+  position: relative;
+  z-index: 1;
+}
+
 .top-nav {
   height: 70px;
   padding: 0 2.4rem;
@@ -87,13 +120,21 @@
 }
 
 .login-wrap {
+  min-height: calc(100vh - 70px);
   padding: 2.1rem 1rem;
   display: flex;
+  align-items: center;
   justify-content: center;
 }
 
 .login-card {
   width: min(400px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 1.5rem;
+  box-shadow: 0 24px 60px rgba(26, 21, 52, 0.18);
+  backdrop-filter: blur(8px);
+  border-radius: 4px;
 }
 
 .login-title {
@@ -104,7 +145,7 @@
 }
 
 .login-banner {
-  margin-bottom: 1.7rem;
+  margin-bottom: 1rem;
   border-radius: 0;
   padding: 1.1rem;
   display: flex;
@@ -4702,6 +4743,7 @@ input,
 select,
 textarea {
   min-width: 0;
+  min-height: 32px;
 }
 
 .dashboard-content-shell,

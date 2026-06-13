@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\OverdueEmailJob;
 use App\Jobs\ProcessLcTermsJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -28,5 +29,10 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             ProcessLcTermsJob::dispatch();
         })->daily();
+
+        // Dispatch the overdue email job on Monday and Thursday
+        $schedule->call(function () {
+            OverdueEmailJob::dispatch();
+        })->mondays()->thursdays()->at('09:00');
     }
 }
