@@ -1214,6 +1214,50 @@ select:focus {
   gap: 1rem;
 }
 
+.dashboard-commission-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-commission-card {
+  min-height: 104px;
+  display: grid;
+  align-content: center;
+  gap: 0.35rem;
+  border: 1px solid #dfe6f3;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.dashboard-commission-card.collected {
+  border-left: 5px solid #079455;
+}
+
+.dashboard-commission-card.pending {
+  border-left: 5px solid #d97706;
+}
+
+.dashboard-commission-card span {
+  color: #475467;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dashboard-commission-card strong {
+  color: #111827;
+  font-size: 1.65rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.dashboard-commission-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.82rem;
+}
+
 .module-card {
   background: var(--dash-panel);
   border-radius: 0;
@@ -4984,6 +5028,7 @@ textarea {
   .user-detail-grid,
   .user-edit-meta,
   .dashboard-cards,
+  .dashboard-commission-grid,
   .modern-report-grid,
   .data-hero-strip,
   .data-field-grid,

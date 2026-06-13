@@ -10,6 +10,7 @@ use App\Http\Requests\Transactions\UpdateTransactionRequest;
 use App\Http\Resources\Transactions\TransactionCollection;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
+use App\Models\TransactionItem;
 use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionService;
 use Carbon\CarbonImmutable;
@@ -151,6 +152,26 @@ class TransactionController extends Controller
 
         return (new TransactionCollection($paginator))->response();
     }
+
+    public function commissionSummary(): JsonResponse
+    {
+        $commissionExpression = 'COALESCE(transaction_items.total_packer_commission, 0) + COALESCE(transaction_items.total_customer_commission, 0)';
+        $collectedStatus = TransactionStatus::Received->value;
+
+        $summary = TransactionItem::query()
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->selectRaw("COALESCE(SUM(CASE WHEN transactions.status = ? THEN {$commissionExpression} ELSE 0 END), 0) as total_collected_commission", [$collectedStatus])
+            ->selectRaw("COALESCE(SUM(CASE WHEN transactions.status <> ? THEN {$commissionExpression} ELSE 0 END), 0) as total_pending_commission", [$collectedStatus])
+            ->first();
+
+        return response()->json([
+            'data' => [
+                'total_collected_commission' => round((float) ($summary?->total_collected_commission ?? 0), 5),
+                'total_pending_commission' => round((float) ($summary?->total_pending_commission ?? 0), 5),
+            ],
+        ]);
+    }
+
     public function show(Transaction $transaction): JsonResponse
     {
         $transaction->load(Transaction::detailRelations());

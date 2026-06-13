@@ -1,9 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-function DashboardPanel({ currentUser }) {
+function DashboardPanel({ currentUser, authFetch }) {
   const navigate = useNavigate()
+  const authFetchRef = useRef(authFetch)
   const [placeholderMessage, setPlaceholderMessage] = useState('')
+  const [commissionSummary, setCommissionSummary] = useState({
+    total_collected_commission: 0,
+    total_pending_commission: 0,
+  })
+  const [commissionLoading, setCommissionLoading] = useState(false)
+  const [commissionError, setCommissionError] = useState('')
 
   const transactionLinks = [
     'All Transactions',
@@ -16,14 +23,75 @@ function DashboardPanel({ currentUser }) {
   ]
 
   const reportLinks = [
-    'Order Progress Report',
-    'Report on Container',
-    'Item Report',
-    'Statement of Account',
+    { label: 'Packer Sales', path: '/reports/packer-sales' },
+    { label: 'Order Progress Report' },
+    { label: 'Report on Container' },
+    { label: 'Item Report' },
+    { label: 'Statement of Account' },
   ]
+
+  useEffect(() => {
+    authFetchRef.current = authFetch
+  }, [authFetch])
+
+  useEffect(() => {
+    if (currentUser?.role !== 'admin' || !authFetchRef.current) return undefined
+
+    let active = true
+
+    async function loadCommissionSummary() {
+      setCommissionLoading(true)
+      setCommissionError('')
+
+      try {
+        const response = await authFetchRef.current('/dashboard/commission-summary')
+        const payload = await response.json()
+
+        if (!active) return
+
+        if (!response.ok) {
+          setCommissionError(payload?.message ?? 'Unable to load commission totals.')
+          return
+        }
+
+        setCommissionSummary({
+          total_collected_commission: payload?.data?.total_collected_commission ?? 0,
+          total_pending_commission: payload?.data?.total_pending_commission ?? 0,
+        })
+      } catch {
+        if (active) {
+          setCommissionError('Unable to load commission totals.')
+        }
+      } finally {
+        if (active) {
+          setCommissionLoading(false)
+        }
+      }
+    }
+
+    loadCommissionSummary()
+
+    return () => {
+      active = false
+    }
+  }, [currentUser?.role])
 
   return (
     <div className="modern-dashboard-main">
+      {currentUser.role === 'admin' ? (
+        <section className="dashboard-commission-grid" aria-label="Commission summary">
+          <article className="dashboard-commission-card collected">
+            <span>Total Collected Commission</span>
+            <strong>{commissionLoading ? '-' : formatCommission(commissionSummary.total_collected_commission)}</strong>
+          </article>
+          <article className="dashboard-commission-card pending">
+            <span>Total Pending Commission</span>
+            <strong>{commissionLoading ? '-' : formatCommission(commissionSummary.total_pending_commission)}</strong>
+          </article>
+          {commissionError ? <p className="dashboard-commission-error">{commissionError}</p> : null}
+        </section>
+      ) : null}
+
       <section className="modern-report-grid">
         <article className="module-card">
           <div className="module-card-head transaction">
@@ -54,13 +122,13 @@ function DashboardPanel({ currentUser }) {
           </div>
           <ul>
             {reportLinks.map((item) => (
-              <li key={item}>
+              <li key={item.label}>
                 <button
                   type="button"
                   className="module-link"
-                  onClick={() => setPlaceholderMessage(`${item} is a placeholder for now.`)}
+                  onClick={() => (item.path ? navigate(item.path) : setPlaceholderMessage(`${item.label} is a placeholder for now.`))}
                 >
-                  {item}
+                  {item.label}
                 </button>
               </li>
             ))}
@@ -75,6 +143,12 @@ function DashboardPanel({ currentUser }) {
       </p>
     </div>
   )
+}
+
+function formatCommission(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '0.00'
+  return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export default DashboardPanel

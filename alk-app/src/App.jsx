@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
+import PackerSalesReportPage from './pages/PackerSalesReportPage'
 import SummaryReportPage from './pages/SummaryReportPage'
 import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
@@ -33,15 +34,6 @@ function AppShell() {
 
   return (
     <>
-      {isGlobalLoading ? (
-        <div className="app-global-loader" role="status" aria-live="polite" aria-label={loadingLabel}>
-          <div className="app-global-loader-card">
-            <span className="app-global-loader-spinner" aria-hidden="true" />
-            <strong>{loadingLabel}</strong>
-          </div>
-        </div>
-      ) : null}
-
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route
@@ -168,7 +160,7 @@ function AppShell() {
           path="/reports/packer-sales"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Packer Sales" allowedRoles={reportRoles} />
+              <PackerSalesReportPage />
             </RequireAuth>
           }
         />
@@ -182,6 +174,15 @@ function AppShell() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {isGlobalLoading ? (
+        <div className="app-global-loader" role="status" aria-live="polite" aria-label={loadingLabel}>
+          <div className="app-global-loader-card">
+            <span className="app-global-loader-spinner" aria-hidden="true" />
+            <strong>{loadingLabel}</strong>
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }

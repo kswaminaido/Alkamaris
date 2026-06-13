@@ -22,8 +22,8 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
-  { label: 'SC Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
-  { label: 'SC Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
+  { label: 'AME Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
+  { label: 'AME Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
   { label: 'Packer Inv.', value: (transaction) => transaction.general_info_packer?.packer_name },
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
@@ -408,8 +408,8 @@ function TransactionsPage({ overdueOnly = false }) {
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
-                <th>SC Inv. to Packer</th>
-                <th>SC Inv. to Customer</th>
+                <th>AME Inv. to Packer</th>
+                <th>AME Inv. to Customer</th>
                 <th>Packer Inv.</th>
                 <th>PO/Contract</th>
                 <th>ETD</th>

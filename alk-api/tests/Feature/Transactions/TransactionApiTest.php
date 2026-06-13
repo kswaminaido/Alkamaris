@@ -421,4 +421,41 @@ final class TransactionApiTest extends TestCase
 
         CarbonImmutable::setTestNow();
     }
+
+    public function test_admin_can_read_dashboard_commission_summary(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $received = Transaction::query()->create([
+            'booking_no' => 'TRX-COM-COLLECTED',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Received->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $received->items()->create([
+            'product' => 'Collected Item',
+            'total_packer_commission' => 10.25,
+            'total_customer_commission' => 5.75,
+        ]);
+
+        $pending = Transaction::query()->create([
+            'booking_no' => 'TRX-COM-PENDING',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Invoice->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $pending->items()->create([
+            'product' => 'Pending Item',
+            'total_packer_commission' => 7.50,
+            'total_customer_commission' => 2.25,
+        ]);
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/dashboard/commission-summary')
+            ->assertOk()
+            ->assertJsonPath('data.total_collected_commission', 16)
+            ->assertJsonPath('data.total_pending_commission', 9.75);
+    }
 }

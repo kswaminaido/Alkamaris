@@ -24,6 +24,7 @@ function DashboardPage() {
         <DashboardPanel
           currentUser={currentUser}
           dashboardTitle={dashboardTitle}
+          authFetch={authFetch}
         />
       ) : (
         <UserDashboardPanel currentUser={currentUser} dashboardTitle={dashboardTitle} />
