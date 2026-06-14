@@ -438,12 +438,11 @@
             <div>Date :{{ $bcv['date'] }}</div>
           </td>
           <td class="info-order" colspan="2" style="padding:0;">
-            <div style="padding:3px 5px;border-bottom:1px solid #000;font-weight:bold;">
-              Order Confirmation No:
-            </div>
-
             <div style="padding:3px 5px;border-bottom:1px solid #000;">
-              {{ $bcv['order_confirmation_no'] }}
+              <strong>Order Confirmation No:</strong>
+              <span style="font-weight: normal;">
+                {{ $bcv['order_confirmation_no'] }}
+              </span>
             </div>
 
             @if ($bcv['buyer_reference'] !== '')
