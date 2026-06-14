@@ -16,19 +16,25 @@ const navActions = [
 function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const isAdmin = currentUser?.role === 'admin'
   const canAddUsers = ['admin', 'logistics'].includes(currentUser?.role)
   const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
+  const isTransactionsRoute = location.pathname.startsWith('/transactions')
+  const isReportsRoute = location.pathname.startsWith('/reports')
+  const routeSidebarMenu = isTransactionsRoute ? 'transactions' : isReportsRoute ? 'reports' : null
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') return true
     const savedValue = window.localStorage.getItem(SIDEBAR_STATE_KEY)
     return savedValue === null ? true : savedValue === 'true'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [transactionSubmenuOpen, setTransactionSubmenuOpen] = useState(false)
-  const [reportSubmenuOpen, setReportSubmenuOpen] = useState(false)
+  const [openSidebarMenu, setOpenSidebarMenu] = useState(null)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
+  const visibleSidebarMenu = openSidebarMenu ?? routeSidebarMenu
+  const transactionSubmenuOpen = visibleSidebarMenu === 'transactions'
+  const reportSubmenuOpen = visibleSidebarMenu === 'reports'
+  const transactionLinkActive = transactionSubmenuOpen || (isTransactionsRoute && openSidebarMenu === null)
+  const reportLinkActive = reportSubmenuOpen || (isReportsRoute && openSidebarMenu === null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -53,11 +59,11 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
   }
 
   function closeSidebarSubmenus() {
-    setTransactionSubmenuOpen(false)
-    setReportSubmenuOpen(false)
+    setOpenSidebarMenu(null)
   }
 
   function handleTopNavAction(action) {
+    closeSidebarSubmenus()
     if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
       navigate(`/transactions/new?mode=${action.mode}`)
       return
@@ -119,10 +125,9 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
           <div className="position-relative">
             <button
               type="button"
-              className={`sidebar-link w-100 ${transactionSubmenuOpen ? 'active' : ''}`}
+              className={`sidebar-link w-100 ${transactionLinkActive ? 'active' : ''}`}
               onClick={() => {
-                setTransactionSubmenuOpen((open) => !open)
-                setReportSubmenuOpen(false)
+                setOpenSidebarMenu((open) => (open === 'transactions' ? null : 'transactions'))
               }}
               aria-expanded={transactionSubmenuOpen}
             >
@@ -134,7 +139,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             </button>
 
             {transactionSubmenuOpen && (
-              <div className="sidebar-submenu-panel shadow rounded border">
+              <div className="sidebar-submenu-panel shadow rounded">
                 <nav className="list-group list-group-flush">
                   <NavLink
                     to="/transactions"
@@ -144,6 +149,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     All Transactions
                   </NavLink>
                   <NavLink
@@ -154,6 +160,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     Specs
                   </NavLink>
                   <NavLink
@@ -164,6 +171,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     Special Notes
                   </NavLink>
                   <NavLink
@@ -174,6 +182,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     QC Inspection Date
                   </NavLink>
                   <NavLink
@@ -184,6 +193,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     Payment Request
                   </NavLink>
                   <NavLink
@@ -194,6 +204,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     Payment Request List
                   </NavLink>
                   <NavLink
@@ -204,6 +215,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       closeSidebarSubmenus()
                     }}
                   >
+                    <SubmenuIcon />
                     Overdue Invoice
                   </NavLink>
                 </nav>
@@ -215,21 +227,20 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             <div className="position-relative">
               <button
                 type="button"
-                className={`sidebar-link w-100 ${reportSubmenuOpen ? 'active' : ''}`}
+                className={`sidebar-link w-100 ${reportLinkActive ? 'active' : ''}`}
                 onClick={() => {
-                  setReportSubmenuOpen((open) => !open)
-                  setTransactionSubmenuOpen(false)
+                  setOpenSidebarMenu((open) => (open === 'reports' ? null : 'reports'))
                 }}
                 aria-expanded={reportSubmenuOpen}
               >
                 <SidebarIcon icon="reports" />
-                <span className="sidebar-link-text">Report</span>
+                <span className="sidebar-link-text">Reports</span>
                 <span className="sidebar-link-end">
                   <ChevronIcon className={`sidebar-chevron transition-rotate ${reportSubmenuOpen ? 'rotate-90' : ''}`} />
                 </span>
               </button>
               {reportSubmenuOpen && (
-                <div className="sidebar-submenu-panel shadow rounded border">
+                <div className="sidebar-submenu-panel shadow rounded">
                   <nav className="list-group list-group-flush">
                     <NavLink
                       to="/reports/summary"
@@ -239,6 +250,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                         closeSidebarSubmenus()
                       }}
                     >
+                      <SubmenuIcon />
                       Summary Report
                     </NavLink>
                     <NavLink
@@ -249,6 +261,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                         closeSidebarSubmenus()
                       }}
                     >
+                      <SubmenuIcon />
                       Packer Sales
                     </NavLink>
                     <NavLink
@@ -259,6 +272,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                         closeSidebarSubmenus()
                       }}
                     >
+                      <SubmenuIcon />
                       Payment Status
                     </NavLink>
                   </nav>
@@ -429,6 +443,14 @@ function SidebarIcon({ icon }) {
     default:
       return null
   }
+}
+
+function SubmenuIcon() {
+  return (
+    <svg className="sidebar-submenu-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
 }
 
 function MenuIcon() {

@@ -147,8 +147,8 @@ function DashboardPanel({ currentUser, authFetch }) {
 
 function formatCommission(value) {
   const number = Number(value)
-  if (!Number.isFinite(number)) return '0.00'
-  return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (!Number.isFinite(number)) return '$0.00'
+  return `$${number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default DashboardPanel
