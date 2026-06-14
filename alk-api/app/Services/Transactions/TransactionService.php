@@ -2,6 +2,7 @@
 
 namespace App\Services\Transactions;
 
+use App\Enums\TransactionStatus;
 use App\Models\GeneralInfoCustomer;
 use App\Models\GeneralInfoPacker;
 use App\Models\RevenueCustomer;
@@ -69,7 +70,7 @@ final class TransactionService
 
             $this->syncDetails($transaction, $validated);
 
-            return $transaction->load(Transaction::detailRelations());
+            return $transaction->refresh()->load(Transaction::detailRelations());
         });
     }
 
@@ -92,7 +93,7 @@ final class TransactionService
 
             $this->syncDetails($transaction, $validated);
 
-            return $transaction->load(Transaction::detailRelations());
+            return $transaction->refresh()->load(Transaction::detailRelations());
         });
     }
 
@@ -337,13 +338,16 @@ final class TransactionService
             $payload,
         );
 
-        // After upsert, if logistics bl_date changed from null to a date, update transaction status to Received (R)
+        // The first B/L date entry marks only unshipped transactions as shipped.
         if ($modelClass === TransactionLogistics::class) {
             $current = $modelClass::query()->where('transaction_id', $transactionId)->first();
             $currentBlDate = $current?->bl_date ?? null;
 
             if ($previousBlDate === null && $currentBlDate !== null) {
-                Transaction::query()->where('id', $transactionId)->update(['status' => \App\Enums\TransactionStatus::Received->value]);
+                Transaction::query()
+                    ->where('id', $transactionId)
+                    ->where('status', TransactionStatus::Unshipped->value)
+                    ->update(['status' => TransactionStatus::Shipped->value]);
             }
         }
     }

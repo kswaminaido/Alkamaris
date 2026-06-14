@@ -315,6 +315,117 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.expense_lines.0.line_key', 'keep-line');
     }
 
+    public function test_first_bl_date_entry_marks_unshipped_transaction_as_shipped(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-FIRST-BL',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $transaction->logistics()->create(['bl_no' => 'BL-100']);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$transaction->id}", [
+                'transaction' => [
+                    'booking_no' => 'TRX-FIRST-BL',
+                    'booking_mode' => 'trade_commission',
+                    'status' => TransactionStatus::Unshipped->value,
+                ],
+                'logistics' => [
+                    'bl_no' => 'BL-100',
+                    'bl_date' => '2026-06-14',
+                ],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.status', TransactionStatus::Shipped->value)
+            ->assertJsonPath('data.logistics.bl_date', '2026-06-14T00:00:00.000000Z');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'status' => TransactionStatus::Shipped->value,
+        ]);
+    }
+
+    public function test_bl_date_entry_does_not_change_non_unshipped_transaction_status(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-BL-PENDING',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Pending->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$transaction->id}", [
+                'transaction' => [
+                    'booking_no' => 'TRX-BL-PENDING',
+                    'booking_mode' => 'trade_commission',
+                    'status' => TransactionStatus::Pending->value,
+                ],
+                'logistics' => [
+                    'bl_date' => '2026-06-14',
+                ],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.status', TransactionStatus::Pending->value)
+            ->assertJsonPath('data.logistics.bl_date', '2026-06-14T00:00:00.000000Z');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'status' => TransactionStatus::Pending->value,
+        ]);
+    }
+
+    public function test_existing_bl_date_edits_do_not_change_transaction_status(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'TRX-BL-EXISTS',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $transaction->logistics()->create(['bl_date' => '2026-06-10']);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$transaction->id}", [
+                'transaction' => [
+                    'booking_no' => 'TRX-BL-EXISTS',
+                    'booking_mode' => 'trade_commission',
+                    'status' => TransactionStatus::Unshipped->value,
+                ],
+                'logistics' => [
+                    'bl_date' => '2026-06-14',
+                ],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.status', TransactionStatus::Unshipped->value)
+            ->assertJsonPath('data.logistics.bl_date', '2026-06-14T00:00:00.000000Z');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transaction->id,
+            'status' => TransactionStatus::Unshipped->value,
+        ]);
+    }
+
     public function test_admin_can_duplicate_transaction(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
