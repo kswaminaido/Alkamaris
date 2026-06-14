@@ -21,6 +21,7 @@ final class TransactionItemService
                 ...$payload,
                 'sort_order' => $sortOrder,
             ]);
+            $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
         });
@@ -36,6 +37,7 @@ final class TransactionItemService
                 ...$item->toArray(),
                 ...$payload,
             ]));
+            $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
         });
@@ -156,6 +158,7 @@ final class TransactionItemService
         return DB::transaction(function () use ($transaction, $item): Transaction {
             $item->delete();
             $this->resequence($transaction);
+            $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
         });
@@ -173,6 +176,7 @@ final class TransactionItemService
                 ->increment('sort_order');
 
             $transaction->items()->create($payload);
+            $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
         });
@@ -194,6 +198,7 @@ final class TransactionItemService
                 $originalSort = $item->sort_order;
                 $item->update(['sort_order' => $swapWith->sort_order]);
                 $swapWith->update(['sort_order' => $originalSort]);
+                $transaction->touch();
             }
 
             return $transaction->fresh()->load(Transaction::detailRelations());

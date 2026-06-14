@@ -476,6 +476,91 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('pagination.total', 6);
     }
 
+    public function test_index_sorts_recently_updated_transaction_items_first(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        CarbonImmutable::setTestNow('2026-06-14 08:00:00');
+        $olderTransaction = Transaction::query()->create([
+            'booking_no' => 'TRX-ITEM-UPDATED',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+        $item = $olderTransaction->items()->create([
+            'product' => 'Original Item',
+            'sort_order' => 0,
+        ]);
+
+        CarbonImmutable::setTestNow('2026-06-14 09:00:00');
+        Transaction::query()->create([
+            'booking_no' => 'TRX-NEWER-ID',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        CarbonImmutable::setTestNow('2026-06-14 10:00:00');
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$olderTransaction->id}/items/{$item->id}", [
+                'item' => [
+                    'product' => 'Updated Item',
+                ],
+            ])
+            ->assertOk();
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?per_page=5')
+            ->assertOk()
+            ->assertJsonPath('data.0.booking_no', 'TRX-ITEM-UPDATED');
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_index_sorts_recently_updated_transaction_detail_fields_first(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        CarbonImmutable::setTestNow('2026-06-14 08:00:00');
+        $olderTransaction = Transaction::query()->create([
+            'booking_no' => 'TRX-DETAIL-UPDATED',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+        $olderTransaction->logistics()->create(['container_no' => 'OLD-CONTAINER']);
+
+        CarbonImmutable::setTestNow('2026-06-14 09:00:00');
+        Transaction::query()->create([
+            'booking_no' => 'TRX-DETAIL-NEWER-ID',
+            'booking_mode' => 'trade_commission',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        CarbonImmutable::setTestNow('2026-06-14 10:00:00');
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/transactions/{$olderTransaction->id}", [
+                'transaction' => [
+                    'booking_no' => 'TRX-DETAIL-UPDATED',
+                    'booking_mode' => 'trade_commission',
+                ],
+                'logistics' => [
+                    'container_no' => 'NEW-CONTAINER',
+                ],
+            ])
+            ->assertOk();
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?per_page=5')
+            ->assertOk()
+            ->assertJsonPath('data.0.booking_no', 'TRX-DETAIL-UPDATED');
+
+        CarbonImmutable::setTestNow();
+    }
+
     public function test_index_can_filter_overdue_invoice_transactions(): void
     {
         CarbonImmutable::setTestNow('2026-06-13 08:00:00');

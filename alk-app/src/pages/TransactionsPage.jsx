@@ -208,8 +208,8 @@ function TransactionsPage({ overdueOnly = false }) {
 
       const updated = body?.data
       if (updated) {
-        setTransactions((previous) => previous.map((item) => (item.id === updated.id ? updated : item)))
         setSelectedTransaction(updated)
+        await loadTransactions(searchFilters, 1)
       }
       return { ok: true, data: updated }
     } catch {
@@ -221,8 +221,8 @@ function TransactionsPage({ overdueOnly = false }) {
 
   function syncTransactionRecord(updatedTransaction) {
     if (!updatedTransaction?.id) return
-    setTransactions((previous) => previous.map((item) => (item.id === updatedTransaction.id ? updatedTransaction : item)))
     setSelectedTransaction(updatedTransaction)
+    loadTransactions(searchFilters, 1)
   }
 
   async function onLogout() {

@@ -92,6 +92,7 @@ final class TransactionService
             $transaction->update($validated['transaction']);
 
             $this->syncDetails($transaction, $validated);
+            $transaction->touch();
 
             return $transaction->refresh()->load(Transaction::detailRelations());
         });
