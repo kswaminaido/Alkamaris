@@ -30,6 +30,7 @@ const csvColumns = [
   { label: 'Total Weight', value: (row) => formatNumber(row.totalWeight) },
   { label: 'Buying Total', value: (row) => formatMoney(row.buyingTotal) },
   { label: 'Packer Commission', value: (row) => formatMoney(row.packerCommission) },
+  { label: 'Total Commission', value: (row) => formatMoney(row.totalCommission) },
   { label: 'Status', value: (row) => getStatusLabel(row.status) },
 ]
 
@@ -41,6 +42,7 @@ function PackerSalesReportPage() {
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
+  const [selectedReportRow, setSelectedReportRow] = useState(null)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
@@ -219,7 +221,7 @@ function PackerSalesReportPage() {
 
   if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) return null
 
-  const rows = flattenPackerSalesRows(transactions)
+  const rows = buildPackerSalesSummaryRows(transactions)
   const totalRecords = pagination.total ?? 0
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
@@ -227,7 +229,7 @@ function PackerSalesReportPage() {
   const canGoNext = currentPage < lastPage
   const summaryCards = [
     { label: 'Transactions', value: formatInteger(totalRecords), tone: 'blue' },
-    { label: 'Current Lines', value: formatInteger(rows.length), tone: 'teal' },
+    { label: 'Current Bookings', value: formatInteger(rows.length), tone: 'teal' },
     { label: 'Buying Total', value: formatCurrency(sumRows(rows, 'buyingTotal')), tone: 'amber' },
     { label: 'Packer Commission', value: formatCurrency(sumRows(rows, 'packerCommission')), tone: 'green' },
   ]
@@ -346,11 +348,6 @@ function PackerSalesReportPage() {
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
-                <th>Product</th>
-                <th>Style</th>
-                <th>Packing</th>
-                <th>Size</th>
-                <th className="numeric">Qty</th>
                 <th className="numeric">Total Weight</th>
                 <th className="numeric">Buying Total</th>
                 <th className="numeric">Packer Commission</th>
@@ -360,25 +357,24 @@ function PackerSalesReportPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={13} className="table-message-cell">
+                  <td colSpan={8} className="table-message-cell">
                     Loading packer sales, please wait...
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={13} className="table-message-cell">No packer sales found.</td></tr>
+                <tr><td colSpan={8} className="table-message-cell">No packer sales found.</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
-                  <td className="sticky-col"><span className="report-code">{row.bookingNo}</span></td>
+                  <td className="sticky-col">
+                    <button type="button" className="report-code-button" onClick={() => setSelectedReportRow(row)}>
+                      {row.bookingNo}
+                    </button>
+                  </td>
                   <td>{displayDate(row.issueDate)}</td>
                   <td>{row.packer || '-'}</td>
                   <td>{row.customer || '-'}</td>
-                  <td>{row.product || '-'}</td>
-                  <td>{row.style || '-'}</td>
-                  <td>{row.packing || '-'}</td>
-                  <td>{row.size || '-'}</td>
-                  <td className="numeric">{formatQty(row.qty, row.qtyUnit)}</td>
                   <td className="numeric">{formatNumber(row.totalWeight)}</td>
                   <td className="numeric">{formatMoney(row.buyingTotal)}</td>
                   <td className="numeric">{formatMoney(row.packerCommission)}</td>
@@ -394,14 +390,114 @@ function PackerSalesReportPage() {
         </div>
 
         {totalRecords > 0 ? renderPagination() : null}
+
+        {selectedReportRow ? (
+          <PackerSalesDetailModal row={selectedReportRow} onClose={() => setSelectedReportRow(null)} />
+        ) : null}
       </div>
     </AdminSidebarLayout>
   )
 }
 
+function PackerSalesDetailModal({ row, onClose }) {
+  const items = row.items ?? []
+
+  return (
+    <div className="modal-overlay packer-sales-modal-overlay" role="dialog" aria-modal="true" aria-label={`Items for ${row.bookingNo}`} onClick={onClose}>
+      <div className="modal-card packer-sales-detail-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header packer-sales-detail-header">
+          <div>
+            <h5>{row.bookingNo}</h5>
+            <p className="packer-sales-modal-subtitle">
+              {row.packer || '-'} &middot; {row.customer || '-'} &middot; {displayDate(row.issueDate)}
+            </p>
+          </div>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close item details">x</button>
+        </div>
+
+        <div className="packer-sales-detail-summary" aria-label="Booking totals">
+          <div>
+            <span>Total Weight</span>
+            <strong>{formatNumber(row.totalWeight)}</strong>
+          </div>
+          <div>
+            <span>Buying Total</span>
+            <strong>{formatMoney(row.buyingTotal)}</strong>
+          </div>
+          <div>
+            <span>Packer Commission</span>
+            <strong>{formatMoney(row.packerCommission)}</strong>
+          </div>
+          <div>
+            <span>Items</span>
+            <strong>{formatInteger(items.length)}</strong>
+          </div>
+        </div>
+
+        <div className="packer-sales-detail-table-wrap">
+          <table className="transactions-table packer-sales-detail-table">
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Product</th>
+                <th>Style</th>
+                <th>Packing</th>
+                <th>Brand</th>
+                <th>Size</th>
+                <th className="numeric">Qty</th>
+                <th className="numeric">Total Weight</th>
+                <th className="numeric">Buying Total</th>
+                <th className="numeric">Packer Commission</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr><td colSpan={10} className="table-message-cell">No product details found for this booking.</td></tr>
+              ) : items.map((item, index) => (
+                <tr key={item.id}>
+                  <td>{index + 1}</td>
+                  <td>{item.product || '-'}</td>
+                  <td>{item.style || '-'}</td>
+                  <td>{item.packing || '-'}</td>
+                  <td>{item.brand || '-'}</td>
+                  <td>{item.size || '-'}</td>
+                  <td className="numeric">{formatQty(item.qty, item.qtyUnit)}</td>
+                  <td className="numeric">{formatNumber(item.totalWeight)}</td>
+                  <td className="numeric">{formatMoney(item.buyingTotal)}</td>
+                  <td className="numeric">{formatMoney(item.packerCommission)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function buildPackerSalesSummaryRows(transactions) {
+  return transactions.map((transaction) => {
+    const items = buildPackerSalesItemRows(transaction)
+
+    return {
+      id: transaction.id,
+      bookingNo: transaction.booking_no ?? '-',
+      issueDate: transaction.issue_date,
+      packer: transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? '',
+      customer: transaction.general_info_customer?.customer ?? '',
+      totalWeight: sumNullableRows(items, 'totalWeight'),
+      buyingTotal: sumNullableRows(items, 'buyingTotal'),
+      packerCommission: sumNullableRows(items, 'packerCommission'),
+      status: transaction.status ?? 'U',
+      items,
+    }
+  })
+}
+
 function flattenPackerSalesRows(transactions) {
   return transactions.flatMap((transaction) => {
     const items = Array.isArray(transaction.items) && transaction.items.length > 0 ? transaction.items : [null]
+    const totalCommission = sumTransactionItems(transaction.items, 'total_packer_commission')
 
     return items.map((item, index) => ({
       id: `${transaction.id}-${item?.id ?? `empty-${index}`}`,
@@ -418,9 +514,28 @@ function flattenPackerSalesRows(transactions) {
       totalWeight: item?.total_weight_value ?? null,
       buyingTotal: item?.buying_total ?? null,
       packerCommission: item?.total_packer_commission ?? null,
+      totalCommission,
       status: transaction.status ?? 'U',
     }))
   })
+}
+
+function buildPackerSalesItemRows(transaction) {
+  const items = Array.isArray(transaction.items) ? transaction.items : []
+
+  return items.map((item, index) => ({
+    id: item?.id ?? `${transaction.id}-item-${index}`,
+    product: item?.product ?? '',
+    style: item?.style ?? '',
+    packing: item?.packing ?? '',
+    brand: item?.brand ?? '',
+    size: item?.size ?? '',
+    qty: item?.qty_booking ?? item?.qty_value ?? null,
+    qtyUnit: item?.qty_unit ?? '',
+    totalWeight: item?.total_weight_value ?? null,
+    buyingTotal: item?.buying_total ?? null,
+    packerCommission: item?.total_packer_commission ?? null,
+  }))
 }
 
 function getStatusLabel(value) {
@@ -491,9 +606,44 @@ function formatNumber(value) {
 
 function sumRows(rows, key) {
   return rows.reduce((total, row) => {
-    const value = Number(row[key])
-    return Number.isFinite(value) ? total + value : total
+    const value = numericValue(row[key])
+    return value !== null ? total + value : total
   }, 0)
+}
+
+function sumNullableRows(rows, key) {
+  let hasValue = false
+  const total = rows.reduce((sum, row) => {
+    const value = numericValue(row[key])
+    if (value === null) return sum
+
+    hasValue = true
+    return sum + value
+  }, 0)
+
+  return hasValue ? total : null
+}
+
+function sumTransactionItems(items, key) {
+  if (!Array.isArray(items)) return null
+
+  let hasValue = false
+  const total = items.reduce((sum, item) => {
+    const value = numericValue(item?.[key])
+    if (value === null) return sum
+
+    hasValue = true
+    return sum + value
+  }, 0)
+
+  return hasValue ? total : null
+}
+
+function numericValue(value) {
+  if (value === null || value === undefined || value === '') return null
+
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
 }
 
 function formatQty(value, unit) {

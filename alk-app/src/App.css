@@ -2749,7 +2749,7 @@ select:focus {
 }
 
 .packer-sales-table {
-  min-width: 1280px;
+  min-width: 940px;
   table-layout: fixed;
 }
 
@@ -2803,6 +2803,121 @@ select:focus {
   color: #0f4c81;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.report-code-button {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  color: #0f4c81;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.report-code-button:hover,
+.report-code-button:focus-visible {
+  color: #175cd3;
+  text-decoration: underline;
+}
+
+.packer-sales-modal-overlay {
+  z-index: 95;
+}
+
+.packer-sales-detail-modal {
+  width: min(1120px, 100%);
+  max-height: 90vh;
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.packer-sales-detail-header {
+  align-items: flex-start;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid #e4e7ec;
+  background: #f8fafc;
+}
+
+.packer-sales-detail-header h5 {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.packer-sales-modal-subtitle {
+  margin: 0.3rem 0 0;
+  color: #667085;
+  font-size: 0.82rem;
+}
+
+.packer-sales-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-bottom: 1px solid #e4e7ec;
+  background: #ffffff;
+}
+
+.packer-sales-detail-summary div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1.1rem;
+  border-right: 1px solid #e4e7ec;
+}
+
+.packer-sales-detail-summary div:last-child {
+  border-right: 0;
+}
+
+.packer-sales-detail-summary span {
+  color: #667085;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.packer-sales-detail-summary strong {
+  color: #111827;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.packer-sales-detail-table-wrap {
+  max-height: calc(90vh - 174px);
+  overflow: auto;
+}
+
+.packer-sales-detail-table {
+  min-width: 1060px;
+  border: 0;
+}
+
+.packer-sales-detail-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #243042;
+  border-color: #243042;
+}
+
+.packer-sales-detail-table td,
+.packer-sales-detail-table th {
+  padding: 0.58rem 0.65rem;
+}
+
+.packer-sales-detail-table .numeric {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .status-pill {
@@ -2863,6 +2978,14 @@ select:focus {
 @media (max-width: 720px) {
   .packer-sales-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .packer-sales-detail-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .packer-sales-detail-summary div:nth-child(2n) {
+    border-right: 0;
   }
 }
 

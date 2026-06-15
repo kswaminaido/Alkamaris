@@ -36,7 +36,7 @@ final class OverdueEmailJob implements ShouldQueue
                     $query->where('lsd_min', '<', $today);
                 });
             })
-            ->with(['shippingDetailsCustomer', 'shippingDetailsPacker', 'salesPerson'])
+            ->with(['shippingDetailsCustomer', 'shippingDetailsPacker', 'salesPerson', 'generalInfoCustomer', 'generalInfoPacker'])
             ->get();
 
         if ($overdueTransactions->isEmpty()) {
@@ -81,7 +81,7 @@ final class OverdueEmailJob implements ShouldQueue
                 ?? $transaction->shippingDetailsPacker?->lsd_min 
                 ?? null;
             
-            $lsdMin = $lsdMinRaw ? Carbon::parse($lsdMinRaw)->format('jS M, Y') : 'N/A';
+            $lsdMin = $lsdMinRaw ? Carbon::parse($lsdMinRaw)->format('d-m-Y') : 'N/A';
             
             $delayedDays = 'N/A';
             if ($lsdMinRaw) {
@@ -89,10 +89,16 @@ final class OverdueEmailJob implements ShouldQueue
             }
             
             $salesPerson = $transaction->salesPerson?->name ?? 'N/A';
+            $customerName = $transaction->generalInfoCustomer?->customer ?? 'N/A';
+            $packerName = $transaction->generalInfoPacker?->packer_name
+                ?? $transaction->generalInfoPacker?->vendor
+                ?? 'N/A';
 
             $rows .= "
         <tr>
             <td style=\"padding: 10px; border: 1px solid #ddd;\"><a href=\"https://erpalkamaris.com/transactions\" style=\"text-decoration: none;\">{$transaction->booking_no}</a></td>
+            <td style=\"padding: 10px; border: 1px solid #ddd;\">{$customerName}</td>
+            <td style=\"padding: 10px; border: 1px solid #ddd;\">{$packerName}</td>
             <td style=\"padding: 10px; border: 1px solid #ddd;\">{$lsdMin}</td>
             <td style=\"padding: 10px; border: 1px solid #ddd;\">{$delayedDays}</td>
             <td style=\"padding: 10px; border: 1px solid #ddd;\">{$salesPerson}</td>
@@ -108,7 +114,7 @@ final class OverdueEmailJob implements ShouldQueue
         body { font-family: Arial, sans-serif; color: #333; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th { padding: 10px; text-align: left; border: 1px solid #ddd; background-color: #f2f2f2; font-weight: bold; }
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
         .alert { background-color: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0; }
     </style>
 </head>
@@ -124,6 +130,8 @@ final class OverdueEmailJob implements ShouldQueue
             <thead>
                 <tr>
                     <th>Booking No</th>
+                    <th>Customer</th>
+                    <th>Packer</th>
                     <th>LSD Min Date</th>
                     <th>Delayed By (Days)</th>
                     <th>Sales Person</th>
