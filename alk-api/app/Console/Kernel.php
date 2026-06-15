@@ -33,6 +33,6 @@ class Kernel extends ConsoleKernel
         // Dispatch the overdue email job on Monday and Thursday
         $schedule->call(function () {
             OverdueEmailJob::dispatch();
-        })->mondays()->thursdays()->at('09:00');
+        })->mondays()->thursdays()->at('12.01');
     }
 }
