@@ -225,11 +225,17 @@ function PackerSalesReportPage() {
   const lastPage = Math.max(1, pagination.last_page ?? 1)
   const canGoPrevious = currentPage > 1
   const canGoNext = currentPage < lastPage
+  const summaryCards = [
+    { label: 'Transactions', value: formatInteger(totalRecords), tone: 'blue' },
+    { label: 'Current Lines', value: formatInteger(rows.length), tone: 'teal' },
+    { label: 'Buying Total', value: formatCurrency(sumRows(rows, 'buyingTotal')), tone: 'amber' },
+    { label: 'Packer Commission', value: formatCurrency(sumRows(rows, 'packerCommission')), tone: 'green' },
+  ]
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Packer Sales" activeKey="all_transactions" onLogout={onLogout} authFetch={authFetch}>
-      <div className="transactions-page">
-        <div className="transactions-toolbar">
+    <AdminSidebarLayout currentUser={currentUser} title="Packer Sales" activeKey="reports" onLogout={onLogout} authFetch={authFetch}>
+      <div className="transactions-page packer-sales-page">
+        <div className="transactions-toolbar packer-sales-toolbar">
           <div>
             <h5>Reports &gt; Packer Sales</h5>
             <div className="search-filters">
@@ -321,13 +327,22 @@ function PackerSalesReportPage() {
           </div>
         </div>
 
+        <div className="packer-sales-summary-grid" aria-label="Packer sales summary">
+          {summaryCards.map((card) => (
+            <div key={card.label} className={`packer-sales-summary-card ${card.tone}`}>
+              <span>{card.label}</span>
+              <strong>{card.value}</strong>
+            </div>
+          ))}
+        </div>
+
         {error ? <p className="message error">{error}</p> : null}
 
-        <div className="transactions-table-wrap">
-          <table className="transactions-table">
+        <div className="transactions-table-wrap packer-sales-table-wrap">
+          <table className="transactions-table packer-sales-table">
             <thead>
               <tr>
-                <th>Code</th>
+                <th className="sticky-col">Code</th>
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
@@ -335,27 +350,27 @@ function PackerSalesReportPage() {
                 <th>Style</th>
                 <th>Packing</th>
                 <th>Size</th>
-                <th>Qty</th>
-                <th>Total Weight</th>
-                <th>Buying Total</th>
-                <th>Packer Com.</th>
+                <th className="numeric">Qty</th>
+                <th className="numeric">Total Weight</th>
+                <th className="numeric">Buying Total</th>
+                <th className="numeric">Packer Commission</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={13} style={{ textAlign: 'center' }}>
+                  <td colSpan={13} className="table-message-cell">
                     Loading packer sales, please wait...
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={13}>No packer sales found.</td></tr>
+                <tr><td colSpan={13} className="table-message-cell">No packer sales found.</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
-                  <td>{row.bookingNo}</td>
+                  <td className="sticky-col"><span className="report-code">{row.bookingNo}</span></td>
                   <td>{displayDate(row.issueDate)}</td>
                   <td>{row.packer || '-'}</td>
                   <td>{row.customer || '-'}</td>
@@ -363,11 +378,15 @@ function PackerSalesReportPage() {
                   <td>{row.style || '-'}</td>
                   <td>{row.packing || '-'}</td>
                   <td>{row.size || '-'}</td>
-                  <td>{formatQty(row.qty, row.qtyUnit)}</td>
-                  <td>{formatNumber(row.totalWeight)}</td>
-                  <td>{formatMoney(row.buyingTotal)}</td>
-                  <td>{formatMoney(row.packerCommission)}</td>
-                  <td>{getStatusLabel(row.status)}</td>
+                  <td className="numeric">{formatQty(row.qty, row.qtyUnit)}</td>
+                  <td className="numeric">{formatNumber(row.totalWeight)}</td>
+                  <td className="numeric">{formatMoney(row.buyingTotal)}</td>
+                  <td className="numeric">{formatMoney(row.packerCommission)}</td>
+                  <td>
+                    <span className={`status-pill ${getStatusClass(row.status)}`}>
+                      {getStatusLabel(row.status)}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -409,6 +428,23 @@ function getStatusLabel(value) {
   return option ? option.label : value
 }
 
+function getStatusClass(value) {
+  switch (value) {
+    case 'I':
+      return 'invoice'
+    case 'P':
+      return 'pending'
+    case 'S':
+      return 'shipped'
+    case 'R':
+      return 'received'
+    case 'T':
+      return 'tally'
+    default:
+      return 'unshipped'
+  }
+}
+
 function buildTransactionParams(filters, targetPage, perPage) {
   const params = new URLSearchParams()
   params.append('page', targetPage)
@@ -435,10 +471,29 @@ function formatMoney(value) {
   return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function formatCurrency(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '$0.00'
+  return `$${number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function formatInteger(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '0'
+  return number.toLocaleString('en-US', { maximumFractionDigits: 0 })
+}
+
 function formatNumber(value) {
   const number = Number(value)
   if (!Number.isFinite(number)) return '-'
   return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function sumRows(rows, key) {
+  return rows.reduce((total, row) => {
+    const value = Number(row[key])
+    return Number.isFinite(value) ? total + value : total
+  }, 0)
 }
 
 function formatQty(value, unit) {
