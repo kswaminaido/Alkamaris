@@ -3,7 +3,6 @@
 namespace App\Services\Transactions;
 
 use App\Models\Transaction;
-use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 
@@ -38,7 +37,7 @@ class TransactionDocumentService
     public function render(Transaction $transaction, array $documentTypes, array $options = []): array
     {
         return $this->normalizeTypes($documentTypes)
-            ->map(fn(string $documentType): array => $this->buildDocument($transaction, $documentType, $options))
+            ->map(fn (string $documentType): array => $this->buildDocument($transaction, $documentType, $options))
             ->all();
     }
 
@@ -49,8 +48,8 @@ class TransactionDocumentService
     private function normalizeTypes(array $documentTypes)
     {
         $normalizedTypes = collect($documentTypes)
-            ->map(fn(mixed $value): string => Str::of((string) $value)->lower()->replace('-', '_')->value())
-            ->filter(fn(string $value): bool => array_key_exists($value, self::DOCUMENT_LABELS))
+            ->map(fn (mixed $value): string => Str::of((string) $value)->lower()->replace('-', '_')->value())
+            ->filter(fn (string $value): bool => array_key_exists($value, self::DOCUMENT_LABELS))
             ->unique()
             ->values();
 
@@ -60,7 +59,7 @@ class TransactionDocumentService
 
         if ($normalizedTypes->contains('all')) {
             return collect(array_keys(self::DOCUMENT_LABELS))
-                ->reject(fn(string $type): bool => $type === 'all')
+                ->reject(fn (string $type): bool => $type === 'all')
                 ->values();
         }
 
@@ -93,7 +92,7 @@ class TransactionDocumentService
      */
     private function renderPreviewHtml(array $view): string
     {
-        $template = 'documents.transactions.' . ($view['body_template'] ?? 'preview');
+        $template = 'documents.transactions.'.($view['body_template'] ?? 'preview');
 
         return view($template, [
             'view' => $view,
@@ -140,7 +139,7 @@ class TransactionDocumentService
 
                 $index++;
 
-                return 'src="cid:' . $contentId . '"';
+                return 'src="cid:'.$contentId.'"';
             },
             $previewHtml,
         ) ?? $previewHtml;
@@ -151,12 +150,12 @@ class TransactionDocumentService
 
         $html = $this->withWordMarkup($html);
 
-        $boundary = '----=_AlkamarisWord_' . Str::random(24);
+        $boundary = '----=_AlkamarisWord_'.Str::random(24);
         $parts = [
             'MIME-Version: 1.0',
-            'Content-Type: multipart/related; boundary="' . $boundary . '"; type="text/html"',
+            'Content-Type: multipart/related; boundary="'.$boundary.'"; type="text/html"',
             '',
-            '--' . $boundary,
+            '--'.$boundary,
             'Content-Type: text/html; charset="utf-8"',
             'Content-Transfer-Encoding: quoted-printable',
             'Content-Location: document.html',
@@ -165,16 +164,16 @@ class TransactionDocumentService
         ];
 
         foreach ($images as $image) {
-            $parts[] = '--' . $boundary;
-            $parts[] = 'Content-Type: ' . $image['mime_type'];
+            $parts[] = '--'.$boundary;
+            $parts[] = 'Content-Type: '.$image['mime_type'];
             $parts[] = 'Content-Transfer-Encoding: base64';
-            $parts[] = 'Content-ID: <' . $image['content_id'] . '>';
-            $parts[] = 'Content-Location: ' . $image['filename'];
+            $parts[] = 'Content-ID: <'.$image['content_id'].'>';
+            $parts[] = 'Content-Location: '.$image['filename'];
             $parts[] = '';
             $parts[] = chunk_split($image['content_base64'], 76, "\r\n");
         }
 
-        $parts[] = '--' . $boundary . '--';
+        $parts[] = '--'.$boundary.'--';
         $parts[] = '';
 
         return implode("\r\n", $parts);
@@ -283,10 +282,10 @@ class TransactionDocumentService
 HTML;
 
         if (str_contains($html, '</head>')) {
-            return str_replace('</head>', $wordStyles . "\n</head>", $html);
+            return str_replace('</head>', $wordStyles."\n</head>", $html);
         }
 
-        return $wordStyles . $html;
+        return $wordStyles.$html;
     }
 
     private function withWordItemTableMarkup(string $html): string
@@ -298,7 +297,7 @@ HTML;
                 $table = preg_replace('/<th([^>]*)>/', '<th$1 bgcolor="#061173" style="background-color:#061173;color:#ffffff;border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
                 $table = preg_replace('/<td([^>]*)>/', '<td$1 style="border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
 
-                return '<table class="main items" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1pt solid #000;mso-border-alt:solid #000 0.75pt;">' . $table . '</table>';
+                return '<table class="main items" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1pt solid #000;mso-border-alt:solid #000 0.75pt;">'.$table.'</table>';
             },
             $html,
         ) ?? $html;
@@ -307,17 +306,17 @@ HTML;
     private function withWordSignatureMarkup(string $html): string
     {
         $lineStyle = 'border-top:0.75pt solid #000;mso-border-top-alt:solid #000 0.75pt;'
-            . 'height:1pt;line-height:1pt;font-size:1pt;width:100%;margin:0 auto 5pt;';
+            .'height:1pt;line-height:1pt;font-size:1pt;width:100%;margin:0 auto 5pt;';
 
         $html = preg_replace(
             '/<div class="signature-line"><\/div>/',
-            '<div class="signature-line" style="' . $lineStyle . '">&nbsp;</div>',
+            '<div class="signature-line" style="'.$lineStyle.'">&nbsp;</div>',
             $html,
         ) ?? $html;
 
         return preg_replace(
             '/<div class="customer-signature-line"><\/div>/',
-            '<div class="customer-signature-line" style="' . $lineStyle . '">&nbsp;</div>',
+            '<div class="customer-signature-line" style="'.$lineStyle.'">&nbsp;</div>',
             $html,
         ) ?? $html;
     }

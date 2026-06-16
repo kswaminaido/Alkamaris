@@ -126,11 +126,11 @@ class ConfigController extends Controller
 
         $oldValues = $config->toArray();
         $options = collect(is_array($config->data) ? $config->data : [])
-            ->filter(fn(mixed $option): bool => is_string($option) && trim($option) !== '')
-            ->map(fn(string $option): string => trim($option))
+            ->filter(fn (mixed $option): bool => is_string($option) && trim($option) !== '')
+            ->map(fn (string $option): string => trim($option))
             ->values();
 
-        if (! $options->contains(fn(string $option): bool => mb_strtolower($option) === mb_strtolower($value))) {
+        if (! $options->contains(fn (string $option): bool => mb_strtolower($option) === mb_strtolower($value))) {
             $options->push($value);
         }
 
@@ -168,7 +168,7 @@ class ConfigController extends Controller
             }
 
             $options = collect($response->json())
-                ->map(fn(mixed $entry): string => is_array($entry) ? trim((string) data_get($entry, 'name.common', '')) : '')
+                ->map(fn (mixed $entry): string => is_array($entry) ? trim((string) data_get($entry, 'name.common', '')) : '')
                 ->filter()
                 ->unique()
                 ->sort()

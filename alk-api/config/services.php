@@ -53,4 +53,13 @@ return [
             explode(',', env('OVERDUE_EMAILS_TO', 'info@alkamaris.com'))
         )
     ),
+
+    'backup' => [
+        'emails' => array_filter(
+            array_map(
+                'trim',
+                explode(',', env('SEND_BACKUP_TO', ''))
+            )
+        ),
+    ],
 ];

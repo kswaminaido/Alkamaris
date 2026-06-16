@@ -46,10 +46,33 @@ class MailchimpCampaignMailer
         return filled((string) config('services.mailchimp.api_key'));
     }
 
+    /**
+     * @return array{file_id: int, url: string}
+     */
+    public function uploadFile(string $filename, string $contents): array
+    {
+        $response = $this->request('post', '/file-manager/files', [
+            'name' => $filename,
+            'file_data' => base64_encode($contents),
+        ]);
+
+        $fileId = (int) ($response['id'] ?? 0);
+        $url = (string) ($response['full_size_url'] ?? $response['url'] ?? '');
+
+        if ($fileId <= 0 || $url === '') {
+            throw new RuntimeException('Mailchimp did not return a file URL.');
+        }
+
+        return [
+            'file_id' => $fileId,
+            'url' => $url,
+        ];
+    }
+
     private function syncMembers(string $listId, Collection $emails): void
     {
         foreach ($emails as $email) {
-            $this->request('put', "/lists/{$listId}/members/" . md5($email), [
+            $this->request('put', "/lists/{$listId}/members/".md5($email), [
                 'email_address' => $email,
                 'status_if_new' => 'subscribed',
             ]);
@@ -58,7 +81,7 @@ class MailchimpCampaignMailer
 
     private function createStaticSegment(string $listId, Collection $emails): int
     {
-        $name = 'Alkamaris Default Mail ' . now()->format('Y-m-d H:i:s');
+        $name = 'Alkamaris Default Mail '.now()->format('Y-m-d H:i:s');
         $response = $this->request('post', "/lists/{$listId}/segments", [
             'name' => $name,
             'static_segment' => $emails->all(),
@@ -145,7 +168,7 @@ class MailchimpCampaignMailer
             ->acceptJson()
             ->asJson()
             ->timeout(30)
-            ->{$method}($this->baseUrl() . $path, $payload);
+            ->{$method}($this->baseUrl().$path, $payload);
 
         $this->throwIfFailed($response);
 
@@ -177,6 +200,6 @@ class MailchimpCampaignMailer
         $payload = $response->json() ?? [];
         $detail = $payload['detail'] ?? $payload['title'] ?? $response->body();
 
-        throw new RuntimeException('Mailchimp error: ' . $detail);
+        throw new RuntimeException('Mailchimp error: '.$detail);
     }
 }

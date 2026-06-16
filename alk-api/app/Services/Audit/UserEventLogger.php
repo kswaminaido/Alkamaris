@@ -6,8 +6,8 @@ use App\Models\User;
 use App\Models\UsersEventLog;
 use BackedEnum;
 use Illuminate\Support\Arr;
-use UnitEnum;
 use Throwable;
+use UnitEnum;
 
 final class UserEventLogger
 {

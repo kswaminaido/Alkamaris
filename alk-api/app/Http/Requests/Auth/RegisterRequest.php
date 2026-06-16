@@ -52,14 +52,14 @@ final class RegisterRequest extends FormRequest
             'address' => ['required', 'string', 'max:1000'],
             'user_type' => ['required', 'string', Rule::in($allowedUserTypes)],
             'password' => [
-                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
                 'nullable',
                 'string',
                 'min:8',
                 'confirmed',
             ],
             'password_confirmation' => [
-                Rule::requiredIf(fn(): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
+                Rule::requiredIf(fn (): bool => in_array($this->input('user_type'), self::PASSWORD_REQUIRED_USER_TYPES, true)),
                 'nullable',
                 'string',
                 'min:8',

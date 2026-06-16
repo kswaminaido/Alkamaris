@@ -33,9 +33,9 @@ final class UserResource extends JsonResource
         $baseUrl = rtrim($request->getSchemeAndHttpHost(), '/');
 
         if ($path !== null && $path !== '') {
-            return $baseUrl . '/storage/' . ltrim($path, '/');
+            return $baseUrl.'/storage/'.ltrim($path, '/');
         }
 
-        return $baseUrl . '/' . ltrim($fallback, '/');
+        return $baseUrl.'/'.ltrim($fallback, '/');
     }
 }

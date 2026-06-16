@@ -25,7 +25,7 @@ final class ProcessLcTermsJob implements ShouldQueue
         $transactions = Transaction::query()
             ->where('status', TransactionStatus::Received)
             ->whereNotNull('lc_set_at')
-            ->whereRaw("DATE_ADD(lc_set_at, INTERVAL lc_days DAY) = ?", [$today])
+            ->whereRaw('DATE_ADD(lc_set_at, INTERVAL lc_days DAY) = ?', [$today])
             ->get();
 
         foreach ($transactions as $transaction) {

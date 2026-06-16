@@ -31,7 +31,7 @@ class UserController extends Controller
         }
 
         $roles = request('roles') ? explode(',', request('roles')) : [];
-        if (!empty($roles)) {
+        if (! empty($roles)) {
             $query->whereIn('role', $roles);
         } elseif ($role = request('role')) {
             $query->where('role', $role);

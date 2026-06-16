@@ -2,6 +2,4 @@
 
 namespace App\Http\Requests\Transactions;
 
-class UpdateTransactionItemRequest extends StoreTransactionItemRequest
-{
-}
+class UpdateTransactionItemRequest extends StoreTransactionItemRequest {}

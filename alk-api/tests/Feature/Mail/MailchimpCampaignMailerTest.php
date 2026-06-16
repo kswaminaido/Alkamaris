@@ -45,7 +45,7 @@ final class MailchimpCampaignMailerTest extends TestCase
 
         Http::assertSent(function (Request $request): bool {
             return $request->method() === 'PUT'
-                && $request->url() === 'https://us17.api.mailchimp.com/3.0/lists/audience-123/members/' . md5('buyer@example.com')
+                && $request->url() === 'https://us17.api.mailchimp.com/3.0/lists/audience-123/members/'.md5('buyer@example.com')
                 && $request['email_address'] === 'buyer@example.com'
                 && $request['status_if_new'] === 'subscribed';
         });
@@ -65,5 +65,31 @@ final class MailchimpCampaignMailerTest extends TestCase
 
         Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
             && $request->url() === 'https://us17.api.mailchimp.com/3.0/campaigns/campaign-789/actions/send');
+    }
+
+    public function test_it_uploads_a_file_to_mailchimp_file_manager(): void
+    {
+        Config::set('services.mailchimp.api_key', 'test-key-us17');
+
+        Http::fake([
+            'https://us17.api.mailchimp.com/3.0/file-manager/files' => Http::response([
+                'id' => 123,
+                'full_size_url' => 'https://mcusercontent.com/backup.sql',
+            ], 200),
+        ]);
+
+        $result = app(MailchimpCampaignMailer::class)->uploadFile('backup.sql', 'SQL DATA');
+
+        $this->assertSame([
+            'file_id' => 123,
+            'url' => 'https://mcusercontent.com/backup.sql',
+        ], $result);
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'POST'
+                && $request->url() === 'https://us17.api.mailchimp.com/3.0/file-manager/files'
+                && $request['name'] === 'backup.sql'
+                && $request['file_data'] === base64_encode('SQL DATA');
+        });
     }
 }

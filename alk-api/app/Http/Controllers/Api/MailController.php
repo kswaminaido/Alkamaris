@@ -90,7 +90,7 @@ class MailController extends Controller
                 $user = $customerUsers->get(Str::lower($customerName));
 
                 return [
-                    'id' => md5($customerName . '|' . ($user?->email ?? '')),
+                    'id' => md5($customerName.'|'.($user?->email ?? '')),
                     'name' => $customerName,
                     'email' => $user?->email,
                     'country' => $first?->country,
@@ -180,7 +180,7 @@ class MailController extends Controller
             );
 
             return response()->json([
-                'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s) through Mailchimp.',
+                'message' => 'Mail sent successfully to '.$recipients->count().' customer(s) through Mailchimp.',
             ]);
         }
 
@@ -213,19 +213,19 @@ class MailController extends Controller
         );
 
         return response()->json([
-            'message' => 'Mail sent successfully to ' . $recipients->count() . ' customer(s).',
+            'message' => 'Mail sent successfully to '.$recipients->count().' customer(s).',
         ]);
     }
 
     private function buildHtmlMail(string $title, string $body, bool $bodyIsHtml): string
     {
-        $titleHtml = trim($title) !== '' ? '<h2>' . e($title) . '</h2>' : '';
+        $titleHtml = trim($title) !== '' ? '<h2>'.e($title).'</h2>' : '';
         $bodyHtml = $bodyIsHtml ? $this->cleanComposeHtml($body) : nl2br(e($body));
 
         return '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#111827;">'
-            . $titleHtml
-            . '<div>' . $bodyHtml . '</div>'
-            . '</div>';
+            .$titleHtml
+            .'<div>'.$bodyHtml.'</div>'
+            .'</div>';
     }
 
     private function cleanComposeHtml(string $html): string

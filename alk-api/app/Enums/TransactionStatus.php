@@ -9,7 +9,7 @@ enum TransactionStatus: string
     case Shipped = 'S';
     case Received = 'R'; // payment and documents received
     case Unshipped = 'U';
-    case Tally = 'T'; 
+    case Tally = 'T';
 
     public function label(): string
     {
@@ -29,7 +29,7 @@ enum TransactionStatus: string
     public static function values(): array
     {
         return array_map(
-            static fn(self $status): string => $status->value,
+            static fn (self $status): string => $status->value,
             self::cases(),
         );
     }

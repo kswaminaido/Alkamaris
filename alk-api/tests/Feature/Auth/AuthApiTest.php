@@ -91,11 +91,11 @@ final class AuthApiTest extends TestCase
     {
         foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts] as $role) {
             $response = $this->postJson('/api/auth/register', [
-                'name' => ucfirst($role->value) . ' User',
-                'contact_name' => ucfirst($role->value) . ' Contact',
+                'name' => ucfirst($role->value).' User',
+                'contact_name' => ucfirst($role->value).' Contact',
                 'phone_number' => '9998887776',
                 'email' => "{$role->value}@example.com",
-                'address' => ucfirst($role->value) . ' address',
+                'address' => ucfirst($role->value).' address',
                 'user_type' => $role->value,
             ]);
 
@@ -128,11 +128,11 @@ final class AuthApiTest extends TestCase
     {
         foreach ([UserRole::Admin, UserRole::Logistics, UserRole::Accounts, UserRole::Sales] as $role) {
             $response = $this->postJson('/api/auth/register', [
-                'name' => ucfirst($role->value) . ' User',
-                'contact_name' => ucfirst($role->value) . ' Contact',
+                'name' => ucfirst($role->value).' User',
+                'contact_name' => ucfirst($role->value).' Contact',
                 'phone_number' => '9998887776',
                 'email' => "{$role->value}@example.com",
-                'address' => ucfirst($role->value) . ' address',
+                'address' => ucfirst($role->value).' address',
                 'user_type' => $role->value,
                 'password' => 'Password@123',
                 'password_confirmation' => 'Password@123',

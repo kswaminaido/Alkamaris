@@ -32,15 +32,16 @@ final class OverdueEmailJob implements ShouldQueue
                 $query->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
                     $query->where('lsd_min', '<', $today);
                 })
-                ->orWhereHas('shippingDetailsPacker', function ($query) use ($today) {
-                    $query->where('lsd_min', '<', $today);
-                });
+                    ->orWhereHas('shippingDetailsPacker', function ($query) use ($today) {
+                        $query->where('lsd_min', '<', $today);
+                    });
             })
             ->with(['shippingDetailsCustomer', 'shippingDetailsPacker', 'salesPerson', 'generalInfoCustomer', 'generalInfoPacker'])
             ->get();
 
         if ($overdueTransactions->isEmpty()) {
             Log::info('No overdue transactions found.');
+
             return;
         }
 
@@ -48,6 +49,7 @@ final class OverdueEmailJob implements ShouldQueue
         $emailRecipients = config('services.overdue_emails_to', []);
         if (empty($emailRecipients)) {
             Log::warning('No email recipients configured for overdue alerts.');
+
             return;
         }
 
@@ -64,7 +66,7 @@ final class OverdueEmailJob implements ShouldQueue
     private function generateEmailContent($transactions): array
     {
         return [
-            'subject' => 'Overdue Transactions Alert - ' . Carbon::now()->format('Y-m-d'),
+            'subject' => 'Overdue Transactions Alert - '.Carbon::now()->format('Y-m-d'),
             'html' => $this->generateHtmlContent($transactions),
         ];
     }
@@ -75,19 +77,19 @@ final class OverdueEmailJob implements ShouldQueue
     private function generateHtmlContent($transactions): string
     {
         $rows = '';
-        
+
         foreach ($transactions as $transaction) {
-            $lsdMinRaw = $transaction->shippingDetailsCustomer?->lsd_min 
-                ?? $transaction->shippingDetailsPacker?->lsd_min 
+            $lsdMinRaw = $transaction->shippingDetailsCustomer?->lsd_min
+                ?? $transaction->shippingDetailsPacker?->lsd_min
                 ?? null;
-            
+
             $lsdMin = $lsdMinRaw ? Carbon::parse($lsdMinRaw)->format('d-m-Y') : 'N/A';
-            
+
             $delayedDays = 'N/A';
             if ($lsdMinRaw) {
                 $delayedDays = (int) Carbon::parse($lsdMinRaw)->diffInDays(Carbon::now());
             }
-            
+
             $salesPerson = $transaction->salesPerson?->name ?? 'N/A';
             $customerName = $transaction->generalInfoCustomer?->customer ?? 'N/A';
             $packerName = $transaction->generalInfoPacker?->packer_name
@@ -162,6 +164,7 @@ final class OverdueEmailJob implements ShouldQueue
         try {
             if (! $mailchimp->isConfigured()) {
                 Log::error('Mailchimp API credentials not configured');
+
                 return;
             }
 
@@ -169,7 +172,7 @@ final class OverdueEmailJob implements ShouldQueue
                 $recipients,
                 $emailContent['subject'],
                 $emailContent['html'],
-                'Overdue Transactions Alert - ' . Carbon::now()->format('Y-m-d H:i:s'),
+                'Overdue Transactions Alert - '.Carbon::now()->format('Y-m-d H:i:s'),
             );
 
             Log::info('Overdue email sent successfully via Mailchimp', [

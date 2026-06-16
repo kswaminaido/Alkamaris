@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
 final class TransactionService
 {
     private const BOOKING_PREFIX = 'AME';
+
     private const BOOKING_SEQUENCE_PAD = 3;
+
     private const BOOKING_SEQUENCE_START = 301;
 
     /**
@@ -205,7 +207,7 @@ final class TransactionService
         $prefix = preg_replace('/\d+$/', '', $sourceBookingNo);
         $sequenceText = substr($sourceBookingNo, strlen($prefix));
 
-        if ($prefix === '' || $sequenceText === '' || !ctype_digit($sequenceText)) {
+        if ($prefix === '' || $sequenceText === '' || ! ctype_digit($sequenceText)) {
             return $this->generateBookingNo(CarbonImmutable::now()->toDateString());
         }
 
@@ -213,13 +215,13 @@ final class TransactionService
         $nextSequence = max(
             self::BOOKING_SEQUENCE_START,
             $this->maxBookingSequence(
-                Transaction::query()->where('booking_no', 'like', $prefix . '%')->pluck('booking_no'),
+                Transaction::query()->where('booking_no', 'like', $prefix.'%')->pluck('booking_no'),
                 $prefix,
             ) + 1,
         );
 
         do {
-            $candidate = $prefix . str_pad((string) $nextSequence, $sequenceLength, '0', STR_PAD_LEFT);
+            $candidate = $prefix.str_pad((string) $nextSequence, $sequenceLength, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
@@ -261,14 +263,14 @@ final class TransactionService
 
     private function generateBookingNo(string $issueDate): string
     {
-        $prefix = self::BOOKING_PREFIX . $this->financialYearSuffix($issueDate);
+        $prefix = self::BOOKING_PREFIX.$this->financialYearSuffix($issueDate);
         $bookingNumbers = Transaction::query()
-            ->where('booking_no', 'like', $prefix . '%')
+            ->where('booking_no', 'like', $prefix.'%')
             ->pluck('booking_no');
         $nextSequence = max(self::BOOKING_SEQUENCE_START, $this->maxBookingSequence($bookingNumbers, $prefix) + 1);
 
         do {
-            $candidate = $prefix . str_pad((string) $nextSequence, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
+            $candidate = $prefix.str_pad((string) $nextSequence, self::BOOKING_SEQUENCE_PAD, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (Transaction::query()->where('booking_no', $candidate)->exists());
 
