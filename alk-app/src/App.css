@@ -3249,6 +3249,13 @@ h5 {
   color: #111111;
 }
 
+.txe-card input.txe-readonly {
+  background: #f4f4f5;
+  color: #475467;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .txe-card textarea {
   min-height: 64px;
 }
