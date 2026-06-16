@@ -3919,11 +3919,11 @@ h5 {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.2rem 1.5rem;
-  background: linear-gradient(180deg, #1e1e1e 0%, #111111 100%);
+  background: linear-gradient(179deg, #4b4848 0%, #454141 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.txe-print-header h3,
+.txe-print-header h5,
 .txe-print-header span {
   margin: 0;
   display: block;

@@ -181,7 +181,13 @@ class TransactionDocumentService
 
     private function withWordMarkup(string $html): string
     {
-        return $this->withWordSignatureMarkup($this->withWordItemTableMarkup($this->withWordStyles($html)));
+        return $this->withWordLogoMarkup(
+            $this->withWordSignatureMarkup(
+                $this->withWordItemTableMarkup(
+                    $this->withWordStyles($html),
+                ),
+            ),
+        );
     }
 
     private function withWordStyles(string $html): string
@@ -221,6 +227,21 @@ class TransactionDocumentService
 
   .logo-cell {
     border-right: 0 !important;
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .pv-head-logo {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .logo,
+  .pv-logo {
+    width: 90px !important;
+    max-width: 90px !important;
+    height: 90px !important;
+    max-height: 90px !important;
   }
 
   .company-cell {
@@ -286,6 +307,31 @@ HTML;
         }
 
         return $wordStyles.$html;
+    }
+
+    private function withWordLogoMarkup(string $html): string
+    {
+        return preg_replace_callback(
+            '/<img\b([^>]*\bclass="[^"]*\b(?:pv-logo|logo)\b[^"]*"[^>]*)>/i',
+            function (array $matches): string {
+                $attributes = preg_replace('/\s(?:width|height)="[^"]*"/i', '', $matches[1]) ?? $matches[1];
+                $logoStyle = 'width:90px;max-width:90px;height:90px;max-height:90px;';
+
+                if (preg_match('/\sstyle="([^"]*)"/i', $attributes, $styleMatch)) {
+                    $existingStyle = trim($styleMatch[1]);
+                    $style = $existingStyle === ''
+                        ? $logoStyle
+                        : rtrim($existingStyle, ';') . ';' . $logoStyle;
+
+                    $attributes = preg_replace('/\sstyle="[^"]*"/i', ' style="' . $style . '"', $attributes, 1) ?? $attributes;
+                } else {
+                    $attributes .= ' style="' . $logoStyle . '"';
+                }
+
+                return '<img' . $attributes . ' width="90" height="90">';
+            },
+            $html,
+        ) ?? $html;
     }
 
     private function withWordItemTableMarkup(string $html): string

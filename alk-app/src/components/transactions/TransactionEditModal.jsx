@@ -899,7 +899,7 @@ function PrintDialog({
       <div className="txe-print-modal">
         <div className="txe-print-header">
           <div>
-            <h3>Transaction# {transactionId}</h3>
+            <h5>#{transactionId}</h5>
             <span>Print &gt; Menu</span>
           </div>
           <button type="button" className="txn-edit-close" onClick={onClose}>x</button>
