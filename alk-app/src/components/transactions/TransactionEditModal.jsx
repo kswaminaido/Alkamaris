@@ -482,8 +482,9 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
 }
 
 function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
-  const salesPersonName = transaction.sales_person?.name ?? ''
-  const salesPersonId = transaction.sales_person_id ?? transaction.sales_person?.id ?? ''
+  const salesPerson = transaction.sales_person ?? transaction.salesPerson ?? {}
+  const salesPersonName = salesPerson.name ?? ''
+  const salesPersonId = transaction.sales_person_id ?? salesPerson.id ?? ''
   const lastModifiedBy = transactionLastModifiedBy(transaction)
   const issueDate = toInputDate(transaction.issue_date)
   const updatedAt = formatDate(transaction.updated_at)
@@ -1124,13 +1125,22 @@ function DateInput({ name, value, readOnly = false, className = '' }) {
 
 function SalesPersonSelect({ value, list, currentName }) {
   const normalizedValue = value ? String(value) : ''
-  const hasCurrentOption = normalizedValue && list.some((option) => option.id === normalizedValue)
+  const normalizedList = (Array.isArray(list) ? list : []).map((option) => ({
+    ...option,
+    id: String(option.id),
+  }))
+  const hasCurrentOption = normalizedValue && normalizedList.some((option) => option.id === normalizedValue)
+  const options = hasCurrentOption || !normalizedValue
+    ? normalizedList
+    : [
+        { id: normalizedValue, label: currentName || `User #${normalizedValue}` },
+        ...normalizedList,
+      ]
 
   return (
-    <select name="transaction.sales_person_id" defaultValue={normalizedValue}>
+    <select key={normalizedValue} name="transaction.sales_person_id" defaultValue={normalizedValue}>
       <option value="">Select</option>
-      {!hasCurrentOption && normalizedValue ? <option value={normalizedValue}>{currentName || `User #${normalizedValue}`}</option> : null}
-      {list.map((option) => (
+      {options.map((option) => (
         <option key={option.id} value={option.id}>{option.label}</option>
       ))}
     </select>
