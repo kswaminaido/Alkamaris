@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\EnsureUserRole;
+use App\Jobs\OverdueEmailJob;
+use App\Jobs\ProcessLcTermsJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +18,20 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('database:backup-mail')
             ->mondays()
+            ->at('08:00')
+            ->withoutOverlapping();
+
+        $schedule->job(new ProcessLcTermsJob)
+            ->daily()
+            ->withoutOverlapping();
+
+        $schedule->job(new OverdueEmailJob)
+            ->mondays()
+            ->at('08:00')
+            ->withoutOverlapping();
+
+        $schedule->job(new OverdueEmailJob)
+            ->thursdays()
             ->at('08:00')
             ->withoutOverlapping();
     })
