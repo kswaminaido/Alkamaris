@@ -38,7 +38,7 @@ abstract class UserUpsertRequest extends FormRequest
             'email' => [$isUpdate ? 'nullable' : 'required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
             'address' => [$isUpdate ? 'nullable' : 'required', 'string', 'max:1000'],
             'user_type' => [$isUpdate ? 'nullable' : 'required', 'string', Rule::in($this->allowedRoles($user))],
-            'password' => ['nullable', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

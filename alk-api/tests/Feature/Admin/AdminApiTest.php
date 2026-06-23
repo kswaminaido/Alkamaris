@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 final class AdminApiTest extends TestCase
@@ -108,5 +109,49 @@ final class AdminApiTest extends TestCase
             ]);
 
         $storeResponse->assertForbidden();
+    }
+
+    public function test_admin_can_update_any_users_password(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $user = User::factory()->create([
+            'role' => UserRole::Customer->value,
+            'password' => Hash::make('OldPassword@123'),
+        ]);
+        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/users/{$user->id}", [
+                'password' => 'NewPassword@123',
+                'password_confirmation' => 'NewPassword@123',
+            ]);
+
+        $response->assertOk();
+
+        $this->assertTrue(Hash::check('NewPassword@123', $user->fresh()->password));
+    }
+
+    public function test_admin_user_password_update_requires_confirmation(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $user = User::factory()->create([
+            'role' => UserRole::Sales->value,
+            'password' => Hash::make('OldPassword@123'),
+        ]);
+        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->putJson("/api/users/{$user->id}", [
+                'password' => 'NewPassword@123',
+                'password_confirmation' => 'DifferentPassword@123',
+            ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+
+        $this->assertTrue(Hash::check('OldPassword@123', $user->fresh()->password));
     }
 }

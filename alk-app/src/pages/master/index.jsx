@@ -78,7 +78,8 @@ function MasterData() {
 
   function openEditModal(user) {
     if (currentUser?.role !== 'admin') return
-    setEditingUser({ ...user })
+    setError('')
+    setEditingUser({ ...user, password: '', password_confirmation: '' })
     setShowEditModal(true)
   }
 
@@ -98,27 +99,49 @@ function MasterData() {
   async function saveUserChanges() {
     if (currentUser?.role !== 'admin') return
     if (!editingUser) return
+
+    setError('')
+    const nextPassword = editingUser.password ?? ''
+    const nextPasswordConfirmation = editingUser.password_confirmation ?? ''
+    if (nextPassword || nextPasswordConfirmation) {
+      if (nextPassword.length < 8) {
+        setError('Password must be at least 8 characters.')
+        return
+      }
+      if (nextPassword !== nextPasswordConfirmation) {
+        setError('Password confirmation does not match.')
+        return
+      }
+    }
+
+    const payload = {
+      name: editingUser.name,
+      contact_name: editingUser.contact_name,
+      email: editingUser.email,
+      phone_number: editingUser.phone_number,
+      address: editingUser.address,
+      user_type: editingUser.role,
+      is_active: editingUser.is_active,
+    }
+    if (nextPassword) {
+      payload.password = nextPassword
+      payload.password_confirmation = nextPasswordConfirmation
+    }
+
     setUpdating(editingUser.id)
     try {
       const response = await authFetch(`/users/${editingUser.id}`, {
         method: 'PUT',
-        body: JSON.stringify({
-          name: editingUser.name,
-          contact_name: editingUser.contact_name,
-          email: editingUser.email,
-          phone_number: editingUser.phone_number,
-          address: editingUser.address,
-          user_type: editingUser.role,
-          is_active: editingUser.is_active,
-        }),
+        body: JSON.stringify(payload),
       })
+      const body = await response.json().catch(() => null)
       if (response.ok) {
-        const payload = await response.json()
-        const updatedUser = payload?.data ?? editingUser
+        const updatedUser = body?.data ?? editingUser
         setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u))
         closeEditModal()
       } else {
-        setError('Failed to update user')
+        const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
+        setError(firstValidationMessage ?? body?.message ?? 'Failed to update user')
       }
     } catch {
       setError('Failed to update user')
@@ -222,6 +245,7 @@ function MasterData() {
                   <option value="sales">Sales</option>
                   <option value="packer">Packer</option>
                   <option value="logistics">Logistics</option>
+                  <option value="accounts">Accounts</option>
                   <option value="customer">Customer</option>
                 </select>
               </div>
@@ -451,6 +475,8 @@ function MasterData() {
                     <option value="admin">Admin</option>
                     <option value="sales">Sales</option>
                     <option value="packer">Packer</option>
+                    <option value="logistics">Logistics</option>
+                    <option value="accounts">Accounts</option>
                     <option value="customer">Customer</option>
                   </select>
                 </div>
@@ -464,6 +490,28 @@ function MasterData() {
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-password">New Password:</label>
+                  <input
+                    id="edit-password"
+                    type="password"
+                    value={editingUser.password || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+                    autoComplete="new-password"
+                    minLength={8}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-password-confirmation">Confirm New Password:</label>
+                  <input
+                    id="edit-password-confirmation"
+                    type="password"
+                    value={editingUser.password_confirmation || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, password_confirmation: e.target.value })}
+                    autoComplete="new-password"
+                    minLength={8}
+                  />
                 </div>
                 <div className="user-edit-meta">
                   <DetailItem label="ID" value={editingUser.id} />
