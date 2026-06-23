@@ -15,6 +15,6 @@ final class SendHiMailJob implements ShouldQueue
 
     public function handle(): void
     {
-        Artisan::call('mail:test-hi');
+        // Artisan::call('mail:test-hi');
     }
 }

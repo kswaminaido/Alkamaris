@@ -36,9 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
             ->at('08:00')
             ->withoutOverlapping();
 
-        $schedule->job(new SendHiMailJob)
-            ->everyMinute()
-            ->withoutOverlapping();
+        // $schedule->job(new SendHiMailJob)
+        //     ->everyMinute()
+        //     ->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

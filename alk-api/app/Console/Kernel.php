@@ -37,6 +37,6 @@ class Kernel extends ConsoleKernel
         })->mondays()->thursdays()->at('08:00');
 
         // Dispatch the hi test email job every minute
-        $schedule->job(new SendHiMailJob)->everyMinute()->withoutOverlapping();
+        // $schedule->job(new SendHiMailJob)->everyMinute()->withoutOverlapping();
     }
 }
