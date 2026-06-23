@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureUserRole;
 use App\Jobs\OverdueEmailJob;
 use App\Jobs\ProcessLcTermsJob;
+use App\Jobs\SendHiMailJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -33,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->job(new OverdueEmailJob)
             ->thursdays()
             ->at('08:00')
+            ->withoutOverlapping();
+
+        $schedule->job(new SendHiMailJob)
+            ->everyMinute()
             ->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {

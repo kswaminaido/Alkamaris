@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Jobs\OverdueEmailJob;
 use App\Jobs\ProcessLcTermsJob;
+use App\Jobs\SendHiMailJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -34,5 +35,8 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             OverdueEmailJob::dispatch();
         })->mondays()->thursdays()->at('08:00');
+
+        // Dispatch the hi test email job every minute
+        $schedule->job(new SendHiMailJob)->everyMinute()->withoutOverlapping();
     }
 }

@@ -62,4 +62,11 @@ return [
             )
         ),
     ],
+
+    'test_user_emails' => array_filter(
+        array_map(
+            'trim',
+            explode(',', env('TEST_USER', ''))
+        )
+    ),
 ];
