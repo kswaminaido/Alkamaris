@@ -106,8 +106,7 @@ jobs:
           --exclude '.env' \
           --exclude 'vendor' \
           --exclude 'node_modules' \
-          --exclude 'storage/logs' \
-          --exclude 'storage/app/public' \
+          --exclude 'storage' \
           --exclude 'public/storage' \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-api/ \
@@ -121,22 +120,36 @@ jobs:
           ssh -p ${{ secrets.HOSTINGER_PORT }} \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }} << 'EOF'
 
-          cd ~/domains/erpalkamaris.com/public_html/laravel-api
+          API_DIR="/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/laravel-api"
+          STORAGE_TARGET="$API_DIR/storage/app/public"
+          PUBLIC_LINK="$API_DIR/public/storage"
 
-          mkdir -p storage/app/public
+          cd "$API_DIR"
 
-          if [ -L public/storage ]; then
-            rm public/storage
-          elif [ -d public/storage ]; then
-            cp -a public/storage/. storage/app/public/
-            mv public/storage "public/storage.backup.$(date +%Y%m%d%H%M%S)"
-          elif [ -e public/storage ]; then
-            mv public/storage "public/storage.backup.$(date +%Y%m%d%H%M%S)"
+          mkdir -p "$STORAGE_TARGET"
+          mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/testing storage/framework/views storage/logs
+
+          if [ -L "$PUBLIC_LINK" ]; then
+            rm "$PUBLIC_LINK"
+          elif [ -d "$PUBLIC_LINK" ]; then
+            cp -a "$PUBLIC_LINK/." "$STORAGE_TARGET/"
+            mv "$PUBLIC_LINK" "$API_DIR/public/storage.backup.$(date +%Y%m%d%H%M%S)"
+          elif [ -e "$PUBLIC_LINK" ]; then
+            mv "$PUBLIC_LINK" "$API_DIR/public/storage.backup.$(date +%Y%m%d%H%M%S)"
           fi
+
+          if [ -z "$(find "$STORAGE_TARGET" -type f -print -quit)" ]; then
+            LATEST_STORAGE_BACKUP="$(find "$API_DIR/public" -maxdepth 1 -type d -name 'storage.backup.*' | sort | tail -n 1)"
+            if [ -n "$LATEST_STORAGE_BACKUP" ]; then
+              cp -a "$LATEST_STORAGE_BACKUP/." "$STORAGE_TARGET/"
+              echo "Restored storage files from $LATEST_STORAGE_BACKUP"
+            fi
+          fi
+
+          ln -s "$STORAGE_TARGET" "$PUBLIC_LINK"
 
           composer install --no-dev --optimize-autoloader
           php artisan migrate --force
-          php artisan storage:link
           php artisan config:clear
           php artisan cache:clear
           php artisan route:clear
@@ -145,5 +158,13 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+
+          if [ ! -L "$PUBLIC_LINK" ]; then
+            echo "public/storage is not a symlink"
+            exit 1
+          fi
+
+          echo "public/storage -> $(readlink "$PUBLIC_LINK")"
+          echo "storage/app/public file count: $(find "$STORAGE_TARGET" -type f | wc -l)"
 
           EOF
