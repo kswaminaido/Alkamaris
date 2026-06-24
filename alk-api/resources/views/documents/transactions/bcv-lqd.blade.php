@@ -457,7 +457,7 @@
             @endif
 
             @if ($bcv['packer_reference'] !== '')
-            <div style="display:flex;">
+            <div style="display:flex;border-bottom:1px solid #000;">
               <div style="width:40%;padding:3px 5px;border-right:1px solid #000;font-weight:bold;">
                 Packer's PI#
               </div>

@@ -50,7 +50,7 @@
     .main td,
     .main th {
       border: 1px solid #000;
-      padding: 3px 5px;
+      /* padding: 3px 5px; */
       vertical-align: top;
     }
 
@@ -135,11 +135,20 @@
 
     .order-confirmation-box {
       font-weight: 400;
-      white-space: nowrap;
+      padding: 0;
     }
 
     .order-confirmation-label {
       font-weight: 700;
+    }
+
+    .order-confirmation-line {
+      padding: 2px 4px;
+      white-space: nowrap;
+    }
+
+    .order-confirmation-line:not(:last-child) {
+      border-bottom: 1px solid #000;
     }
 
     .product {
@@ -326,8 +335,22 @@
           <td class="meta-label">Date</td>
           <td class="meta-value" colspan="2">{{ $sa['date'] }}</td>
           <td class="order-confirmation-box" colspan="2">
-            <span class="order-confirmation-label">Order Confirmation#</span>
-            {{ $sa['booking_reference'] }}
+            <div class="order-confirmation-line">
+              <span class="order-confirmation-label">Order Confirmation# </span>
+              {{ $sa['booking_reference'] }}
+            </div>
+            @if ($sa['buyer_reference'] !== '')
+            <div class="order-confirmation-line">
+              <span class="order-confirmation-label">Buyer's PO#</span>
+              {{ str_replace(' ', '', $sa['buyer_reference']) }}
+            </div>
+            @endif
+            @if ($sa['packer_reference'] !== '')
+            <div class="order-confirmation-line">
+              <span class="order-confirmation-label">Packer's PI#</span>
+              {{ str_replace(' ', '', $sa['packer_reference']) }}
+            </div>
+            @endif
           </td>
         </tr>
         <tr>
