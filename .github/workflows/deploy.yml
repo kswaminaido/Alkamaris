@@ -107,6 +107,8 @@ jobs:
           --exclude 'vendor' \
           --exclude 'node_modules' \
           --exclude 'storage/logs' \
+          --exclude 'storage/app/public' \
+          --exclude 'public/storage' \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-api/ \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/laravel-api/
@@ -121,8 +123,20 @@ jobs:
 
           cd ~/domains/erpalkamaris.com/public_html/laravel-api
 
+          mkdir -p storage/app/public
+
+          if [ -L public/storage ]; then
+            rm public/storage
+          elif [ -d public/storage ]; then
+            cp -a public/storage/. storage/app/public/
+            mv public/storage "public/storage.backup.$(date +%Y%m%d%H%M%S)"
+          elif [ -e public/storage ]; then
+            mv public/storage "public/storage.backup.$(date +%Y%m%d%H%M%S)"
+          fi
+
           composer install --no-dev --optimize-autoloader
           php artisan migrate --force
+          php artisan storage:link
           php artisan config:clear
           php artisan cache:clear
           php artisan route:clear
