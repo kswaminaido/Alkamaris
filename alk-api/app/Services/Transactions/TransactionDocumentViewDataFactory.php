@@ -310,7 +310,7 @@ final class TransactionDocumentViewDataFactory
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
             'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
-            'packer_reference' => $this->combinedReferenceText($packer?->packer_name ?: $packer?->vendor, $packer?->packer_number),
+            'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
             'buyer_name' => $this->displayText($customer?->customer),
             'packer_name' => $this->upperText($packer?->vendor),
             'product' => $this->upperText($firstItem?->product ?: $transaction->category),

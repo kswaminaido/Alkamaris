@@ -424,8 +424,11 @@ final class TransactionDocumentApiTest extends TestCase
 
         GeneralInfoPacker::query()->create([
             'transaction_id' => $transaction->id,
-            'packer_name' => 'Jagadeesh Marine Exports',
+            'packer_name' => 'PI',
+            'packer_number' => '1420',
             'vendor' => 'Jagadeesh Vendor Exports',
+            'prices_packer_type' => 'DDP',
+            'prices_packer_rate' => 'Los Angeles',
         ]);
 
         TransactionLogistics::query()->create([
@@ -495,6 +498,9 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringContainsString('Alkamaris Exports Pvt Ltd', $payload['preview_html']);
         $this->assertStringContainsString('Stavis Seafoods', $payload['preview_html']);
         $this->assertStringContainsString('JAGADEESH VENDOR EXPORTS', $payload['preview_html']);
+        $this->assertStringContainsString("Packer's PI#", $payload['preview_html']);
+        $this->assertStringContainsString('PI1420', $payload['preview_html']);
+        $this->assertStringNotContainsString('DDPLosAngeles', $payload['preview_html']);
         $this->assertMatchesRegularExpression(
             '/<td class="meta-label">Packer<\/td>\s*<td class="meta-value" colspan="4">JAGADEESH VENDOR EXPORTS<\/td>/',
             $payload['preview_html'],

@@ -4880,6 +4880,184 @@ h5 {
   min-height: 15px;
 }
 
+.admin-history-page {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.admin-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e4e7ec;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(16, 24, 40, 0.05);
+  padding: 0.9rem;
+}
+
+.admin-history-header h2 {
+  margin: 0;
+  color: #111111;
+  font-size: 1.05rem;
+}
+
+.admin-history-header p {
+  margin: 0.25rem 0 0;
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.admin-history-header .secondary-btn {
+  margin-top: 0;
+  min-height: 34px;
+  border-radius: 2px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.admin-history-tree {
+  border: 1px solid #e4e7ec;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(16, 24, 40, 0.05);
+  padding: 1rem;
+}
+
+.admin-history-empty {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667085;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.history-date-group + .history-date-group {
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid #eaecf0;
+}
+
+.history-date-group h3 {
+  margin: 0 0 0.75rem;
+  color: #111111;
+  font-size: 0.95rem;
+}
+
+.history-window-list,
+.history-action-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-window-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.history-window-item {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.history-window-item::before {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  bottom: -0.85rem;
+  left: 0.28rem;
+  width: 1px;
+  background: #d0d5dd;
+}
+
+.history-window-item:last-child::before {
+  bottom: 0.6rem;
+}
+
+.history-window-item::after {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  left: 0.28rem;
+  width: 0.6rem;
+  height: 1px;
+  background: #d0d5dd;
+}
+
+.history-window-label {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  background: #f9fafb;
+  color: #111111;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.history-action-list {
+  margin-top: 0.45rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.history-action-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: start;
+  margin-left: 0.55rem;
+  padding: 0.42rem 0.55rem 0.42rem 1rem;
+  border: 1px solid #eaecf0;
+  background: #ffffff;
+  color: #344054;
+  font-size: 0.82rem;
+}
+
+.history-action-item::before {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: -0.55rem;
+  width: 0.55rem;
+  height: 1px;
+  background: #d0d5dd;
+}
+
+.history-action-main {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.history-action-main strong {
+  color: #111111;
+}
+
+.history-action-item time {
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.history-pagination {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.history-pagination-summary {
+  color: #667085;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .mail-compose-overlay {
   position: fixed;
   inset: 0;
@@ -5288,7 +5466,8 @@ textarea {
   .transaction-page,
   .transactions-page,
   .data-page,
-  .admin-mail-page {
+  .admin-mail-page,
+  .admin-history-page {
     padding: 0.75rem;
   }
 
@@ -5357,6 +5536,7 @@ textarea {
   .admin-mail-actions,
   .admin-mail-modal-actions,
   .admin-form-actions,
+  .admin-history-header,
   .action-buttons,
   .users-actions {
     flex-wrap: wrap;
@@ -5394,7 +5574,9 @@ textarea {
   .admin-main,
   .data-group-card,
   .admin-mail-filter-card,
-  .admin-mail-results {
+  .admin-mail-results,
+  .admin-history-header,
+  .admin-history-tree {
     padding: 0.85rem;
   }
 
@@ -5540,6 +5722,7 @@ textarea {
   .transactions-page,
   .data-page,
   .admin-mail-page,
+  .admin-history-page,
   .modern-dashboard-main {
     padding: 0.55rem;
   }
@@ -5586,5 +5769,14 @@ textarea {
     width: 100%;
     height: min(100dvh, 680px);
     border-radius: 0;
+  }
+
+  .history-action-item {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .history-action-item time {
+    white-space: normal;
   }
 }

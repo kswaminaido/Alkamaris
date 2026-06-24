@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\ProfileController;
+use App\Http\Controllers\Api\AdminHistoryController;
 use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\MailController;
 use App\Http\Controllers\Api\TransactionController;
@@ -43,6 +44,7 @@ Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): 
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
+    Route::get('admin/history', [AdminHistoryController::class, 'index']);
     Route::apiResource('configs', ConfigController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy']);
     Route::get('dashboard/commission-summary', [TransactionController::class, 'commissionSummary']);

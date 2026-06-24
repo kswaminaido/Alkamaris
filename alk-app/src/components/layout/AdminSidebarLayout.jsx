@@ -17,6 +17,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
   const navigate = useNavigate()
   const location = useLocation()
   const canAddUsers = ['admin', 'logistics'].includes(currentUser?.role)
+  const canViewHistory = currentUser?.role === 'admin'
   const canViewReports = ['accounts', 'admin'].includes(currentUser?.role)
   const isTransactionsRoute = location.pathname.startsWith('/transactions')
   const isReportsRoute = location.pathname.startsWith('/reports')
@@ -306,6 +307,21 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             <span className="sidebar-link-text">Mail</span>
             <span className="sidebar-link-end" />
           </NavLink>
+
+          {canViewHistory && (
+            <NavLink
+              to="/admin/history"
+              className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+              onClick={() => {
+                closeMobileMenu()
+                closeSidebarSubmenus()
+              }}
+            >
+              <SidebarIcon icon="history" />
+              <span className="sidebar-link-text">History</span>
+              <span className="sidebar-link-end" />
+            </NavLink>
+          )}
         </nav>
 
         <div className="dashboard-sidebar-footer">
@@ -438,6 +454,14 @@ function SidebarIcon({ icon }) {
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 6h16v12H4z" />
           <path d="m4 7 8 6 8-6" />
+        </svg>
+      )
+    case 'history':
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7" />
+          <path d="M3 4v5h5" />
+          <path d="M12 7v5l3 2" />
         </svg>
       )
     default:

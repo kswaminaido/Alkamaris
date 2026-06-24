@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext'
 import { GlobalLoadingProvider, useGlobalLoading } from './context/GlobalLoadingContext'
 import MasterData from './pages/master/index'
 import AdminMailPage from './pages/AdminMailPage'
+import AdminHistoryPage from './pages/AdminHistoryPage'
 import DashboardPage from './pages/DashboardPage'
 import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
@@ -129,6 +130,14 @@ function AppShell() {
           element={
             <RequireAuth>
               <MasterData />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/history"
+          element={
+            <RequireAuth>
+              <AdminHistoryPage />
             </RequireAuth>
           }
         />
