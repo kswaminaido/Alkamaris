@@ -36,7 +36,7 @@ final class TransactionDocumentViewDataFactory
             'type' => $documentType,
             'label' => $label,
             'body_template' => $this->bodyTemplate($documentType),
-            'file_stem' => Str::slug(($transaction->booking_no ?: 'transaction').'-'.$documentType),
+            'file_stem' => Str::slug(($transaction->booking_no ?: 'transaction') . '-' . $documentType),
             'company' => 'Alkamaris',
             'header_company' => 'Alkamaris Exports Pvt Ltd',
             'header_tagline' => 'Sourced with care, Delivered with Trust',
@@ -44,7 +44,7 @@ final class TransactionDocumentViewDataFactory
             'title' => $documentType === 'delivery_order' ? 'DELIVERY ORDER' : 'ORDER CONFIRMATION',
             'transaction_date' => $transactionDate,
             'render_date' => $renderDate,
-            'order_reference' => trim(($transaction->booking_no ?? 'SIN2605802').' - '.$transactionDate, ' -'),
+            'order_reference' => trim(($transaction->booking_no ?? 'SIN2605802') . ' - ' . $transactionDate, ' -'),
             'buyer' => strtoupper((string) ($customer?->customer ?: 'LEADER FOOD SUPPLY INSTITUTION')),
             'attention' => strtoupper((string) ($customer?->attention ?: 'MR. YOUSEF AZIZ')),
             'product_title' => strtoupper((string) ($revenueCustomer?->description ?: $revenuePacker?->description ?: 'FROZEN VANNAMEI WHITE SHRIMP')),
@@ -54,7 +54,7 @@ final class TransactionDocumentViewDataFactory
             'notes' => strtoupper((string) ($notes?->by_sales ?: '35% GLAZE FROZEN WEIGHT & FROZEN COUNT. EU STANDARD TREATMENT')),
             'rows' => $this->rows($customer),
             'amount_total' => $this->money(119300),
-            'price_basis' => strtoupper((string) ($customer?->prices_customer_type ?: 'CFR')).' '.$port,
+            'price_basis' => strtoupper((string) ($customer?->prices_customer_type ?: 'CFR')) . ' ' . $port,
             'payment_terms' => $this->paymentTerms($customer?->payment_customer_advance_percent, $options),
             'latest_shipment_date' => strtoupper((string) ($this->formatDate($shippingPacker?->lsd_max) ?: 'FEB 28, 2026')),
             'packer' => strtoupper((string) ($packer?->packer_name ?: 'CONTAI MARINE FISH EXPORT PRIVATE LIMITED')),
@@ -111,7 +111,7 @@ final class TransactionDocumentViewDataFactory
             return $this->logoDataUri = '';
         }
 
-        return $this->logoDataUri = 'data:image/png;base64,'.base64_encode($contents);
+        return $this->logoDataUri = 'data:image/png;base64,' . base64_encode($contents);
     }
 
     /**
@@ -148,7 +148,7 @@ final class TransactionDocumentViewDataFactory
 
         $mimeType = mime_content_type($path) ?: 'image/png';
 
-        return "data:{$mimeType};base64,".base64_encode($contents);
+        return "data:{$mimeType};base64," . base64_encode($contents);
     }
 
     /**
@@ -184,24 +184,24 @@ final class TransactionDocumentViewDataFactory
             : $customer?->description;
 
         $productItems = $items
-            ->map(fn (mixed $item): array => $this->bcvLqdItem($item))
+            ->map(fn(mixed $item): array => $this->bcvLqdItem($item))
             ->values()
             ->all();
 
         $amountValues = collect($productItems)
             ->pluck('amount_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $totalAmount = $amountValues->isEmpty() ? null : $amountValues->sum();
         $cartonValues = collect($productItems)
             ->pluck('cartons_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $weightValues = collect($productItems)
             ->pluck('weight_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $firstCurrency = $this->firstProductItemValue($productItems, 'amount_currency');
         $firstCommission = collect($productItems)
             ->pluck('commission')
-            ->first(fn (string $value): bool => $value !== '');
+            ->first(fn(string $value): bool => $value !== '');
         $packerName = $this->associatedPackerName($packer?->packer_name, $packer?->vendor);
 
         return [
@@ -215,7 +215,7 @@ final class TransactionDocumentViewDataFactory
             ],
             'contact_line' => 'Manasa - accounts@alkamarisexports.com (+91-9182284173)',
             'date' => $this->formatDotDate($transaction->issue_date ?: Carbon::now()),
-            'booking_reference' => trim(($transaction->booking_no ?? '').' - '.$this->formatDate($transaction->issue_date), ' -'),
+            'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
             'order_confirmation_no' => $this->displayText($transaction->booking_no),
             'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
             'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
@@ -240,7 +240,7 @@ final class TransactionDocumentViewDataFactory
             'total_weight' => $weightValues->isEmpty() ? '' : $this->weightOrBlank($weightValues->sum()),
             'total_amount' => $this->moneyOrBlank($totalAmount),
             'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
-            'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency).' '.$this->moneyOrBlank($totalAmount)),
+            'total_amount_label' => trim($this->currencyTotalLabel($firstCurrency) . ' ' . $this->moneyOrBlank($totalAmount)),
             'price_basis' => $this->priceBasis($priceType, $pricePlace),
             // 'payment_terms' => $this->upperText($this->combinedInstructionText(
             //     $this->bcvPaymentTerms(
@@ -293,19 +293,20 @@ final class TransactionDocumentViewDataFactory
         $logistics = $transaction->logistics;
         $items = $transaction->items ?? collect();
         $productItems = $items
-            ->map(fn (mixed $item): array => $this->shippingAdviceItem($item))
+            ->map(fn(mixed $item): array => $this->shippingAdviceItem($item))
             ->values()
             ->all();
         $firstItem = $items->first();
         $cartonValues = collect($productItems)
             ->pluck('cartons_value')
-            ->filter(fn (mixed $value): bool => $value !== null);
+            ->filter(fn(mixed $value): bool => $value !== null);
         $etaDate = $this->formatDisplayDate($logistics?->eta_date);
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
             'date' => $this->formatDisplayDate(Carbon::now()),
-            'booking_reference' => trim(($transaction->booking_no ?? '').' - '.$this->formatDate($transaction->issue_date), ' -'),
+            // 'booking_reference' => trim(($transaction->booking_no ?? '').' - '.$this->formatDate($transaction->issue_date), ' -'),
+            'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDisplayDate(Carbon::now())),
             'fax' => '',
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
@@ -329,7 +330,7 @@ final class TransactionDocumentViewDataFactory
             'etd' => $this->formatDisplayDate($logistics?->etd_date),
             'bl_of_lading' => $this->combinedInstructionText(
                 $this->upperText($logistics?->bl_no),
-                $this->formatDisplayDate($logistics?->bl_date) !== '' ? 'dated '.$this->formatDisplayDate($logistics?->bl_date) : '',
+                $this->formatDisplayDate($logistics?->bl_date) !== '' ? 'dated ' . $this->formatDisplayDate($logistics?->bl_date) : '',
             ),
             'eta' => $etaDate === ''
                 ? ''
@@ -367,7 +368,7 @@ final class TransactionDocumentViewDataFactory
     private function shippingAdviceGroups(array $items): array
     {
         return collect($items)
-            ->groupBy(fn (array $item): string => implode('|', [
+            ->groupBy(fn(array $item): string => implode('|', [
                 $item['product'] ?? '',
                 $item['style'] ?? '',
                 $item['packing'] ?? '',
@@ -379,7 +380,7 @@ final class TransactionDocumentViewDataFactory
                 $first = $group->first();
                 $cartonValues = $group
                     ->pluck('cartons_value')
-                    ->filter(fn (mixed $value): bool => $value !== null);
+                    ->filter(fn(mixed $value): bool => $value !== null);
 
                 return [
                     'product' => $this->displayText($first['product'] ?? ''),
@@ -397,16 +398,16 @@ final class TransactionDocumentViewDataFactory
     private function combinedInstructionText(mixed ...$values): string
     {
         return collect($values)
-            ->map(fn (mixed $value): string => $this->displayText($value))
-            ->filter(fn (string $value): bool => $value !== '')
+            ->map(fn(mixed $value): string => $this->displayText($value))
+            ->filter(fn(string $value): bool => $value !== '')
             ->implode("\n");
     }
 
     private function combinedReferenceText(mixed ...$values): string
     {
         return collect($values)
-            ->map(fn (mixed $value): string => $this->displayText($value))
-            ->filter(fn (string $value): bool => $value !== '')
+            ->map(fn(mixed $value): string => $this->displayText($value))
+            ->filter(fn(string $value): bool => $value !== '')
             ->implode(' ');
     }
 
@@ -455,7 +456,7 @@ final class TransactionDocumentViewDataFactory
     private function bcvLqdGroups(array $items): array
     {
         return collect($items)
-            ->groupBy(fn (array $item): string => implode('|', [
+            ->groupBy(fn(array $item): string => implode('|', [
                 $item['product'] ?? '',
                 $item['style'] ?? '',
                 $item['packing'] ?? '',
@@ -484,12 +485,12 @@ final class TransactionDocumentViewDataFactory
         $packing = $this->displayText($item['packing'] ?? null);
         $notes = $this->displayText($item['notes'] ?? null);
 
-        $title = trim($product.($style !== '' ? ' '.$style : ''));
+        $title = trim($product . ($style !== '' ? ' ' . $style : ''));
         if ($title !== '') {
             $lines[] = "{$number}.{$title}.";
         }
 
-        $packingLine = trim('Packing: '.$packing.($notes !== '' ? ', '.$notes : ''));
+        $packingLine = trim('Packing: ' . $packing . ($notes !== '' ? ', ' . $notes : ''));
         if ($packing !== '' || $notes !== '') {
             $lines[] = $packingLine;
         }
@@ -566,7 +567,7 @@ final class TransactionDocumentViewDataFactory
     private function articles(array $options): array
     {
         return collect(Arr::get($options, 'articles', []))
-            ->map(fn (mixed $article): string => trim((string) $article))
+            ->map(fn(mixed $article): string => trim((string) $article))
             ->filter()
             ->values()
             ->pad(5, '')
@@ -580,7 +581,7 @@ final class TransactionDocumentViewDataFactory
     private function attachments(array $options): array
     {
         return collect(Arr::get($options, 'attachments', []))
-            ->map(fn (mixed $value): string => trim((string) $value))
+            ->map(fn(mixed $value): string => trim((string) $value))
             ->filter()
             ->values()
             ->all();
@@ -593,7 +594,7 @@ final class TransactionDocumentViewDataFactory
     {
         $paymentAdvance = $this->stringOrFallback(
             Arr::get($options, 'payment_advance'),
-            $advancePercent ? $advancePercent.'% DEPOSIT' : '30% DEPOSIT',
+            $advancePercent ? $advancePercent . '% DEPOSIT' : '30% DEPOSIT',
         );
 
         return strtoupper(trim("T/T   {$paymentAdvance} AND BALANCE AGAINST SHIPPING DOCUMENTS COPY VIA EMAIL"));
@@ -747,7 +748,7 @@ final class TransactionDocumentViewDataFactory
         $type = $this->displayText($priceType);
         $place = $this->displayText($place);
 
-        return Str::upper($place !== '' ? trim($type.', '.$place, ', ') : $type);
+        return Str::upper($place !== '' ? trim($type . ', ' . $place, ', ') : $type);
     }
 
     private function bcvPaymentTerms(mixed $paymentType, mixed $advancePercent, mixed $optionAdvance, mixed $balanceTerm): string
@@ -758,7 +759,7 @@ final class TransactionDocumentViewDataFactory
         $balance = $this->displayText($balanceTerm);
 
         if ($advance === '' && $advancePercent !== null && $advancePercent !== '') {
-            $advance = $this->quantityOrBlank($advancePercent).' % DEPOSIT';
+            $advance = $this->quantityOrBlank($advancePercent) . ' % DEPOSIT';
         }
 
         if (Str::upper($balance) === 'ADVANCE') {
@@ -774,7 +775,7 @@ final class TransactionDocumentViewDataFactory
         }
 
         if ($balance !== '') {
-            $parts[] = $advance !== '' ? 'AND BALANCE '.$balance : $balance;
+            $parts[] = $advance !== '' ? 'AND BALANCE ' . $balance : $balance;
         }
 
         return Str::upper(implode(' ', $parts));
@@ -801,7 +802,7 @@ final class TransactionDocumentViewDataFactory
 
         $unitLabel = $this->displayUnit($unit);
 
-        return trim('US $ '.$formattedRate.($unitLabel !== '' ? '/'.Str::upper($unitLabel) : ''));
+        return trim('US $ ' . $formattedRate . ($unitLabel !== '' ? '/' . Str::upper($unitLabel) : ''));
     }
 
     private function priceHeader(string $currency, string $unit): string
@@ -868,13 +869,13 @@ final class TransactionDocumentViewDataFactory
         $partyName = $this->displayText($name);
         $user = $partyName !== ''
             ? User::query()
-                ->whereIn('role', $this->partyRoles($role))
-                ->where('name', $partyName)
-                ->first(['address'])
+            ->whereIn('role', $this->partyRoles($role))
+            ->where('name', $partyName)
+            ->first(['address'])
             : null;
 
         $addressLines = collect(preg_split('/\r\n|\r|\n/', $this->displayText($user?->address)) ?: [])
-            ->map(fn (string $line): string => trim($line))
+            ->map(fn(string $line): string => trim($line))
             ->filter()
             ->values()
             ->all();
@@ -883,24 +884,24 @@ final class TransactionDocumentViewDataFactory
 
         return [
             'name' => Str::upper($partyName),
-            'lines' => array_map(fn (string $line): string => Str::upper($line), $addressLines),
-            'tax_identifier' => $taxIdentifier !== '' ? $identifierLabel.': '.Str::upper($taxIdentifier) : '',
+            'lines' => array_map(fn(string $line): string => Str::upper($line), $addressLines),
+            'tax_identifier' => $taxIdentifier !== '' ? $identifierLabel . ': ' . Str::upper($taxIdentifier) : '',
         ];
     }
 
     private function associatedPackerName(mixed $packerName, mixed $vendorName): string
     {
         $names = collect([$packerName, $vendorName])
-            ->map(fn (mixed $name): string => $this->displayText($name))
-            ->filter(fn (string $name): bool => $name !== '')
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
             ->unique()
             ->values();
 
         $user = $names->isNotEmpty()
             ? User::query()
-                ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
-                ->whereIn('name', $names->all())
-                ->first(['name'])
+            ->whereIn('role', $this->partyRoles(UserRole::Packer->value))
+            ->whereIn('name', $names->all())
+            ->first(['name'])
             : null;
 
         return $this->firstFilled($packerName, $vendorName, $user?->name);
