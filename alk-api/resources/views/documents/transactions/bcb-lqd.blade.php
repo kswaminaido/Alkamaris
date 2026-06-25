@@ -587,7 +587,7 @@
           <div>For &amp; Behalf of</div>
           <div class="customer-signature-space"></div>
           <div class="customer-signature-line"></div>
-          <div class="customer-signature-name">{{ $bcv['customer'] }}</div>
+          <div class="customer-signature-name">{{ $bcv['customer_signature_name'] }}</div>
         </div>
       </div>
 

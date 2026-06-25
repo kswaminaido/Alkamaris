@@ -112,6 +112,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   const [customers, setCustomers] = useState([])
   const [customerContacts, setCustomerContacts] = useState({})
   const [packers, setPackers] = useState([])
+  const [packedByPackers, setPackedByPackers] = useState([])
   const [salesPeople, setSalesPeople] = useState([])
   const [dropdownConfigMap, setDropdownConfigMap] = useState({})
   const formRef = useRef(null)
@@ -164,6 +165,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
       setCustomers(users.customers)
       setCustomerContacts(users.customerContacts)
       setPackers(users.packers)
+      setPackedByPackers(users.packedByPackers)
       setSalesPeople(users.salesPeople)
     }
 
@@ -358,7 +360,7 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
         <div className="txn-edit-body">
           <div className="txn-edit-main">
             <HeaderCard transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} salesPeople={salesPeople} />
-            {tab === 'home' && <HomeTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} customers={customers} customerContacts={customerContacts} packers={packers} />}
+            {tab === 'home' && <HomeTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} customers={customers} customerContacts={customerContacts} packers={packers} packedByPackers={packedByPackers} />}
             {tab === 'dollar' && <DollarTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} />}
             {tab === 'ship' && <ShipTab transaction={transaction} optionsFor={optionsFor} addOption={addDropdownOption} />}
             <BottomActions
@@ -522,7 +524,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
   )
 }
 
-function HomeTab({ transaction, optionsFor, addOption, customers, customerContacts, packers }) {
+function HomeTab({ transaction, optionsFor, addOption, customers, customerContacts, packers, packedByPackers }) {
   const customer = transaction.general_info_customer ?? {}
   const packer = transaction.general_info_packer ?? {}
   const revenueCustomer = transaction.revenue_customer ?? {}
@@ -560,7 +562,7 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
         <SectionCard title="GENERAL INFO" side="PACKER" tone="blue">
           <Row label="Packer"><NamedSearchableSelect name="general_info_packer.vendor" value={packer.vendor ?? ''} list={mergeOptions(packers, optionsFor('general_info_packer.vendor'), [packer.vendor])} onAdd={(value) => addOption('general_info_packer.vendor', value)} /></Row>
           <Row label="Packer's"><div className="txe-inline"><NamedSearchableSelect name="general_info_packer.packer_name" value={packer.packer_name ?? ''} list={withCurrent(optionsFor('general_info_packer.packer_name'), packer.packer_name)} onAdd={(value) => addOption('general_info_packer.packer_name', value)} /><input name="general_info_packer.packer_number" defaultValue={packer.packer_number ?? ''} placeholder="#" /></div></Row>
-          <Row label="Packed By"><NamedSearchableSelect name="general_info_packer.packed_by" value={packer.packed_by ?? ''} list={withCurrent(optionsFor('general_info_packer.packed_by'), packer.packed_by)} onAdd={(value) => addOption('general_info_packer.packed_by', value)} /></Row>
+          <Row label="Packed By"><NamedSearchableSelect name="general_info_packer.packed_by" value={packer.packed_by ?? ''} list={mergeOptions(packedByPackers, optionsFor('general_info_packer.packed_by'), [packer.packed_by])} onAdd={(value) => addOption('general_info_packer.packed_by', value)} /></Row>
           <Row label="Prices Packer"><div className="txe-inline"><NamedSearchableSelect name="general_info_packer.prices_packer_type" value={packer.prices_packer_type ?? ''} list={mergeOptions(optionsFor('general_info_packer.prices_packer_type'), PRICE_TERMS, [packer.prices_packer_type])} onAdd={(value) => addOption('general_info_packer.prices_packer_type', value)} /><input type="text" name="general_info_packer.prices_packer_rate" defaultValue={packer.prices_packer_rate ?? ''} /></div></Row>
           <Row label="Payment Packer"><div className="txe-inline txe-inline-3"><NamedSearchableSelect name="general_info_packer.payment_packer_type" value={packer.payment_packer_type ?? ''} list={withCurrent(optionsFor('general_info_packer.payment_packer_type'), packer.payment_packer_type)} onAdd={(value) => addOption('general_info_packer.payment_packer_type', value)} /><NamedSearchableSelect name="general_info_packer.payment_packer_term" value={packer.payment_packer_term ?? ''} list={withCurrent(optionsFor('general_info_packer.payment_packer_term'), packer.payment_packer_term)} onAdd={(value) => addOption('general_info_packer.payment_packer_term', value)} /><input name="general_info_packer.payment_packer_advance_percent" defaultValue={packer.payment_packer_advance_percent ?? ''} placeholder="Adv %" /></div></Row>
           <Row label="Description"><textarea name="general_info_packer.description" rows="2" defaultValue={packer.description ?? ''} /></Row>
@@ -1427,23 +1429,25 @@ async function loadDropdownConfigs(authFetch) {
 }
 
 async function loadBookingPartyOptions(authFetch) {
-  if (!authFetch) return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
+  if (!authFetch) return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
 
   try {
     const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
     const payload = await response.json()
 
-    if (!response.ok || !payload?.data) return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
+    if (!response.ok || !payload?.data) return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
     const customers = payload.data.filter((user) => user.role === 'customer')
+    const packers = payload.data.filter((user) => ['packer', 'vendor'].includes(user.role))
 
     return {
       customers: extractUserNames(customers),
       customerContacts: extractCustomerContactMap(customers),
-      packers: extractUserNames(payload.data.filter((user) => ['packer', 'vendor'].includes(user.role))),
+      packers: extractUserNames(packers),
+      packedByPackers: extractUserNamesWithAddresses(packers),
       salesPeople: extractSalesPersonOptions(payload.data.filter((user) => ['sales', 'admin', 'logistics'].includes(user.role))),
     }
   } catch {
-    return { customers: [], customerContacts: {}, packers: [], salesPeople: [] }
+    return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
   }
 }
 
@@ -1451,6 +1455,18 @@ function extractUserNames(users) {
   return normalizeOptions(
     (Array.isArray(users) ? users : [])
       .map((user) => (typeof user?.name === 'string' ? user.name : '')),
+  )
+}
+
+function extractUserNamesWithAddresses(users) {
+  return normalizeOptions(
+    (Array.isArray(users) ? users : []).map((user) => {
+      const name = typeof user?.name === 'string' ? user.name.trim() : ''
+      const address = typeof user?.address === 'string' ? user.address.replace(/\s+/g, ' ').trim() : ''
+      if (!name) return ''
+
+      return address ? `${name} - ${address}` : name
+    }),
   )
 }
 

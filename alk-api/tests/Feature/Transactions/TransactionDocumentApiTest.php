@@ -243,6 +243,61 @@ final class TransactionDocumentApiTest extends TestCase
         $this->assertStringNotContainsString(base64_encode($viewerStamp), $payload['preview_html']);
     }
 
+    public function test_bcb_and_bcv_lqd_documents_replace_china_asia_customer_name_only_in_requested_fields(): void
+    {
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin->value,
+        ]);
+
+        $transaction = Transaction::query()->create([
+            'booking_no' => 'SIF2602999',
+            'booking_mode' => 'trade_commission',
+            'issue_date' => '2026-03-14',
+            'sales_person_id' => $admin->id,
+            'destination' => 'Hong Kong',
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        GeneralInfoCustomer::query()->create([
+            'transaction_id' => $transaction->id,
+            'customer' => 'CHINA ASIA MARINE PRODUCTS CO., LIMITED.',
+            'prices_customer_type' => 'CIF',
+            'prices_customer_rate' => 'Hong Kong',
+        ]);
+
+        GeneralInfoPacker::query()->create([
+            'transaction_id' => $transaction->id,
+            'vendor' => 'Vasista Marine',
+            'packer_name' => 'PI',
+            'packer_number' => 'L328',
+        ]);
+
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/transactions/{$transaction->id}/documents/render", [
+                'document_types' => ['bcb_lqd', 'bcv_lqd'],
+                'options' => [],
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $documents = collect($response->json('data'))->keyBy('type');
+        $replacementName = 'LUEN TAI HONG MARINE PRODUCT(FATHER &amp; SON) LTD.';
+
+        $this->assertStringContainsString(
+            '<div class="customer-signature-name">'.$replacementName.'</div>',
+            $documents->get('bcb_lqd')['preview_html'],
+        );
+        $this->assertStringContainsString('<td class="comment-label">Customer</td>', $documents->get('bcv_lqd')['preview_html']);
+        $this->assertStringContainsString('<td class="comment-value">'.$replacementName.'</td>', $documents->get('bcv_lqd')['preview_html']);
+        $this->assertStringContainsString('<div>CHINA ASIA MARINE PRODUCTS CO., LIMITED.</div>', $documents->get('bcb_lqd')['preview_html']);
+        $this->assertStringContainsString('<div>CHINA ASIA MARINE PRODUCTS CO., LIMITED.</div>', $documents->get('bcv_lqd')['preview_html']);
+    }
+
     public function test_bcv_lqd_document_uses_transaction_items(): void
     {
         $admin = User::factory()->create([

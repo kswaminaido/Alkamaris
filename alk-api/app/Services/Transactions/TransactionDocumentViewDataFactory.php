@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
+    private const CHINA_ASIA_CUSTOMER_NAME = 'CHINA ASIA MARINE PRODUCTS CO., LIMITED.';
+    private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
+
     private ?string $logoDataUri = null;
 
     /**
@@ -182,6 +185,13 @@ final class TransactionDocumentViewDataFactory
         $paymentDescription = $documentType === 'bcv_lqd'
             ? $packer?->description
             : $customer?->description;
+        $customerName = $this->displayText($customer?->customer);
+        $customerSignatureName = $documentType === 'bcb_lqd'
+            ? $this->customerDocumentName($customerName)
+            : $customerName;
+        $customerCommentsName = $documentType === 'bcv_lqd'
+            ? $this->customerDocumentName($customerName)
+            : $customerName;
 
         $productItems = $items
             ->map(fn(mixed $item): array => $this->bcvLqdItem($item))
@@ -220,7 +230,7 @@ final class TransactionDocumentViewDataFactory
             'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
             'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
             'fax' => '',
-            'to' => $this->displayText($customer?->customer),
+            'to' => $customerName,
             'attention' => $this->displayText($customer?->attention),
             'packer_block' => $this->partyBlock(
                 $packer?->vendor,
@@ -229,7 +239,7 @@ final class TransactionDocumentViewDataFactory
                 $packer?->packer_number,
             ),
             'customer_block' => $this->partyBlock(
-                $customer?->customer,
+                $customerName,
                 UserRole::Customer->value,
                 'TAX ID',
                 $customer?->buyer_number,
@@ -263,7 +273,8 @@ final class TransactionDocumentViewDataFactory
             ),
             'packer' => $this->upperText($packerName),
             'packed_by' => $this->upperText($packer?->packed_by),
-            'customer' => $this->upperText($customer?->customer),
+            'customer' => $this->upperText($customerCommentsName),
+            'customer_signature_name' => $this->upperText($customerSignatureName),
             'factory_approval_number' => '',
             'commission' => $firstCommission !== null && $firstCommission !== ''
                 ? $firstCommission
@@ -281,6 +292,22 @@ final class TransactionDocumentViewDataFactory
             'bcv_lqd' => $this->noteEntryValue($transaction, 'for_packer'),
             default => '',
         };
+    }
+
+    private function customerDocumentName(mixed $customerName): string
+    {
+        $name = $this->displayText($customerName);
+
+        return $this->samePartyName($name, self::CHINA_ASIA_CUSTOMER_NAME)
+            ? self::LUEN_TAI_HONG_CUSTOMER_NAME
+            : $name;
+    }
+
+    private function samePartyName(string $left, string $right): bool
+    {
+        $normalize = static fn(string $value): string => preg_replace('/[^A-Z0-9]+/', '', Str::upper($value)) ?? '';
+
+        return $normalize($left) === $normalize($right);
     }
 
     /**
