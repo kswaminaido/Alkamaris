@@ -158,6 +158,7 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+          php artisan optimize:clear
 
           if [ ! -L "$PUBLIC_LINK" ]; then
             echo "public/storage is not a symlink"
