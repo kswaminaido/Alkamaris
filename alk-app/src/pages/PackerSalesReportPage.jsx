@@ -30,8 +30,8 @@ const csvColumns = [
   { label: 'Total Weight', value: (row) => formatNumber(row.totalWeight) },
   { label: 'Buying Total', value: (row) => formatMoney(row.buyingTotal) },
   { label: 'Packer Commission', value: (row) => formatMoney(row.packerCommission) },
-  { label: 'Total Commission', value: (row) => formatMoney(row.totalCommission) },
-  { label: 'Status', value: (row) => getStatusLabel(row.status) },
+  { label: 'Total Commission', value: (row) => (row.isFirstCodeRow ? formatMoney(row.totalCommission) : '') },
+  { label: 'Status', value: (row) => (row.isFirstCodeRow ? getStatusLabel(row.status) : '') },
 ]
 
 function PackerSalesReportPage() {
@@ -516,6 +516,7 @@ function flattenPackerSalesRows(transactions) {
       packerCommission: item?.total_packer_commission ?? null,
       totalCommission,
       status: transaction.status ?? 'U',
+      isFirstCodeRow: index === 0,
     }))
   })
 }

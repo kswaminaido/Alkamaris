@@ -13,13 +13,13 @@ function DashboardPanel({ currentUser, authFetch }) {
   const [commissionError, setCommissionError] = useState('')
 
   const transactionLinks = [
-    'All Transactions',
-    'Specs',
-    'Special Notes',
-    'QC Inspection Date',
-    'Payment Request',
-    'Payment Request List',
-    'Overdue Invoice',
+    { label: 'All Transactions', path: '/transactions' },
+    { label: 'Specs' },
+    { label: 'Special Notes' },
+    { label: 'QC Inspection Date' },
+    { label: 'Payment Request' },
+    { label: 'Payment Request List' },
+    { label: 'Overdue Invoice', path: '/transactions/overdue-invoice' },
   ]
 
   const reportLinks = [
@@ -99,17 +99,17 @@ function DashboardPanel({ currentUser, authFetch }) {
           </div>
           <ul>
             {transactionLinks.map((item) => (
-              <li key={item}>
+              <li key={item.label}>
                 <button
                   type="button"
                   className="module-link"
                   onClick={() =>
-                    item === 'All Transactions'
-                      ? navigate('/transactions')
-                      : setPlaceholderMessage(`${item} is a placeholder for now.`)
+                    item.path
+                      ? navigate(item.path)
+                      : setPlaceholderMessage(`${item.label} is a placeholder for now.`)
                   }
                 >
-                  {item}
+                  {item.label}
                 </button>
               </li>
             ))}
