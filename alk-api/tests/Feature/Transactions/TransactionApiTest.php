@@ -389,7 +389,7 @@ final class TransactionApiTest extends TestCase
         ]);
     }
 
-    public function test_existing_bl_date_edits_do_not_change_transaction_status(): void
+    public function test_existing_bl_date_edits_mark_unshipped_transaction_as_shipped(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $token = $admin->createToken('admin-token')->plainTextToken;
@@ -417,12 +417,12 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.status', TransactionStatus::Unshipped->value)
+            ->assertJsonPath('data.status', TransactionStatus::Shipped->value)
             ->assertJsonPath('data.logistics.bl_date', '2026-06-14T00:00:00.000000Z');
 
         $this->assertDatabaseHas('transactions', [
             'id' => $transaction->id,
-            'status' => TransactionStatus::Unshipped->value,
+            'status' => TransactionStatus::Shipped->value,
         ]);
     }
 

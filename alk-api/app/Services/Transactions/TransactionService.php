@@ -329,24 +329,17 @@ final class TransactionService
 
     private function upsertOneToOne(int $transactionId, string $modelClass, array $payload): void
     {
-        // If updating logistics, capture previous bl_date to detect transition from null -> date
-        $previousBlDate = null;
-        if ($modelClass === TransactionLogistics::class) {
-            $previous = $modelClass::query()->where('transaction_id', $transactionId)->first();
-            $previousBlDate = $previous?->bl_date ?? null;
-        }
-
         $modelClass::query()->updateOrCreate(
             ['transaction_id' => $transactionId],
             $payload,
         );
 
-        // The first B/L date entry marks only unshipped transactions as shipped.
+        // Any saved B/L date means an unshipped transaction has moved to shipped.
         if ($modelClass === TransactionLogistics::class) {
             $current = $modelClass::query()->where('transaction_id', $transactionId)->first();
             $currentBlDate = $current?->bl_date ?? null;
 
-            if ($previousBlDate === null && $currentBlDate !== null) {
+            if ($currentBlDate !== null) {
                 Transaction::query()
                     ->where('id', $transactionId)
                     ->where('status', TransactionStatus::Unshipped->value)
