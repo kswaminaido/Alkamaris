@@ -23,13 +23,12 @@ const csvColumns = [
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
   { label: 'AME Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
-  { label: 'AME Inv. to Customer', value: (transaction) => transaction.revenue_customer?.description },
-  { label: 'Packer Inv.', value: (transaction) => transaction.general_info_packer?.packer_name },
+  { label: 'AME Inv. to Customer', value: (transaction) => transaction.logistics?.sc_inv_to_customer },
+  { label: 'Packer Inv.', value: (transaction) => transaction.logistics?.packer_inv },
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
-  { label: 'ETD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_min) },
-  { label: 'ETA', value: (transaction) => displayDate(transaction.shipping_details_packer?.req_eta) },
-  // { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_customer?.lsd_max) },
-  { label: 'LSD', value: () => '-' },
+  { label: 'ETD', value: (transaction) => displayDate(transaction.logistics?.etd_date) },
+  { label: 'ETA', value: (transaction) => displayDate(transaction.logistics?.eta_date) },
+  { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_max) },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
   { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
   { label: 'Destination', value: (transaction) => transaction.destination },
@@ -440,13 +439,12 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
                   <td>{transaction.revenue_packer?.description ?? '-'}</td>
-                  <td>{transaction.revenue_customer?.description ?? '-'}</td>
-                  <td>{transaction.general_info_packer?.packer_name ?? '-'}</td>
+                  <td>{transaction.logistics?.sc_inv_to_customer ?? '-'}</td>
+                  <td>{transaction.logistics?.packer_inv ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.lsd_min)}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.req_eta)}</td>
-                  {/* <td>{displayDate(transaction.shipping_details_customer?.lsd_max)}</td> */}
-                  <td>-</td>
+                  <td>{displayDate(transaction.logistics?.etd_date)}</td>
+                  <td>{displayDate(transaction.logistics?.eta_date)}</td>
+                  <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
                   <td>{transaction.destination ?? '-'}</td>
