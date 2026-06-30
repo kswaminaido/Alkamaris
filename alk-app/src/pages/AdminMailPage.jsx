@@ -28,6 +28,9 @@ const initialFilters = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+let transactionItemOptionsCache = null
+let transactionItemOptionsPromise = null
+
 function recipientKey(recipient) {
   return String(recipient?.id ?? recipient?.email ?? recipient?.name ?? '')
 }
@@ -44,6 +47,7 @@ function AdminMailPage() {
   const { currentUser, logout, authFetch } = useAuth()
   const [filters, setFilters] = useState(initialFilters)
   const [products, setProducts] = useState([])
+  const [styles, setStyles] = useState([])
   const [recipients, setRecipients] = useState([])
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([])
   const [composeOpen, setComposeOpen] = useState(false)
@@ -58,6 +62,7 @@ function AdminMailPage() {
   const attachmentInputRef = useRef(null)
   const imageInputRef = useRef(null)
   const colorInputRef = useRef(null)
+  const authFetchRef = useRef(authFetch)
 
   const availableCountries = useMemo(() => {
     const selected = filters.continents.length > 0 ? filters.continents : Object.keys(CONTINENT_COUNTRIES)
@@ -68,24 +73,38 @@ function AdminMailPage() {
     .map((recipient) => recipient.email), [recipients, selectedRecipientIds])
 
   useEffect(() => {
+    authFetchRef.current = authFetch
+  }, [authFetch])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadOptions() {
+      try {
+        const options = await loadTransactionItemOptions(() => authFetchRef.current('/transaction-item-options'))
+        if (!active) return
+
+        setProducts(options.products)
+        setStyles(options.styles)
+      } catch {
+        if (!active) return
+
+        setProducts([])
+        setStyles([])
+        setError('Unable to load product and style options.')
+      }
+    }
+
     loadOptions()
+
+    return () => {
+      active = false
+    }
   }, [])
 
   async function handleLogout() {
     await logout()
     navigate('/', { replace: true })
-  }
-
-  async function loadOptions() {
-    try {
-      const response = await authFetch('/mail/options')
-      const payload = await response.json()
-      if (response.ok) {
-        setProducts(payload?.data?.products ?? [])
-      }
-    } catch {
-      setProducts([])
-    }
   }
 
   function updateFilter(key, value) {
@@ -100,6 +119,23 @@ function AdminMailPage() {
 
   function toggleMulti(key, value) {
     updateFilter(key, filters[key].includes(value) ? filters[key].filter((item) => item !== value) : [...filters[key], value])
+  }
+
+  function addFilterOption(key, value) {
+    const option = normalizeText(value)
+    if (!option) return false
+
+    if (key === 'product') {
+      setProducts((current) => normalizeOptionList([...current, option]))
+      return true
+    }
+
+    if (key === 'style') {
+      setStyles((current) => normalizeOptionList([...current, option]))
+      return true
+    }
+
+    return false
   }
 
   async function searchRecipients() {
@@ -285,13 +321,13 @@ function AdminMailPage() {
           </div>
 
           <div className="admin-mail-row cols-3">
-            <Field label="Product"><input list="mail-products" value={filters.product} onChange={(event) => updateFilter('product', event.target.value)} /><datalist id="mail-products">{products.map((product) => <option key={product} value={product} />)}</datalist></Field>
+            <Field label="Product"><CreatableSelect value={filters.product} list={products} onChange={(value) => updateFilter('product', value)} onAdd={(value) => addFilterOption('product', value)} /></Field>
             <Field label="Zone"><MultiSelect options={Object.keys(CONTINENT_COUNTRIES)} values={filters.continents} onToggle={(value) => toggleMulti('continents', value)} placeholder="Select continents" /></Field>
             <Field label="Country"><MultiSelect options={availableCountries} values={filters.countries} onToggle={(value) => toggleMulti('countries', value)} placeholder="Select countries" /></Field>
           </div>
 
           <div className="admin-mail-row cols-4">
-            <Field label="Style"><input value={filters.style} onChange={(event) => updateFilter('style', event.target.value)} /></Field>
+            <Field label="Style"><CreatableSelect value={filters.style} list={styles} onChange={(value) => updateFilter('style', value)} onAdd={(value) => addFilterOption('style', value)} /></Field>
             <Field label="Source"><select value={filters.source} onChange={(event) => updateFilter('source', event.target.value)}><option value="all_exhibition">All Exhibition</option><option value="scol">SCOL</option></select></Field>
             <Field label="Rating"><select value={filters.rating} onChange={(event) => updateFilter('rating', event.target.value)}><option value="all">All</option></select></Field>
             <Field label="Time Frame"><div className="mail-years"><select value={filters.years} onChange={(event) => updateFilter('years', event.target.value)}>{Array.from({ length: 10 }, (_, index) => String(index + 1)).map((year) => <option key={year} value={year}>{year}</option>)}</select><span>years</span></div></Field>
@@ -406,6 +442,135 @@ function Field({ label, children }) {
   return <label className="admin-mail-field"><span>{label}</span>{children}</label>
 }
 
+async function loadTransactionItemOptions(fetchOptions) {
+  if (transactionItemOptionsCache) {
+    return transactionItemOptionsCache
+  }
+
+  if (!transactionItemOptionsPromise) {
+    transactionItemOptionsPromise = fetchOptions()
+      .then(async (response) => {
+        let payload = null
+        try {
+          payload = await response.json()
+        } catch {
+          payload = null
+        }
+
+        if (!response.ok) {
+          throw new Error(payload?.message ?? 'Unable to load product and style options.')
+        }
+
+        return {
+          products: normalizeOptionList(payload?.data?.product),
+          styles: normalizeOptionList(payload?.data?.style),
+        }
+      })
+      .then((options) => {
+        transactionItemOptionsCache = options
+        return options
+      })
+      .catch((error) => {
+        transactionItemOptionsCache = null
+        throw error
+      })
+      .finally(() => {
+        transactionItemOptionsPromise = null
+      })
+  }
+
+  return transactionItemOptionsPromise
+}
+
+function CreatableSelect({ value, list, onChange, onAdd }) {
+  const rootRef = useRef(null)
+  const [open, setOpen] = useState(false)
+  const options = normalizeOptionList(list)
+  const search = value.trim().toLowerCase()
+  const filteredOptions = search ? options.filter((option) => option.toLowerCase().includes(search)) : options
+  const canAdd = Boolean(value.trim() && !options.some((option) => option.toLowerCase() === value.trim().toLowerCase()))
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    function handlePointerDown(event) {
+      if (!rootRef.current?.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [open])
+
+  function selectOption(option) {
+    onChange(option)
+    setOpen(false)
+  }
+
+  function addOption() {
+    const option = value.trim()
+    if (!option) return
+    onAdd?.(option)
+    onChange(option)
+    setOpen(false)
+  }
+
+  return (
+    <div className="txn-combobox" ref={rootRef}>
+      <input
+        type="text"
+        value={value}
+        placeholder="Search"
+        autoComplete="off"
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
+        onChange={(event) => {
+          onChange(event.target.value)
+          setOpen(true)
+        }}
+      />
+      <button
+        type="button"
+        className="txn-combobox-toggle"
+        aria-label={open ? 'Close options' : 'Open options'}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className={`txn-combobox-caret${open ? ' is-open' : ''}`} aria-hidden="true" />
+      </button>
+      {open ? (
+        <div className="txn-combobox-menu">
+          {filteredOptions.length ? (
+            filteredOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`txn-combobox-option${option === value ? ' is-selected' : ''}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => selectOption(option)}
+              >
+                {option}
+              </button>
+            ))
+          ) : (
+            <div className="txn-combobox-empty">No matches found</div>
+          )}
+          {canAdd ? (
+            <button
+              type="button"
+              className="txn-combobox-add"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={addOption}
+            >
+              Add "{value.trim()}"
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function MultiSelect({ options, values, onToggle, placeholder }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
@@ -455,6 +620,19 @@ function MoreIcon() {
 
 function TrashIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 14h10l1-14" /><path d="M9 7V4h6v3" /></svg>
+}
+
+function normalizeText(value) {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+function normalizeOptionList(options) {
+  return [...new Set(
+    (Array.isArray(options) ? options : [])
+      .map(normalizeText)
+      .filter(Boolean),
+  )]
 }
 
 export default AdminMailPage
