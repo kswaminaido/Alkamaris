@@ -476,7 +476,7 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('pagination.total', 6);
     }
 
-    public function test_index_sorts_recently_updated_transaction_items_first(): void
+    public function test_index_sorts_recently_created_transactions_first_after_item_updates(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $token = $admin->createToken('admin-token')->plainTextToken;
@@ -513,12 +513,12 @@ final class TransactionApiTest extends TestCase
             ->withHeader('Authorization', "Bearer {$token}")
             ->getJson('/api/transactions?per_page=5')
             ->assertOk()
-            ->assertJsonPath('data.0.booking_no', 'TRX-ITEM-UPDATED');
+            ->assertJsonPath('data.0.booking_no', 'TRX-NEWER-ID');
 
         CarbonImmutable::setTestNow();
     }
 
-    public function test_index_sorts_recently_updated_transaction_detail_fields_first(): void
+    public function test_index_sorts_recently_created_transactions_first_after_detail_updates(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $token = $admin->createToken('admin-token')->plainTextToken;
@@ -556,7 +556,7 @@ final class TransactionApiTest extends TestCase
             ->withHeader('Authorization', "Bearer {$token}")
             ->getJson('/api/transactions?per_page=5')
             ->assertOk()
-            ->assertJsonPath('data.0.booking_no', 'TRX-DETAIL-UPDATED');
+            ->assertJsonPath('data.0.booking_no', 'TRX-DETAIL-NEWER-ID');
 
         CarbonImmutable::setTestNow();
     }

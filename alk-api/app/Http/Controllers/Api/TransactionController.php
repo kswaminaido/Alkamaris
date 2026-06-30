@@ -91,7 +91,7 @@ class TransactionController extends Controller
         }
 
         $paginator = $query
-            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate($perPage);
 

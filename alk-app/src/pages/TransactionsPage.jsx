@@ -4,7 +4,7 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
 const MAX_VISIBLE_PAGES = 5
 
@@ -180,10 +180,7 @@ function TransactionsPage({ overdueOnly = false }) {
       }
 
       setTransactions((previous) => {
-        const index = previous.findIndex((item) => item.id === transactionId)
-        if (index === -1) return [duplicated, ...previous]
-        const next = [...previous]
-        next.splice(index + 1, 0, duplicated)
+        const next = [duplicated, ...previous]
         return next.slice(0, PAGE_SIZE)
       })
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
@@ -388,6 +385,9 @@ function TransactionsPage({ overdueOnly = false }) {
                 <div className="filter-actions">
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
                     Clear
+                  </button>
+                  <button type="button" className="primary-btn" disabled>
+                    Total Bookings: {totalRecords}
                   </button>
                   <button type="button" className="primary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
                     {exporting ? 'Exporting...' : 'Export'}
