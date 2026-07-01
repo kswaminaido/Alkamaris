@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
 import PackerSalesReportPage from './pages/PackerSalesReportPage'
 import PaymentStatusReportPage from './pages/PaymentStatusReportPage'
+import QcInspectionReportPage from './pages/QcInspectionReportPage'
 import SummaryReportPage from './pages/SummaryReportPage'
 import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
@@ -96,7 +97,7 @@ function AppShell() {
           path="/transactions/qc-inspection"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="QC Inspection Date" />
+              <QcInspectionReportPage />
             </RequireAuth>
           }
         />

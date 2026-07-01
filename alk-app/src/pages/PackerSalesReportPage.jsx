@@ -18,26 +18,29 @@ const statusOptions = [
   { value: 'T', label: 'Tally' },
 ]
 
-const csvColumns = [
-  { label: 'Code', value: (row) => row.bookingNo },
-  { label: 'Date', value: (row) => displayDate(row.issueDate) },
-  { label: 'Packer', value: (row) => row.packer },
-  { label: 'Customer', value: (row) => row.customer },
-  { label: 'Product', value: (row) => row.product },
-  { label: 'Style', value: (row) => row.style },
-  { label: 'Packing', value: (row) => row.packing },
-  { label: 'Size', value: (row) => row.size },
-  { label: 'Qty', value: (row) => formatQty(row.qty, row.qtyUnit) },
-  { label: 'Total Weight', value: (row) => formatNumber(row.totalWeight) },
-  { label: 'Buying Total', value: (row) => formatMoney(row.buyingTotal) },
-  { label: 'Packer Commission', value: (row) => formatMoney(row.packerCommission) },
-  { label: 'Buyer Commission', value: (row) => formatMoney(row.buyerCommission) },
-  { label: 'ETA Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etaDate) : '') },
-  { label: 'ETD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etdDate) : '') },
-  { label: 'LSD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.lsdDate) : '') },
-  { label: 'Total Commission', value: (row) => (row.isFirstCodeRow ? formatMoney(row.totalCommission) : '') },
-  { label: 'Status', value: (row) => (row.isFirstCodeRow ? getStatusLabel(row.status) : '') },
-]
+function buildCsvColumns(showQcInspectionColumn = false, qcInspectionColumnLabel = 'QC Data') {
+  return [
+    ...(showQcInspectionColumn ? [{ label: qcInspectionColumnLabel, value: (row) => displayDate(row.qcInspectionDate) }] : []),
+    { label: 'Code', value: (row) => row.bookingNo },
+    { label: 'Date', value: (row) => displayDate(row.issueDate) },
+    { label: 'Packer', value: (row) => row.packer },
+    { label: 'Customer', value: (row) => row.customer },
+    { label: 'Product', value: (row) => row.product },
+    { label: 'Style', value: (row) => row.style },
+    { label: 'Packing', value: (row) => row.packing },
+    { label: 'Size', value: (row) => row.size },
+    { label: 'Qty', value: (row) => formatQty(row.qty, row.qtyUnit) },
+    { label: 'Total Weight', value: (row) => formatNumber(row.totalWeight) },
+    { label: 'Buying Total', value: (row) => formatMoney(row.buyingTotal) },
+    { label: 'Packer Commission', value: (row) => formatMoney(row.packerCommission) },
+    { label: 'Buyer Commission', value: (row) => formatMoney(row.buyerCommission) },
+    { label: 'ETA Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etaDate) : '') },
+    { label: 'ETD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etdDate) : '') },
+    { label: 'LSD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.lsdDate) : '') },
+    { label: 'Total Commission', value: (row) => (row.isFirstCodeRow ? formatMoney(row.totalCommission) : '') },
+    { label: 'Status', value: (row) => (row.isFirstCodeRow ? getStatusLabel(row.status) : '') },
+  ]
+}
 
 function PackerSalesReportPage({
   title = 'Packer Sales',
@@ -49,6 +52,9 @@ function PackerSalesReportPage({
   emptyText = 'No packer sales found.',
   exportFilePrefix = 'packer-sales',
   errorLabel = 'packer sales',
+  filterByQcInspectionDate = false,
+  showQcInspectionColumn = false,
+  qcInspectionColumnLabel = 'QC Data',
 } = {}) {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
@@ -85,7 +91,7 @@ function PackerSalesReportPage({
     setError('')
 
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, forcedStatus)
+      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, forcedStatus, filterByQcInspectionDate)
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
 
@@ -126,7 +132,7 @@ function PackerSalesReportPage({
       let lastExportPage = 1
 
       do {
-        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE, forcedStatus)
+        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE, forcedStatus, filterByQcInspectionDate)
         const response = await authFetch(`/transactions?${params.toString()}`)
         const payload = await response.json()
 
@@ -151,6 +157,7 @@ function PackerSalesReportPage({
   }
 
   function downloadCsv(rowsToExport) {
+    const csvColumns = buildCsvColumns(showQcInspectionColumn, qcInspectionColumnLabel)
     const rows = [
       csvColumns.map((column) => column.label),
       ...rowsToExport.map((row) => csvColumns.map((column) => column.value(row) ?? '-')),
@@ -366,6 +373,7 @@ function PackerSalesReportPage({
           <table className="transactions-table packer-sales-table">
             <thead>
               <tr>
+                {showQcInspectionColumn ? <th>{qcInspectionColumnLabel}</th> : null}
                 <th className="sticky-col">Code</th>
                 <th>Date</th>
                 <th>Packer</th>
@@ -382,16 +390,17 @@ function PackerSalesReportPage({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="table-message-cell">
+                  <td colSpan={11 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">
                     {loadingText}
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={11} className="table-message-cell">{emptyText}</td></tr>
+                <tr><td colSpan={11 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">{emptyText}</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
+                  {showQcInspectionColumn ? <td>{displayDate(row.qcInspectionDate)}</td> : null}
                   <td className="sticky-col">
                     <button type="button" className="report-code-button" onClick={() => setSelectedReportRow(row)}>
                       {row.bookingNo}
@@ -520,6 +529,7 @@ function buildPackerSalesSummaryRows(transactions) {
       etaDate: transaction.logistics?.eta_date,
       etdDate: transaction.logistics?.etd_date,
       lsdDate: transaction.shipping_details_packer?.lsd_max,
+      qcInspectionDate: transaction.logistics?.qc_inspection_date,
       status: transaction.status ?? 'U',
       items,
     }
@@ -552,6 +562,7 @@ function flattenPackerSalesRows(transactions) {
       etaDate: transaction.logistics?.eta_date,
       etdDate: transaction.logistics?.etd_date,
       lsdDate: transaction.shipping_details_packer?.lsd_max,
+      qcInspectionDate: transaction.logistics?.qc_inspection_date,
       totalCommission,
       status: transaction.status ?? 'U',
       isFirstCodeRow: index === 0,
@@ -622,7 +633,7 @@ function buildSummaryCards(rows, totalRecords) {
   ]
 }
 
-function buildTransactionParams(filters, targetPage, perPage, forcedStatus = '') {
+function buildTransactionParams(filters, targetPage, perPage, forcedStatus = '', filterByQcInspectionDate = false) {
   const params = new URLSearchParams()
   params.append('page', targetPage)
   params.append('per_page', perPage)
@@ -634,6 +645,7 @@ function buildTransactionParams(filters, targetPage, perPage, forcedStatus = '')
   } else if (filters.status) {
     params.append('status', filters.status)
   }
+  if (filterByQcInspectionDate) params.append('has_qc_inspection_date', '1')
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
   return params

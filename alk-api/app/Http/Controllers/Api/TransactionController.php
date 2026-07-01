@@ -82,6 +82,12 @@ class TransactionController extends Controller
             $query->where('status', $status);
         }
 
+        if (request()->boolean('has_qc_inspection_date')) {
+            $query->whereHas('logistics', function ($query) {
+                $query->whereNotNull('qc_inspection_date');
+            });
+        }
+
         if ($fromDate = request('from_date')) {
             $query->whereDate('updated_at', '>=', $fromDate);
         }
