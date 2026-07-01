@@ -342,53 +342,29 @@ final class TransactionService
             $payload,
         );
 
-        // Any saved B/L date means an unshipped transaction has moved to shipped.
-        if ($modelClass === TransactionLogistics::class) {
-            $current = $modelClass::query()->where('transaction_id', $transactionId)->first();
-            $currentBlDate = $current?->bl_date ?? null;
-
-            if ($currentBlDate !== null) {
-                Transaction::query()
-                    ->where('id', $transactionId)
-                    ->where('status', TransactionStatus::Unshipped->value)
-                    ->update(['status' => TransactionStatus::Shipped->value]);
-            }
-        }
-
-        $this->syncPaymentStatus($transactionId);
+        $this->syncTransactionStatus($transactionId);
     }
 
-    private function syncPaymentStatus(int $transactionId): void
+    private function syncTransactionStatus(int $transactionId): void
     {
         $logistics = TransactionLogistics::query()->where('transaction_id', $transactionId)->first();
         $cashFlowPacker = CashFlowPacker::query()->where('transaction_id', $transactionId)->first();
 
+        $status = TransactionStatus::Unshipped;
+
         if ($cashFlowPacker?->date_balance !== null) {
-            Transaction::query()
-                ->where('id', $transactionId)
-                ->update(['status' => TransactionStatus::Paid->value]);
-
-            return;
+            $status = TransactionStatus::Paid;
+        } elseif ($cashFlowPacker?->invoice_date !== null) {
+            $status = TransactionStatus::Invoice;
+        } elseif ($logistics?->packer_inv_date !== null) {
+            $status = TransactionStatus::Received;
+        } elseif ($logistics?->bl_date !== null) {
+            $status = TransactionStatus::Shipped;
         }
 
-        if ($logistics?->packer_inv_date !== null) {
-            Transaction::query()
-                ->where('id', $transactionId)
-                ->where('status', '!=', TransactionStatus::Paid->value)
-                ->update(['status' => TransactionStatus::Received->value]);
-
-            return;
-        }
-
-        if ($cashFlowPacker?->invoice_date !== null) {
-            Transaction::query()
-                ->where('id', $transactionId)
-                ->whereNotIn('status', [
-                    TransactionStatus::Paid->value,
-                    TransactionStatus::Received->value,
-                ])
-                ->update(['status' => TransactionStatus::Invoice->value]);
-        }
+        Transaction::query()
+            ->where('id', $transactionId)
+            ->update(['status' => $status->value]);
     }
 
     /**
