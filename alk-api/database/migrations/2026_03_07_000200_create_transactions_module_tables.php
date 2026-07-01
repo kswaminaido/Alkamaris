@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('certified')->default(false);
             $table->decimal('net_margin', 14, 2)->nullable();
             $table->foreignId('created_by_user_id')->constrained('users')->cascadeOnDelete();
-            $table->enum('status', ['I', 'P', 'S', 'R', 'U', 'T'])->default('U');
+            $table->enum('status', ['I', 'P', 'D', 'S', 'R', 'U', 'T'])->default('U');
             $table->date('lc_set_at')->nullable();
             $table->integer('lc_days')->default(0);
             $table->timestamps();
@@ -116,6 +116,7 @@ return new class extends Migration
             $table->foreignId('transaction_id')->unique()->constrained('transactions')->cascadeOnDelete();
             $table->date('date_advance')->nullable();
             $table->decimal('amount_advance', 14, 2)->nullable();
+            $table->date('invoice_date')->nullable();
             $table->date('date_balance')->nullable();
             $table->decimal('amount_balance', 14, 2)->nullable();
             $table->timestamps();

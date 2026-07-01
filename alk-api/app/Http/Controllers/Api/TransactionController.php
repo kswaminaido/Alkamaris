@@ -90,10 +90,17 @@ class TransactionController extends Controller
             $query->whereDate('updated_at', '<=', $toDate);
         }
 
-        $paginator = $query
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate($perPage);
+        $sortUnshippedAscending = ! request()->boolean('overdue_invoice')
+            && request('status') === TransactionStatus::Unshipped->value
+            && request('sort_direction') === 'asc';
+
+        if ($sortUnshippedAscending) {
+            $query->orderBy('created_at')->orderBy('id');
+        } else {
+            $query->orderByDesc('created_at')->orderByDesc('id');
+        }
+
+        $paginator = $query->paginate($perPage);
 
         return (new TransactionCollection($paginator))->response();
     }

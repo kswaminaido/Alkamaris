@@ -30,7 +30,8 @@ const OPTIONS = {
 
 const STATUS_OPTIONS = [
   { value: 'I', label: 'Invoice' },
-  { value: 'P', label: 'Pending' },
+  { value: 'P', label: 'Unpaid' },
+  { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
@@ -529,15 +530,29 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
   const packer = transaction.general_info_packer ?? {}
   const revenueCustomer = transaction.revenue_customer ?? {}
   const revenuePacker = transaction.revenue_packer ?? {}
+  const cashFlowCustomer = transaction.cash_flow_customer ?? {}
+  const cashFlowPacker = transaction.cash_flow_packer ?? {}
   const shippingCustomer = transaction.shipping_details_customer ?? {}
   const shippingPacker = transaction.shipping_details_packer ?? {}
   const notes = transaction.notes ?? transaction.note ?? {}
   const noteEntries = transaction.note_entries ?? transaction.noteEntries ?? []
-  const [attentionValue, setAttentionValue] = useState(customer.attention ?? '')
+  const customerAttention = customer.attention ?? ''
+  const [attentionState, setAttentionState] = useState(() => ({
+    source: customerAttention,
+    transactionId: transaction.id,
+    value: customerAttention,
+  }))
+  const attentionValue = attentionState.transactionId === transaction.id && attentionState.source === customerAttention
+    ? attentionState.value
+    : customerAttention
 
-  useEffect(() => {
-    setAttentionValue(customer.attention ?? '')
-  }, [transaction.id, customer.attention])
+  function setAttentionValue(value) {
+    setAttentionState({
+      source: customerAttention,
+      transactionId: transaction.id,
+      value,
+    })
+  }
 
   function handleCustomerChange(value) {
     const contactName = customerContacts?.[value]
@@ -591,14 +606,14 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
 
       <div className="txe-two">
         <SectionCard title="RECEIVE" side="CUSTOMER" tone="gold">
-          <Row label="Date Advance"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Date Advance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_advance" value={cashFlowCustomer.date_advance} /><input name="cash_flow_customer.amount_advance" defaultValue={cashFlowCustomer.amount_advance ?? ''} /></div></Row>
           <Row label="Invoice Date"><div className="txe-inline"><DateInput /><input /></div></Row>
-          <Row label="Date Balance"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Date Balance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_balance" value={cashFlowCustomer.date_balance} /><input name="cash_flow_customer.amount_balance" defaultValue={cashFlowCustomer.amount_balance ?? ''} /></div></Row>
         </SectionCard>
         <SectionCard title="PAYMENT" side="PACKER" tone="gold">
-          <Row label="Sales Proceeds"><div className="txe-inline"><DateInput /><input /></div></Row>
-          <Row label="Invoice Date"><div className="txe-inline"><DateInput /><input /></div></Row>
-          <Row label="Comm. Paid On"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Sales Proceeds"><div className="txe-inline"><DateInput name="cash_flow_packer.date_advance" value={cashFlowPacker.date_advance} /><input name="cash_flow_packer.amount_advance" defaultValue={cashFlowPacker.amount_advance ?? ''} /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_packer.invoice_date" value={cashFlowPacker.invoice_date} /><input /></div></Row>
+          <Row label="Comm. Paid On"><div className="txe-inline"><DateInput name="cash_flow_packer.date_balance" value={cashFlowPacker.date_balance} /><input name="cash_flow_packer.amount_balance" defaultValue={cashFlowPacker.amount_balance ?? ''} /></div></Row>
         </SectionCard>
       </div>
 
@@ -1817,6 +1832,19 @@ function buildPayload(formElement, transaction) {
       description: getFieldValue(formData, 'revenue_packer.description', transaction.revenue_packer?.description),
       overcharge_sc_amount: getNumberValue(formData, 'revenue_packer.overcharge_sc_amount', transaction.revenue_packer?.overcharge_sc_amount),
       overcharge_sc_description: getFieldValue(formData, 'revenue_packer.overcharge_sc_description', transaction.revenue_packer?.overcharge_sc_description),
+    },
+    cash_flow_customer: {
+      date_advance: getDateValue(formData, 'cash_flow_customer.date_advance', transaction.cash_flow_customer?.date_advance),
+      amount_advance: getNumberValue(formData, 'cash_flow_customer.amount_advance', transaction.cash_flow_customer?.amount_advance),
+      date_balance: getDateValue(formData, 'cash_flow_customer.date_balance', transaction.cash_flow_customer?.date_balance),
+      amount_balance: getNumberValue(formData, 'cash_flow_customer.amount_balance', transaction.cash_flow_customer?.amount_balance),
+    },
+    cash_flow_packer: {
+      date_advance: getDateValue(formData, 'cash_flow_packer.date_advance', transaction.cash_flow_packer?.date_advance),
+      amount_advance: getNumberValue(formData, 'cash_flow_packer.amount_advance', transaction.cash_flow_packer?.amount_advance),
+      invoice_date: getDateValue(formData, 'cash_flow_packer.invoice_date', transaction.cash_flow_packer?.invoice_date),
+      date_balance: getDateValue(formData, 'cash_flow_packer.date_balance', transaction.cash_flow_packer?.date_balance),
+      amount_balance: getNumberValue(formData, 'cash_flow_packer.amount_balance', transaction.cash_flow_packer?.amount_balance),
     },
     shipping_details_customer: {
       lsd_min: getDateValue(formData, 'shipping_details_customer.lsd_min', transaction.shipping_details_customer?.lsd_min),

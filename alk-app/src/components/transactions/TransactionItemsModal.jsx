@@ -20,7 +20,8 @@ const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: DEFAULT
 
 const STATUS_OPTIONS = [
   { value: 'I', label: 'Invoice' },
-  { value: 'P', label: 'Pending' },
+  { value: 'P', label: 'Unpaid' },
+  { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },

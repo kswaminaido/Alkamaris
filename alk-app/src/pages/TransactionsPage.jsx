@@ -10,7 +10,8 @@ const MAX_VISIBLE_PAGES = 5
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
-  { value: 'P', label: 'Pending' },
+  { value: 'P', label: 'Unpaid' },
+  { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
@@ -30,7 +31,7 @@ const csvColumns = [
   { label: 'ETA', value: (transaction) => displayDate(transaction.logistics?.eta_date) },
   { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_max) },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
-  { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
+  // { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
   { label: 'Destination', value: (transaction) => transaction.destination },
   { label: 'Date Modified', value: (transaction) => displayDate(transaction.updated_at) },
 ]
@@ -415,7 +416,7 @@ function TransactionsPage({ overdueOnly = false }) {
                 <th>ETA</th>
                 <th>LSD</th>
                 <th>Status</th>
-                <th>SH Date</th>
+                {/* <th>SH Date</th> */}
                 <th>Destination</th>
                 <th>Date Modified</th>
                 <th>Duplicate</th>
@@ -504,6 +505,7 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
   if (filters.status) params.append('status', filters.status)
+  if (!options.overdueOnly && filters.status === 'U') params.append('sort_direction', 'asc')
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
   return params

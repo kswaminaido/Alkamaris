@@ -11,6 +11,7 @@ import DataPage from './pages/DataPage'
 import LoginPage from './pages/LoginPage'
 import ModulePlaceholderPage from './pages/ModulePlaceholderPage'
 import PackerSalesReportPage from './pages/PackerSalesReportPage'
+import PaymentStatusReportPage from './pages/PaymentStatusReportPage'
 import SummaryReportPage from './pages/SummaryReportPage'
 import ProfilePage from './pages/ProfilePage'
 import SignupPage from './pages/SignupPage'
@@ -31,8 +32,6 @@ function App() {
 
 function AppShell() {
   const { isGlobalLoading, loadingLabel } = useGlobalLoading()
-  const reportRoles = ['admin', 'accounts']
-
   return (
     <>
       <Routes>
@@ -177,7 +176,7 @@ function AppShell() {
           path="/reports/payment-status"
           element={
             <RequireAuth>
-              <ModulePlaceholderPage title="Payment Status" allowedRoles={reportRoles} />
+              <PaymentStatusReportPage />
             </RequireAuth>
           }
         />

@@ -1286,7 +1286,7 @@ select:focus {
 
 .dashboard-commission-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -1298,6 +1298,10 @@ select:focus {
   border: 1px solid #dfe6f3;
   background: #ffffff;
   padding: 1rem;
+}
+
+.dashboard-commission-card.revenue {
+  border-left: 5px solid #2563eb;
 }
 
 .dashboard-commission-card.collected {
@@ -2713,6 +2717,27 @@ select:focus {
   box-shadow: 0 14px 30px rgba(16, 24, 40, 0.04);
 }
 
+.packer-sales-summary-section {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.packer-sales-summary-section.primary {
+  border-right: 1px solid #e4e7ec;
+  padding-right: 0.75rem;
+}
+
+.packer-sales-summary-section.secondary {
+  padding-left: 0.75rem;
+}
+
+.packer-sales-summary-card:has(.packer-sales-summary-section.secondary) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  align-content: center;
+}
+
 .packer-sales-summary-card span {
   color: #667085;
   font-size: 0.76rem;
@@ -2940,9 +2965,14 @@ select:focus {
   color: #067647;
 }
 
-.status-pill.pending {
+.status-pill.unpaid {
   background: #fff3e0;
   color: #b54708;
+}
+
+.status-pill.paid {
+  background: #e7f6ec;
+  color: #067647;
 }
 
 .status-pill.shipped,

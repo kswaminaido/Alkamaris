@@ -5,7 +5,8 @@ namespace App\Enums;
 enum TransactionStatus: string
 {
     case Invoice = 'I';
-    case Pending = 'P';
+    case Unpaid = 'P';
+    case Paid = 'D';
     case Shipped = 'S';
     case Received = 'R'; // payment and documents received
     case Unshipped = 'U';
@@ -15,7 +16,8 @@ enum TransactionStatus: string
     {
         return match ($this) {
             self::Invoice => 'Invoice',
-            self::Pending => 'Pending',
+            self::Unpaid => 'Unpaid',
+            self::Paid => 'Paid',
             self::Shipped => 'Shipped',
             self::Received => 'Received',
             self::Unshipped => 'Unshipped',

@@ -3,6 +3,8 @@
 namespace App\Services\Transactions;
 
 use App\Enums\TransactionStatus;
+use App\Models\CashFlowCustomer;
+use App\Models\CashFlowPacker;
 use App\Models\GeneralInfoCustomer;
 use App\Models\GeneralInfoPacker;
 use App\Models\RevenueCustomer;
@@ -53,6 +55,8 @@ final class TransactionService
         GeneralInfoPacker::class,
         RevenueCustomer::class,
         RevenuePacker::class,
+        CashFlowCustomer::class,
+        CashFlowPacker::class,
         ShippingDetailsCustomer::class,
         ShippingDetailsPacker::class,
         TransactionNote::class,
@@ -168,6 +172,8 @@ final class TransactionService
             GeneralInfoPacker::class => $validated['general_info_packer'] ?? [],
             RevenueCustomer::class => $validated['revenue_customer'] ?? [],
             RevenuePacker::class => $validated['revenue_packer'] ?? [],
+            CashFlowCustomer::class => $validated['cash_flow_customer'] ?? [],
+            CashFlowPacker::class => $validated['cash_flow_packer'] ?? [],
             ShippingDetailsCustomer::class => $validated['shipping_details_customer'] ?? [],
             ShippingDetailsPacker::class => $validated['shipping_details_packer'] ?? [],
             TransactionNote::class => $validated['notes'] ?? [],
@@ -185,6 +191,8 @@ final class TransactionService
             GeneralInfoPacker::class => $transaction->generalInfoPacker,
             RevenueCustomer::class => $transaction->revenueCustomer,
             RevenuePacker::class => $transaction->revenuePacker,
+            CashFlowCustomer::class => $transaction->cashFlowCustomer,
+            CashFlowPacker::class => $transaction->cashFlowPacker,
             ShippingDetailsCustomer::class => $transaction->shippingDetailsCustomer,
             ShippingDetailsPacker::class => $transaction->shippingDetailsPacker,
             TransactionNote::class => $transaction->note,
@@ -345,6 +353,41 @@ final class TransactionService
                     ->where('status', TransactionStatus::Unshipped->value)
                     ->update(['status' => TransactionStatus::Shipped->value]);
             }
+        }
+
+        $this->syncPaymentStatus($transactionId);
+    }
+
+    private function syncPaymentStatus(int $transactionId): void
+    {
+        $logistics = TransactionLogistics::query()->where('transaction_id', $transactionId)->first();
+        $cashFlowPacker = CashFlowPacker::query()->where('transaction_id', $transactionId)->first();
+
+        if ($cashFlowPacker?->date_balance !== null) {
+            Transaction::query()
+                ->where('id', $transactionId)
+                ->update(['status' => TransactionStatus::Paid->value]);
+
+            return;
+        }
+
+        if ($logistics?->packer_inv_date !== null) {
+            Transaction::query()
+                ->where('id', $transactionId)
+                ->where('status', '!=', TransactionStatus::Paid->value)
+                ->update(['status' => TransactionStatus::Received->value]);
+
+            return;
+        }
+
+        if ($cashFlowPacker?->invoice_date !== null) {
+            Transaction::query()
+                ->where('id', $transactionId)
+                ->whereNotIn('status', [
+                    TransactionStatus::Paid->value,
+                    TransactionStatus::Received->value,
+                ])
+                ->update(['status' => TransactionStatus::Invoice->value]);
         }
     }
 

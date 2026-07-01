@@ -11,6 +11,8 @@ function DashboardPanel({ currentUser, authFetch }) {
   })
   const [commissionLoading, setCommissionLoading] = useState(false)
   const [commissionError, setCommissionError] = useState('')
+  const totalRevenue = Number(commissionSummary.total_collected_commission ?? 0)
+    + Number(commissionSummary.total_pending_commission ?? 0)
 
   const transactionLinks = [
     { label: 'All Transactions', path: '/transactions' },
@@ -76,6 +78,10 @@ function DashboardPanel({ currentUser, authFetch }) {
     <div className="modern-dashboard-main">
       {currentUser.role === 'admin' ? (
         <section className="dashboard-commission-grid" aria-label="Commission summary">
+          <article className="dashboard-commission-card revenue">
+            <span>Total Revenue</span>
+            <strong>{commissionLoading ? '-' : formatCommission(totalRevenue)}</strong>
+          </article>
           <article className="dashboard-commission-card collected">
             <span>Total Collected Commission</span>
             <strong>{commissionLoading ? '-' : formatCommission(commissionSummary.total_collected_commission)}</strong>

@@ -361,7 +361,7 @@ final class TransactionApiTest extends TestCase
         $transaction = Transaction::query()->create([
             'booking_no' => 'TRX-BL-PENDING',
             'booking_mode' => 'trade_commission',
-            'status' => TransactionStatus::Pending->value,
+            'status' => TransactionStatus::Unpaid->value,
             'created_by_user_id' => $admin->id,
         ]);
 
@@ -371,7 +371,7 @@ final class TransactionApiTest extends TestCase
                 'transaction' => [
                     'booking_no' => 'TRX-BL-PENDING',
                     'booking_mode' => 'trade_commission',
-                    'status' => TransactionStatus::Pending->value,
+                    'status' => TransactionStatus::Unpaid->value,
                 ],
                 'logistics' => [
                     'bl_date' => '2026-06-14',
@@ -380,12 +380,12 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.status', TransactionStatus::Pending->value)
+            ->assertJsonPath('data.status', TransactionStatus::Unpaid->value)
             ->assertJsonPath('data.logistics.bl_date', '2026-06-14T00:00:00.000000Z');
 
         $this->assertDatabaseHas('transactions', [
             'id' => $transaction->id,
-            'status' => TransactionStatus::Pending->value,
+            'status' => TransactionStatus::Unpaid->value,
         ]);
     }
 
@@ -557,6 +557,37 @@ final class TransactionApiTest extends TestCase
             ->getJson('/api/transactions?per_page=5')
             ->assertOk()
             ->assertJsonPath('data.0.booking_no', 'TRX-DETAIL-NEWER-ID');
+
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_index_can_sort_unshipped_transactions_ascending_when_requested(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        CarbonImmutable::setTestNow('2026-06-14 08:00:00');
+        Transaction::query()->create([
+            'booking_no' => 'TRX-UNSHIPPED-OLDER',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        CarbonImmutable::setTestNow('2026-06-14 09:00:00');
+        Transaction::query()->create([
+            'booking_no' => 'TRX-UNSHIPPED-NEWER',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?status=U&sort_direction=asc&per_page=5')
+            ->assertOk()
+            ->assertJsonPath('data.0.booking_no', 'TRX-UNSHIPPED-OLDER')
+            ->assertJsonPath('data.1.booking_no', 'TRX-UNSHIPPED-NEWER');
 
         CarbonImmutable::setTestNow();
     }

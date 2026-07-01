@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
 const MAX_VISIBLE_PAGES = 5
 const ALLOWED_ROLES = ['admin', 'accounts']
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
-  { value: 'P', label: 'Pending' },
+  { value: 'P', label: 'Unpaid' },
+  { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
@@ -38,7 +39,17 @@ const csvColumns = [
   { label: 'Status', value: (row) => (row.isFirstCodeRow ? getStatusLabel(row.status) : '') },
 ]
 
-function PackerSalesReportPage() {
+function PackerSalesReportPage({
+  title = 'Packer Sales',
+  heading = 'Reports > Packer Sales',
+  forcedStatus = '',
+  showSummaryCards = true,
+  showStatusFilter = true,
+  loadingText = 'Loading packer sales, please wait...',
+  emptyText = 'No packer sales found.',
+  exportFilePrefix = 'packer-sales',
+  errorLabel = 'packer sales',
+} = {}) {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
   const [transactions, setTransactions] = useState([])
@@ -74,12 +85,12 @@ function PackerSalesReportPage() {
     setError('')
 
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE)
+      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, forcedStatus)
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
 
       if (!response.ok) {
-        setError(payload?.message ?? 'Unable to load packer sales.')
+        setError(payload?.message ?? `Unable to load ${errorLabel}.`)
         return
       }
 
@@ -87,7 +98,7 @@ function PackerSalesReportPage() {
       setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
       setPage(targetPage)
     } catch {
-      setError('Unable to load packer sales.')
+      setError(`Unable to load ${errorLabel}.`)
     } finally {
       setLoading(false)
     }
@@ -115,12 +126,12 @@ function PackerSalesReportPage() {
       let lastExportPage = 1
 
       do {
-        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE)
+        const params = buildTransactionParams(searchFilters, targetPage, EXPORT_PAGE_SIZE, forcedStatus)
         const response = await authFetch(`/transactions?${params.toString()}`)
         const payload = await response.json()
 
         if (!response.ok) {
-          setError(payload?.message ?? 'Unable to export packer sales.')
+          setError(payload?.message ?? `Unable to export ${errorLabel}.`)
           return
         }
 
@@ -133,7 +144,7 @@ function PackerSalesReportPage() {
 
       downloadCsv(rowsToExport)
     } catch {
-      setError('Unable to export packer sales.')
+      setError(`Unable to export ${errorLabel}.`)
     } finally {
       setExporting(false)
     }
@@ -149,7 +160,7 @@ function PackerSalesReportPage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `packer-sales-${new Date().toISOString().slice(0, 10)}.csv`
+    link.download = `${exportFilePrefix}-${new Date().toISOString().slice(0, 10)}.csv`
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -231,19 +242,14 @@ function PackerSalesReportPage() {
   const lastPage = Math.max(1, pagination.last_page ?? 1)
   const canGoPrevious = currentPage > 1
   const canGoNext = currentPage < lastPage
-  const summaryCards = [
-    { label: 'Transactions', value: formatInteger(totalRecords), tone: 'blue' },
-    { label: 'Buyer Commission', value: formatCurrency(sumRows(rows, 'buyingTotal')), tone: 'amber' },
-    { label: 'Packer Commission', value: formatCurrency(sumRows(rows, 'packerCommission')), tone: 'green' },
-    { label: 'Total Commission', value: formatCurrency(sumRows(rows, 'buyerCommission')), tone: 'teal' },
-  ]
+  const summaryCards = showSummaryCards ? buildSummaryCards(rows, totalRecords) : []
 
   return (
-    <AdminSidebarLayout currentUser={currentUser} title="Packer Sales" activeKey="reports" onLogout={onLogout} authFetch={authFetch}>
+    <AdminSidebarLayout currentUser={currentUser} title={title} activeKey="reports" onLogout={onLogout} authFetch={authFetch}>
       <div className="transactions-page packer-sales-page">
         <div className="transactions-toolbar packer-sales-toolbar">
           <div>
-            <h5>Reports &gt; Packer Sales</h5>
+            <h5>{heading}</h5>
             <div className="search-filters">
               <div className="filter-group">
                 <label htmlFor="packer-sales-code-filter">Transaction Id / Code:</label>
@@ -281,20 +287,22 @@ function PackerSalesReportPage() {
                 />
               </div>
 
-              <div className="filter-group">
-                <label htmlFor="packer-sales-status-filter">Status</label>
-                <select
-                  id="packer-sales-status-filter"
-                  value={searchFilters.status}
-                  onChange={(event) => handleFilterChange('status', event.target.value)}
-                  disabled={loading}
-                >
-                  <option value="">All Status</option>
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
+              {showStatusFilter ? (
+                <div className="filter-group">
+                  <label htmlFor="packer-sales-status-filter">Status</label>
+                  <select
+                    id="packer-sales-status-filter"
+                    value={searchFilters.status}
+                    onChange={(event) => handleFilterChange('status', event.target.value)}
+                    disabled={loading}
+                  >
+                    <option value="">All Status</option>
+                    {statusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
 
               <div className="filter-group">
                 <label htmlFor="packer-sales-from-date-filter">From date</label>
@@ -333,14 +341,24 @@ function PackerSalesReportPage() {
           </div>
         </div>
 
-        <div className="packer-sales-summary-grid" aria-label="Packer sales summary">
-          {summaryCards.map((card) => (
-            <div key={card.label} className={`packer-sales-summary-card ${card.tone}`}>
-              <span>{card.label}</span>
-              <strong>{card.value}</strong>
-            </div>
-          ))}
-        </div>
+        {showSummaryCards ? (
+          <div className="packer-sales-summary-grid" aria-label={`${title} summary`}>
+            {summaryCards.map((card) => (
+              <div key={card.label} className={`packer-sales-summary-card ${card.tone}`}>
+                <div className={`packer-sales-summary-section${card.secondaryLabel ? ' primary' : ''}`}>
+                  <span>{card.label}</span>
+                  <strong>{card.value}</strong>
+                </div>
+                {card.secondaryLabel ? (
+                  <div className="packer-sales-summary-section secondary">
+                    <span>{card.secondaryLabel}</span>
+                    <strong>{card.secondaryValue}</strong>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {error ? <p className="message error">{error}</p> : null}
 
@@ -365,12 +383,12 @@ function PackerSalesReportPage() {
               {loading ? (
                 <tr>
                   <td colSpan={11} className="table-message-cell">
-                    Loading packer sales, please wait...
+                    {loadingText}
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={11} className="table-message-cell">No packer sales found.</td></tr>
+                <tr><td colSpan={11} className="table-message-cell">{emptyText}</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
@@ -511,7 +529,9 @@ function buildPackerSalesSummaryRows(transactions) {
 function flattenPackerSalesRows(transactions) {
   return transactions.flatMap((transaction) => {
     const items = Array.isArray(transaction.items) && transaction.items.length > 0 ? transaction.items : [null]
-    const totalCommission = sumTransactionItems(transaction.items, 'total_packer_commission')
+    const packerCommissionTotal = sumTransactionItems(transaction.items, 'total_packer_commission')
+    const buyerCommissionTotal = sumTransactionItems(transaction.items, 'total_customer_commission')
+    const totalCommission = sumValues([packerCommissionTotal, buyerCommissionTotal])
 
     return items.map((item, index) => ({
       id: `${transaction.id}-${item?.id ?? `empty-${index}`}`,
@@ -568,7 +588,9 @@ function getStatusClass(value) {
     case 'I':
       return 'invoice'
     case 'P':
-      return 'pending'
+      return 'unpaid'
+    case 'D':
+      return 'paid'
     case 'S':
       return 'shipped'
     case 'R':
@@ -580,14 +602,38 @@ function getStatusClass(value) {
   }
 }
 
-function buildTransactionParams(filters, targetPage, perPage) {
+function buildSummaryCards(rows, totalRecords) {
+  const buyerCommissionTotal = sumRows(rows, 'buyerCommission')
+  const packerCommissionTotal = sumRows(rows, 'packerCommission')
+  const totalCommission = buyerCommissionTotal + packerCommissionTotal
+  const unshippedCount = rows.filter((row) => row.status === 'U').length
+
+  return [
+    {
+      label: 'Transactions',
+      value: formatInteger(totalRecords),
+      tone: 'blue',
+      secondaryLabel: 'Unshipped Count',
+      secondaryValue: formatInteger(unshippedCount),
+    },
+    { label: 'Buyer Commission', value: formatCurrency(buyerCommissionTotal), tone: 'amber' },
+    { label: 'Packer Commission', value: formatCurrency(packerCommissionTotal), tone: 'green' },
+    { label: 'Total Commission', value: formatCurrency(totalCommission), tone: 'teal' },
+  ]
+}
+
+function buildTransactionParams(filters, targetPage, perPage, forcedStatus = '') {
   const params = new URLSearchParams()
   params.append('page', targetPage)
   params.append('per_page', perPage)
   if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
-  if (filters.status) params.append('status', filters.status)
+  if (forcedStatus) {
+    params.append('status', forcedStatus)
+  } else if (filters.status) {
+    params.append('status', filters.status)
+  }
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
   return params
@@ -654,6 +700,19 @@ function sumTransactionItems(items, key) {
 
     hasValue = true
     return sum + value
+  }, 0)
+
+  return hasValue ? total : null
+}
+
+function sumValues(values) {
+  let hasValue = false
+  const total = values.reduce((sum, value) => {
+    const number = numericValue(value)
+    if (number === null) return sum
+
+    hasValue = true
+    return sum + number
   }, 0)
 
   return hasValue ? total : null

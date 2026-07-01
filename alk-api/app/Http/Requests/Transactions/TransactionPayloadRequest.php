@@ -24,6 +24,7 @@ abstract class TransactionPayloadRequest extends FormRequest
             $this->generalInfoPackerRules(),
             $this->revenueCustomerRules(),
             $this->revenuePackerRules(),
+            $this->cashFlowRules(),
             $this->shippingRules(),
             $this->notesAndLogisticsRules(),
             $this->collectionRules(),
@@ -51,7 +52,7 @@ abstract class TransactionPayloadRequest extends FormRequest
             'transaction.certified' => ['nullable', 'boolean'],
             'transaction.net_margin' => ['nullable', 'numeric'],
             'transaction.lc_days' => ['nullable', 'integer'],
-            'transaction.status' => ['nullable', 'string', Rule::in(['I', 'P', 'S', 'R', 'U', 'T'])],
+            'transaction.status' => ['nullable', 'string', Rule::in(['I', 'P', 'D', 'S', 'R', 'U', 'T'])],
         ];
     }
 
@@ -180,6 +181,26 @@ abstract class TransactionPayloadRequest extends FormRequest
             'shipping_details_packer.presentation_days' => ['nullable', 'integer'],
             'shipping_details_packer.lc_expiry' => ['nullable', 'date'],
             'shipping_details_packer.req_eta' => ['nullable', 'date'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function cashFlowRules(): array
+    {
+        return [
+            'cash_flow_customer' => ['nullable', 'array'],
+            'cash_flow_customer.date_advance' => ['nullable', 'date'],
+            'cash_flow_customer.amount_advance' => ['nullable', 'numeric'],
+            'cash_flow_customer.date_balance' => ['nullable', 'date'],
+            'cash_flow_customer.amount_balance' => ['nullable', 'numeric'],
+            'cash_flow_packer' => ['nullable', 'array'],
+            'cash_flow_packer.date_advance' => ['nullable', 'date'],
+            'cash_flow_packer.amount_advance' => ['nullable', 'numeric'],
+            'cash_flow_packer.invoice_date' => ['nullable', 'date'],
+            'cash_flow_packer.date_balance' => ['nullable', 'date'],
+            'cash_flow_packer.amount_balance' => ['nullable', 'numeric'],
         ];
     }
 
