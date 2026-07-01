@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 
 const CONTINENT_COUNTRIES = {
   Africa: ['Algeria', 'Angola', 'Benin', 'Botswana', 'Cameroon', 'Egypt', 'Ethiopia', 'Ghana', 'Kenya', 'Morocco', 'Nigeria', 'Senegal', 'South Africa', 'Tanzania', 'Tunisia', 'Uganda'],
-  Asia: ['Bangladesh', 'China', 'India', 'Indonesia', 'Japan', 'Jordan', 'Malaysia', 'Philippines', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Thailand', 'United Arab Emirates', 'Vietnam'],
+  Asia: ['Bangladesh', 'China', 'Hong Kong', 'India', 'Indonesia', 'Japan', 'Jordan', 'Malaysia', 'Philippines', 'Saudi Arabia', 'Singapore', 'South Korea', 'Sri Lanka', 'Thailand', 'United Arab Emirates', 'Vietnam'],
   Europe: ['Belgium', 'France', 'Germany', 'Greece', 'Italy', 'Netherlands', 'Norway', 'Poland', 'Portugal', 'Spain', 'Sweden', 'Switzerland', 'United Kingdom'],
   'North America': ['Canada', 'Costa Rica', 'Cuba', 'Dominican Republic', 'Guatemala', 'Jamaica', 'Mexico', 'Panama', 'United States'],
   Oceania: ['Australia', 'Fiji', 'New Zealand', 'Papua New Guinea'],
