@@ -102,7 +102,7 @@
 
     .title-band {
       width: 66%;
-      background: #061173;
+      background: black;
       color: #fff;
       text-align: center;
       font-weight: 800;
@@ -142,7 +142,7 @@
     }
 
     .section-head td {
-      background: #061173;
+      background: black;
       color: #fff;
       font-weight: 800;
       padding: 2px 5px;
@@ -166,7 +166,7 @@
     }
 
     .items th {
-      background: #061173;
+      background: black;
       color: #fff;
       font-weight: 800;
       text-align: center;
@@ -221,7 +221,7 @@
     }
 
     .comments-head td {
-      background: #061173;
+      background: black;
       color: #fff;
       font-weight: 800;
       padding: 3px 5px;

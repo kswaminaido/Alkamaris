@@ -106,7 +106,7 @@
 
     .title-band {
       width: 66%;
-      background: #061173;
+      background: black;
       color: #fff;
       text-align: center;
       font-weight: 800;
@@ -168,7 +168,7 @@
     }
 
     .product-head td {
-      background: #061173;
+      background: black;
       color: #fff;
       font-weight: 800;
       font-size: 11px;
