@@ -311,7 +311,7 @@ function AdminMailPage() {
 
           <div className="admin-mail-row check-row">
             {[
-              ['scol', 'SCOL (Existing Buyers)'],
+              ['scol', 'Alka (Existing Buyers)'],
               ['exhibition', 'Exhibition (Potential Buyers)'],
               ['defaultMail', 'Default Mail'],
               ['taxiMail', 'Taxi Mail'],

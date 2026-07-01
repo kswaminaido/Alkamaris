@@ -592,11 +592,13 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
       <div className="txe-two">
         <SectionCard title="RECEIVE" side="CUSTOMER" tone="gold">
           <Row label="Date Advance"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput /><input /></div></Row>
           <Row label="Date Balance"><div className="txe-inline"><DateInput /><input /></div></Row>
         </SectionCard>
         <SectionCard title="PAYMENT" side="PACKER" tone="gold">
-          <Row label="Date Advance"><div className="txe-inline"><DateInput /><input /></div></Row>
-          <Row label="Date Balance"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Sales Proceeds"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Comm. Paid On"><div className="txe-inline"><DateInput /><input /></div></Row>
         </SectionCard>
       </div>
 
@@ -1135,9 +1137,9 @@ function SalesPersonSelect({ value, list, currentName }) {
   const options = hasCurrentOption || !normalizedValue
     ? normalizedList
     : [
-        { id: normalizedValue, label: currentName || `User #${normalizedValue}` },
-        ...normalizedList,
-      ]
+      { id: normalizedValue, label: currentName || `User #${normalizedValue}` },
+      ...normalizedList,
+    ]
 
   return (
     <select key={normalizedValue} name="transaction.sales_person_id" defaultValue={normalizedValue}>

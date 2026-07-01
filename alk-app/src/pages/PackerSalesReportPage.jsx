@@ -30,6 +30,10 @@ const csvColumns = [
   { label: 'Total Weight', value: (row) => formatNumber(row.totalWeight) },
   { label: 'Buying Total', value: (row) => formatMoney(row.buyingTotal) },
   { label: 'Packer Commission', value: (row) => formatMoney(row.packerCommission) },
+  { label: 'Buyer Commission', value: (row) => formatMoney(row.buyerCommission) },
+  { label: 'ETA Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etaDate) : '') },
+  { label: 'ETD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.etdDate) : '') },
+  { label: 'LSD Date', value: (row) => (row.isFirstCodeRow ? displayDate(row.lsdDate) : '') },
   { label: 'Total Commission', value: (row) => (row.isFirstCodeRow ? formatMoney(row.totalCommission) : '') },
   { label: 'Status', value: (row) => (row.isFirstCodeRow ? getStatusLabel(row.status) : '') },
 ]
@@ -229,9 +233,9 @@ function PackerSalesReportPage() {
   const canGoNext = currentPage < lastPage
   const summaryCards = [
     { label: 'Transactions', value: formatInteger(totalRecords), tone: 'blue' },
-    { label: 'Current Bookings', value: formatInteger(rows.length), tone: 'teal' },
-    { label: 'Buying Total', value: formatCurrency(sumRows(rows, 'buyingTotal')), tone: 'amber' },
+    { label: 'Buyer Commission', value: formatCurrency(sumRows(rows, 'buyingTotal')), tone: 'amber' },
     { label: 'Packer Commission', value: formatCurrency(sumRows(rows, 'packerCommission')), tone: 'green' },
+    { label: 'Total Commission', value: formatCurrency(sumRows(rows, 'buyerCommission')), tone: 'teal' },
   ]
 
   return (
@@ -351,19 +355,22 @@ function PackerSalesReportPage() {
                 <th className="numeric">Total Weight</th>
                 <th className="numeric">Buying Total</th>
                 <th className="numeric">Packer Commission</th>
+                <th>ETA Date</th>
+                <th>ETD Date</th>
+                <th>LSD Date</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="table-message-cell">
+                  <td colSpan={11} className="table-message-cell">
                     Loading packer sales, please wait...
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={8} className="table-message-cell">No packer sales found.</td></tr>
+                <tr><td colSpan={11} className="table-message-cell">No packer sales found.</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
@@ -378,6 +385,9 @@ function PackerSalesReportPage() {
                   <td className="numeric">{formatNumber(row.totalWeight)}</td>
                   <td className="numeric">{formatMoney(row.buyingTotal)}</td>
                   <td className="numeric">{formatMoney(row.packerCommission)}</td>
+                  <td>{displayDate(row.etaDate)}</td>
+                  <td>{displayDate(row.etdDate)}</td>
+                  <td>{displayDate(row.lsdDate)}</td>
                   <td>
                     <span className={`status-pill ${getStatusClass(row.status)}`}>
                       {getStatusLabel(row.status)}
@@ -488,6 +498,10 @@ function buildPackerSalesSummaryRows(transactions) {
       totalWeight: sumNullableRows(items, 'totalWeight'),
       buyingTotal: sumNullableRows(items, 'buyingTotal'),
       packerCommission: sumNullableRows(items, 'packerCommission'),
+      buyerCommission: sumNullableRows(items, 'buyerCommission'),
+      etaDate: transaction.logistics?.eta_date,
+      etdDate: transaction.logistics?.etd_date,
+      lsdDate: transaction.shipping_details_packer?.lsd_max,
       status: transaction.status ?? 'U',
       items,
     }
@@ -514,6 +528,10 @@ function flattenPackerSalesRows(transactions) {
       totalWeight: item?.total_weight_value ?? null,
       buyingTotal: item?.buying_total ?? null,
       packerCommission: item?.total_packer_commission ?? null,
+      buyerCommission: item?.total_customer_commission ?? null,
+      etaDate: transaction.logistics?.eta_date,
+      etdDate: transaction.logistics?.etd_date,
+      lsdDate: transaction.shipping_details_packer?.lsd_max,
       totalCommission,
       status: transaction.status ?? 'U',
       isFirstCodeRow: index === 0,
@@ -536,6 +554,7 @@ function buildPackerSalesItemRows(transaction) {
     totalWeight: item?.total_weight_value ?? null,
     buyingTotal: item?.buying_total ?? null,
     packerCommission: item?.total_packer_commission ?? null,
+    buyerCommission: item?.total_customer_commission ?? null,
   }))
 }
 

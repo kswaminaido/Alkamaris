@@ -10,7 +10,7 @@ const navActions = [
     mode: 'trade_commission',
   },
   { key: 'all_transactions', title: 'All Transactions', subtitle: 'Track and verify' },
-  { key: 'mail', title: 'Mail', subtitle: 'Send Emails' },
+  { key: 'mail', title: 'CRM', subtitle: 'Send Emails' },
 ]
 
 function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout }) {
@@ -154,28 +154,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                     All Transactions
                   </NavLink>
                   <NavLink
-                    to="/transactions/specs"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    Specs
-                  </NavLink>
-                  <NavLink
-                    to="/transactions/special-notes"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    Special Notes
-                  </NavLink>
-                  <NavLink
                     to="/transactions/qc-inspection"
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
@@ -187,28 +165,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                     QC Inspection Date
                   </NavLink>
                   <NavLink
-                    to="/transactions/payment-request"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    Payment Request
-                  </NavLink>
-                  <NavLink
-                    to="/transactions/payment-request-list"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    Payment Request List
-                  </NavLink>
-                  <NavLink
                     to="/transactions/overdue-invoice"
                     className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                     onClick={() => {
@@ -217,7 +173,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                     }}
                   >
                     <SubmenuIcon />
-                    Overdue Invoice
+                    Shipment Overdue
                   </NavLink>
                 </nav>
               </div>
@@ -243,7 +199,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
               {reportSubmenuOpen && (
                 <div className="sidebar-submenu-panel shadow rounded">
                   <nav className="list-group list-group-flush">
-                    <NavLink
+                    {/* <NavLink
                       to="/reports/summary"
                       className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
                       onClick={() => {
@@ -253,7 +209,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                     >
                       <SubmenuIcon />
                       Summary Report
-                    </NavLink>
+                    </NavLink> */}
                     <NavLink
                       to="/reports/packer-sales"
                       className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
@@ -263,7 +219,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                       }}
                     >
                       <SubmenuIcon />
-                      Packer Sales
+                      Sales Revenue
                     </NavLink>
                     <NavLink
                       to="/reports/payment-status"
@@ -304,7 +260,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             }}
           >
             <SidebarIcon icon="mail" />
-            <span className="sidebar-link-text">Mail</span>
+            <span className="sidebar-link-text">CRM</span>
             <span className="sidebar-link-end" />
           </NavLink>
 

@@ -14,11 +14,7 @@ function DashboardPanel({ currentUser, authFetch }) {
 
   const transactionLinks = [
     { label: 'All Transactions', path: '/transactions' },
-    { label: 'Specs' },
-    { label: 'Special Notes' },
     { label: 'QC Inspection Date' },
-    { label: 'Payment Request' },
-    { label: 'Payment Request List' },
     { label: 'Overdue Invoice', path: '/transactions/overdue-invoice' },
   ]
 

@@ -332,8 +332,8 @@ final class TransactionDocumentViewDataFactory
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
             'date' => $this->formatDisplayDate(Carbon::now()),
-            // 'booking_reference' => trim(($transaction->booking_no ?? '').' - '.$this->formatDate($transaction->issue_date), ' -'),
-            'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDisplayDate(Carbon::now())),
+            'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
+            // 'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDisplayDate(Carbon::now())),
             'fax' => '',
             'to' => $this->displayText($customer?->customer),
             'attention' => $this->displayText($customer?->attention),
