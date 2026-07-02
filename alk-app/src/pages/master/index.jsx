@@ -56,6 +56,11 @@ function MasterData() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [viewingUser, setViewingUser] = useState(null)
+  const [showBulkModal, setShowBulkModal] = useState(false)
+  const [bulkFile, setBulkFile] = useState(null)
+  const [bulkUploading, setBulkUploading] = useState(false)
+  const [bulkError, setBulkError] = useState('')
+  const [bulkSummary, setBulkSummary] = useState(null)
 
   useEffect(() => {
     if (!currentUser) return
@@ -94,6 +99,57 @@ function MasterData() {
 
   function closeDetailsModal() {
     setViewingUser(null)
+  }
+
+  function openBulkModal() {
+    setBulkFile(null)
+    setBulkError('')
+    setBulkSummary(null)
+    setShowBulkModal(true)
+  }
+
+  function closeBulkModal() {
+    if (bulkUploading) return
+    setShowBulkModal(false)
+    setBulkFile(null)
+    setBulkError('')
+    setBulkSummary(null)
+  }
+
+  async function submitBulkUpload(event) {
+    event.preventDefault()
+    if (currentUser?.role !== 'admin') return
+    if (!bulkFile) {
+      setBulkError('Please choose a CSV or XLSX file.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', bulkFile)
+
+    setBulkUploading(true)
+    setBulkError('')
+    setBulkSummary(null)
+    try {
+      const response = await authFetch('/users/bulk', {
+        method: 'POST',
+        body: formData,
+        loadingLabel: 'Creating users...',
+      })
+      const body = await response.json().catch(() => null)
+      if (response.ok) {
+        setBulkSummary(body?.data ?? null)
+        setBulkFile(null)
+        await loadUsers(searchFilters, page)
+      } else {
+        const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
+        setBulkError(firstValidationMessage ?? body?.message ?? 'Bulk user creation failed.')
+      }
+    } catch {
+      setBulkError('Bulk user creation failed.')
+    } finally {
+      setBulkUploading(false)
+    }
   }
 
   async function saveUserChanges() {
@@ -273,14 +329,26 @@ function MasterData() {
           </div>
 
           {canAddUsers && (
-            <button
-              type="button"
-              className="primary-btn"
-              onClick={() => navigate('/signup')}
-              title="Add new user"
-            >
-              Add User
-            </button>
+            <div className="master-toolbar-actions">
+              {isAdmin ? (
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={openBulkModal}
+                  title="Create users from CSV or XLSX"
+                >
+                  Bulk User Creation
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="primary-btn"
+                onClick={() => navigate('/signup')}
+                title="Add new user"
+              >
+                Add User
+              </button>
+            </div>
           )}
         </div>
 
@@ -412,6 +480,88 @@ function MasterData() {
           </div>
         )}
 
+        {isAdmin && showBulkModal && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Bulk user creation">
+            <div className="modal-content p-4 bulk-user-modal">
+              <div className="modal-header p-0">
+                <h3>Bulk User Creation</h3>
+                <button type="button" className="close-btn" onClick={closeBulkModal} disabled={bulkUploading}>x</button>
+              </div>
+              <form className="bulk-user-form" onSubmit={submitBulkUpload}>
+                <div className="bulk-format-box">
+                  <strong>Required file format</strong>
+                  <p>Upload a .xlsx or .csv file with one header row and one user per row.</p>
+                  <div className="bulk-columns-grid">
+                    {requiredBulkColumns.map((column) => (
+                      <span key={column}>{column}</span>
+                    ))}
+                  </div>
+                  <p>Password and Confirm Password can be blank or omitted. Blank passwords use Password@123.</p>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="bulk-user-file">Upload File:</label>
+                  <input
+                    id="bulk-user-file"
+                    type="file"
+                    accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(event) => {
+                      setBulkError('')
+                      setBulkSummary(null)
+                      setBulkFile(event.target.files?.[0] ?? null)
+                    }}
+                  />
+                </div>
+
+                {bulkError && <p className="message error">{bulkError}</p>}
+
+                {bulkSummary && (
+                  <div className="bulk-summary">
+                    <div className="bulk-summary-stats">
+                      <DetailItem label="Total Records Processed" value={bulkSummary.total_records} />
+                      <DetailItem label="Successfully Created Users" value={bulkSummary.successful_users} />
+                      <DetailItem label="Failed Users" value={bulkSummary.failed_users?.length ?? 0} />
+                    </div>
+
+                    {(bulkSummary.failed_users?.length ?? 0) > 0 && (
+                      <div className="bulk-failures">
+                        <strong>Failed users</strong>
+                        <div className="transactions-table-wrap">
+                          <table className="transactions-table">
+                            <thead>
+                              <tr>
+                                <th>Row</th>
+                                <th>Email</th>
+                                <th>Reason</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {bulkSummary.failed_users.map((failure, index) => (
+                                <tr key={`${failure.row}-${failure.email || index}`}>
+                                  <td>{failure.row}</td>
+                                  <td>{failure.email || '-'}</td>
+                                  <td>{failure.reason || 'Unable to create user.'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="modal-footer">
+                  <button type="button" className="secondary-btn" onClick={closeBulkModal} disabled={bulkUploading}>Close</button>
+                  <button type="submit" className="primary-btn" disabled={bulkUploading || !bulkFile}>
+                    {bulkUploading ? 'Creating...' : 'Create Users'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {isAdmin && showEditModal && editingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
             <div className="modal-content p-4">
@@ -534,6 +684,17 @@ function MasterData() {
 }
 
 export default MasterData
+
+const requiredBulkColumns = [
+  'Company Name / Name',
+  'Contact Name',
+  'Phone Number',
+  'User Type',
+  'Email ID',
+  'Address',
+  'Password',
+  'Confirm Password',
+]
 
 function formatRole(role) {
   if (role === 'packer' || role === 'vendor') return 'Packer'

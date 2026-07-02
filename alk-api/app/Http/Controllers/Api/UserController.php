@@ -8,8 +8,10 @@ use App\Http\Requests\Users\UpdateUserRequest;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\Audit\UserEventLogger;
+use App\Services\Users\BulkUserImportService;
 use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class UserController extends Controller
@@ -17,6 +19,7 @@ class UserController extends Controller
     public function __construct(
         private readonly UserService $userService,
         private readonly UserEventLogger $userEventLogger,
+        private readonly BulkUserImportService $bulkUserImportService,
     ) {}
 
     public function index(): JsonResponse
@@ -79,6 +82,30 @@ class UserController extends Controller
         );
 
         return response()->json(['data' => UserResource::make($user)->resolve()], Response::HTTP_CREATED);
+    }
+
+    public function bulkStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx', 'max:5120'],
+        ]);
+
+        $summary = $this->bulkUserImportService->import($validated['file'], $this->userService);
+
+        $this->userEventLogger->log(
+            $request->user(),
+            'User',
+            'Bulk users created',
+            null,
+            newValues: [
+                'total_records' => $summary['total_records'],
+                'successful_users' => $summary['successful_users'],
+                'failed_users' => count($summary['failed_users']),
+            ],
+            description: "Bulk user creation processed {$summary['total_records']} records",
+        );
+
+        return response()->json(['data' => $summary], Response::HTTP_CREATED);
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse

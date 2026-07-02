@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::get('admin/history', [AdminHistoryController::class, 'index']);
     Route::apiResource('configs', ConfigController::class)->only(['store', 'update', 'destroy']);
+    Route::post('users/bulk', [UserController::class, 'bulkStore']);
     Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy']);
     Route::get('dashboard/commission-summary', [TransactionController::class, 'commissionSummary']);
     Route::get('mail/options', [MailController::class, 'options']);

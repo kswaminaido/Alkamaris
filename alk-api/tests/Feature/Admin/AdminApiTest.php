@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Config;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -153,5 +154,36 @@ final class AdminApiTest extends TestCase
             ->assertJsonValidationErrors(['password']);
 
         $this->assertTrue(Hash::check('OldPassword@123', $user->fresh()->password));
+    }
+
+    public function test_admin_can_bulk_create_users_from_csv_with_default_password_and_failures(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        User::factory()->create(['email' => 'existing@example.com']);
+        $token = $admin->createToken('admin_token')->plainTextToken;
+        $csv = implode("\n", [
+            'Company Name / Name,Contact Name,Phone Number,User Type,Email ID,Address,Password,Confirm Password',
+            'Acme Foods,Jane Buyer,1234567890,customer,new.customer@example.com,Main Street,,',
+            'Duplicate Co,Dupe Contact,9999999999,customer,existing@example.com,Old Street,,',
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->post('/api/users/bulk', [
+                'file' => UploadedFile::fake()->createWithContent('users.csv', $csv),
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('data.total_records', 2)
+            ->assertJsonPath('data.successful_users', 1)
+            ->assertJsonCount(1, 'data.failed_users');
+
+        $created = User::query()->where('email', 'new.customer@example.com')->first();
+
+        $this->assertNotNull($created);
+        $this->assertSame('Acme Foods', $created->name);
+        $this->assertTrue(Hash::check('Password@123', $created->password));
+        $this->assertStringContainsString('already been taken', $response->json('data.failed_users.0.reason'));
     }
 }
