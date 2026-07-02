@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PaginationBar from '../components/common/PaginationBar'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
@@ -342,6 +343,7 @@ function AdminMailPage() {
             <h3>Customers List</h3>
             <button type="button" className="primary-btn" onClick={openCompose} disabled={selectedEmails.length === 0 || !filters.defaultMail}>Default Mail ({selectedEmails.length})</button>
           </div>
+          <PaginationBar totalRecords={recipients.length} disabled={loading} />
           <div className="users-table-wrap">
             <table className="users-table">
               <thead>
@@ -362,6 +364,7 @@ function AdminMailPage() {
               </tbody>
             </table>
           </div>
+          <PaginationBar totalRecords={recipients.length} disabled={loading} className="compact-pagination-bottom" />
         </article>
       </section>
 

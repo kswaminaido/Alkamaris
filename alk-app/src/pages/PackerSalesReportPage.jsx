@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PaginationBar from '../components/common/PaginationBar'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
-const MAX_VISIBLE_PAGES = 5
 const ALLOWED_ROLES = ['admin', 'accounts']
 
 const statusOptions = [
@@ -179,76 +179,12 @@ function PackerSalesReportPage({
     navigate('/', { replace: true })
   }
 
-  function getVisiblePageNumbers() {
-    if (lastPage <= MAX_VISIBLE_PAGES) {
-      return Array.from({ length: lastPage }, (_, index) => index + 1)
-    }
-
-    const halfWindow = Math.floor(MAX_VISIBLE_PAGES / 2)
-    let start = currentPage - halfWindow
-    let end = currentPage + halfWindow
-
-    if (start < 1) {
-      start = 1
-      end = MAX_VISIBLE_PAGES
-    }
-    if (end > lastPage) {
-      end = lastPage
-      start = lastPage - MAX_VISIBLE_PAGES + 1
-    }
-
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-  }
-
-  function renderPagination() {
-    const pageNumbers = getVisiblePageNumbers()
-
-    return (
-      <div className="transactions-pagination transactions-pagination-bottom">
-        <div className="transactions-pagination-actions">
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.max(1, currentPage - 1))}
-            disabled={!canGoPrevious}
-            aria-label="Previous page"
-          >
-            {'<'}
-          </button>
-          {pageNumbers.map((pageNumber) => (
-            <button
-              key={pageNumber}
-              type="button"
-              className={`page-chip${pageNumber === currentPage ? ' active' : ''}`}
-              onClick={() => setPage(pageNumber)}
-              aria-label={`Page ${pageNumber}`}
-              aria-current={pageNumber === currentPage ? 'page' : undefined}
-            >
-              {pageNumber}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.min(lastPage, currentPage + 1))}
-            disabled={!canGoNext}
-            aria-label="Next page"
-          >
-            {'>'}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) return null
 
   const rows = buildPackerSalesSummaryRows(transactions)
   const totalRecords = pagination.total ?? 0
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
-  const canGoPrevious = currentPage > 1
-  const canGoNext = currentPage < lastPage
   const summaryCards = showSummaryCards ? buildSummaryCards(rows, totalRecords) : []
 
   return (
@@ -369,6 +305,14 @@ function PackerSalesReportPage({
 
         {error ? <p className="message error">{error}</p> : null}
 
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+        />
+
         <div className="transactions-table-wrap packer-sales-table-wrap">
           <table className="transactions-table packer-sales-table">
             <thead>
@@ -426,7 +370,14 @@ function PackerSalesReportPage({
           </table>
         </div>
 
-        {totalRecords > 0 ? renderPagination() : null}
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+          className="compact-pagination-bottom"
+        />
 
         {selectedReportRow ? (
           <PackerSalesDetailModal row={selectedReportRow} onClose={() => setSelectedReportRow(null)} />
@@ -472,6 +423,7 @@ function PackerSalesDetailModal({ row, onClose }) {
         </div>
 
         <div className="packer-sales-detail-table-wrap">
+          <PaginationBar totalRecords={items.length} />
           <table className="transactions-table packer-sales-detail-table">
             <thead>
               <tr>
@@ -506,6 +458,7 @@ function PackerSalesDetailModal({ row, onClose }) {
               ))}
             </tbody>
           </table>
+          <PaginationBar totalRecords={items.length} className="compact-pagination-bottom" />
         </div>
       </div>
     </div>

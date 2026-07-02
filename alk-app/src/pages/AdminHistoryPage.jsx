@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PaginationBar from '../components/common/PaginationBar'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const PAGE_SIZE = 20
-const MAX_VISIBLE_PAGES = 5
 
 function AdminHistoryPage() {
   const navigate = useNavigate()
@@ -20,8 +20,6 @@ function AdminHistoryPage() {
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
   const totalRecords = pagination.total ?? 0
-  const canGoPrevious = currentPage > 1
-  const canGoNext = currentPage < lastPage
 
   useEffect(() => {
     loadHistory(page)
@@ -63,70 +61,6 @@ function AdminHistoryPage() {
     setPage(1)
   }
 
-  function getVisiblePageNumbers() {
-    if (lastPage <= MAX_VISIBLE_PAGES) {
-      return Array.from({ length: lastPage }, (_, index) => index + 1)
-    }
-
-    const halfWindow = Math.floor(MAX_VISIBLE_PAGES / 2)
-    let start = currentPage - halfWindow
-    let end = currentPage + halfWindow
-
-    if (start < 1) {
-      start = 1
-      end = MAX_VISIBLE_PAGES
-    }
-    if (end > lastPage) {
-      end = lastPage
-      start = lastPage - MAX_VISIBLE_PAGES + 1
-    }
-
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-  }
-
-  function renderPagination() {
-    return (
-      <div className="transactions-pagination history-pagination">
-        <div className="history-pagination-summary">
-          Page {currentPage} of {lastPage} ({totalRecords} total)
-        </div>
-        <div className="transactions-pagination-actions">
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.max(1, currentPage - 1))}
-            disabled={!canGoPrevious || loading}
-            aria-label="Previous page"
-          >
-            {'<'}
-          </button>
-          {getVisiblePageNumbers().map((pageNumber) => (
-            <button
-              key={pageNumber}
-              type="button"
-              className={`page-chip${pageNumber === currentPage ? ' active' : ''}`}
-              onClick={() => setPage(pageNumber)}
-              disabled={loading}
-              aria-label={`Page ${pageNumber}`}
-              aria-current={pageNumber === currentPage ? 'page' : undefined}
-            >
-              {pageNumber}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.min(lastPage, currentPage + 1))}
-            disabled={!canGoNext || loading}
-            aria-label="Next page"
-          >
-            {'>'}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (!currentUser) return null
 
   return (
@@ -143,6 +77,14 @@ function AdminHistoryPage() {
         </div>
 
         {error ? <p className="message error">{error}</p> : null}
+
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+        />
 
         <div className="admin-history-tree" aria-live="polite">
           {loading ? (
@@ -177,7 +119,14 @@ function AdminHistoryPage() {
           )}
         </div>
 
-        {!loading ? renderPagination() : null}
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+          className="compact-pagination-bottom"
+        />
       </section>
     </AdminSidebarLayout>
   )

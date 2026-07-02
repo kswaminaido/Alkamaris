@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import PaginationBar from '../common/PaginationBar'
 
 const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
@@ -144,6 +145,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
 
           <section className="txe-items-table-card">
             <div className="txe-items-section-title">Items Detail</div>
+            <PaginationBar totalRecords={items.length} />
             <div className="txe-items-table-wrap">
               <table className="txe-items-table">
                 <thead>
@@ -192,6 +194,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                 </tbody>
               </table>
             </div>
+            <PaginationBar totalRecords={items.length} className="compact-pagination-bottom" />
           </section>
 
           <div className="txe-items-footer">

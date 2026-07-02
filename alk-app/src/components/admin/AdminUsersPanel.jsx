@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import PaginationBar from '../common/PaginationBar'
 import { getVisibleUserTypeOptions } from '../../utils/userType'
 
 function EditIcon() {
@@ -102,54 +103,58 @@ function AdminUsersPanel({
             <div className="admin-users-list">
               {loading && <p>Loading users...</p>}
               {!loading && (
-                <table className="users-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Role</th>
-                      {isAdmin ? <th>Actions</th> : null}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.name}</td>
-                        <td>{user.email}</td>
-                        <td>{user.phone_number}</td>
-                        <td>{user.role}</td>
-                        {isAdmin ? (
-                          <td>
-                            <div className="users-actions">
-                              <button
-                                type="button"
-                                className="icon-btn edit"
-                                title="Edit user"
-                                onClick={() => onOpenEditModal(user)}
-                              >
-                                <EditIcon />
-                              </button>
-                              <button
-                                type="button"
-                                className="icon-btn delete"
-                                title="Delete user"
-                                onClick={() => onRequestDelete(user)}
-                              >
-                                <DeleteIcon />
-                              </button>
-                            </div>
-                          </td>
-                        ) : null}
-                      </tr>
-                    ))}
-                    {users.length === 0 && (
+                <>
+                  <PaginationBar totalRecords={users.length} />
+                  <table className="users-table">
+                    <thead>
                       <tr>
-                        <td colSpan={tableColumnCount}>No users found.</td>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        {isAdmin ? <th>Actions</th> : null}
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td>{user.name}</td>
+                          <td>{user.email}</td>
+                          <td>{user.phone_number}</td>
+                          <td>{user.role}</td>
+                          {isAdmin ? (
+                            <td>
+                              <div className="users-actions">
+                                <button
+                                  type="button"
+                                  className="icon-btn edit"
+                                  title="Edit user"
+                                  onClick={() => onOpenEditModal(user)}
+                                >
+                                  <EditIcon />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="icon-btn delete"
+                                  title="Delete user"
+                                  onClick={() => onRequestDelete(user)}
+                                >
+                                  <DeleteIcon />
+                                </button>
+                              </div>
+                            </td>
+                          ) : null}
+                        </tr>
+                      ))}
+                      {users.length === 0 && (
+                        <tr>
+                          <td colSpan={tableColumnCount}>No users found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  <PaginationBar totalRecords={users.length} className="compact-pagination-bottom" />
+                </>
               )}
             </div>
           </article>

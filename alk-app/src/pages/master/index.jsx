@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PaginationBar from '../../components/common/PaginationBar'
 import AdminSidebarLayout from '../../components/layout/AdminSidebarLayout'
 import { useAuth } from '../../context/AuthContext'
 
@@ -269,6 +270,9 @@ function MasterData() {
   const isAdmin = currentUser.role === 'admin'
   const canAddUsers = ['admin', 'logistics'].includes(currentUser.role)
   const tableColumnCount = isAdmin ? 6 : 5
+  const currentPage = pagination.current_page ?? page
+  const lastPage = Math.max(1, pagination.last_page ?? 1)
+  const totalRecords = pagination.total ?? 0
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
@@ -354,6 +358,14 @@ function MasterData() {
 
         {error && <p className="message error">{error}</p>}
 
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={handlePageChange}
+          disabled={loading}
+        />
+
         <div className="transactions-table-wrap">
           <table className="transactions-table">
             <thead>
@@ -424,23 +436,14 @@ function MasterData() {
           </table>
         </div>
 
-        <div className="transactions-pagination">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => handlePageChange(page - 1)}
-          >
-            Previous
-          </button>
-          <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} total)</span>
-          <button
-            type="button"
-            disabled={page >= pagination.last_page}
-            onClick={() => handlePageChange(page + 1)}
-          >
-            Next
-          </button>
-        </div>
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={handlePageChange}
+          disabled={loading}
+          className="compact-pagination-bottom"
+        />
 
         {viewingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="User details">
@@ -526,6 +529,7 @@ function MasterData() {
                     {(bulkSummary.failed_users?.length ?? 0) > 0 && (
                       <div className="bulk-failures">
                         <strong>Failed users</strong>
+                        <PaginationBar totalRecords={bulkSummary.failed_users.length} />
                         <div className="transactions-table-wrap">
                           <table className="transactions-table">
                             <thead>
@@ -546,6 +550,7 @@ function MasterData() {
                             </tbody>
                           </table>
                         </div>
+                        <PaginationBar totalRecords={bulkSummary.failed_users.length} className="compact-pagination-bottom" />
                       </div>
                     )}
                   </div>

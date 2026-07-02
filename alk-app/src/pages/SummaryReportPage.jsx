@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
+import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 
 const PAGE_SIZE = 10
 const EXPORT_PAGE_SIZE = 1000
-const MAX_VISIBLE_PAGES = 5
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
@@ -210,70 +210,6 @@ function SummaryReportPage() {
   const totalRecords = pagination.total ?? 0
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
-  const canGoPrevious = currentPage > 1
-  const canGoNext = currentPage < lastPage
-
-  function getVisiblePageNumbers() {
-    if (lastPage <= MAX_VISIBLE_PAGES) {
-      return Array.from({ length: lastPage }, (_, index) => index + 1)
-    }
-
-    const halfWindow = Math.floor(MAX_VISIBLE_PAGES / 2)
-    let start = currentPage - halfWindow
-    let end = currentPage + halfWindow
-
-    if (start < 1) {
-      start = 1
-      end = MAX_VISIBLE_PAGES
-    }
-    if (end > lastPage) {
-      end = lastPage
-      start = lastPage - MAX_VISIBLE_PAGES + 1
-    }
-
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-  }
-
-  function renderPagination() {
-    const pageNumbers = getVisiblePageNumbers()
-
-    return (
-      <div className="transactions-pagination transactions-pagination-bottom">
-        <div className="transactions-pagination-actions">
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.max(1, currentPage - 1))}
-            disabled={!canGoPrevious}
-            aria-label="Previous page"
-          >
-            {'<'}
-          </button>
-          {pageNumbers.map((pageNumber) => (
-            <button
-              key={pageNumber}
-              type="button"
-              className={`page-chip${pageNumber === currentPage ? ' active' : ''}`}
-              onClick={() => setPage(pageNumber)}
-              aria-label={`Page ${pageNumber}`}
-              aria-current={pageNumber === currentPage ? 'page' : undefined}
-            >
-              {pageNumber}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="page-chip nav"
-            onClick={() => setPage(Math.min(lastPage, currentPage + 1))}
-            disabled={!canGoNext}
-            aria-label="Next page"
-          >
-            {'>'}
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   if (!currentUser) return null
 
@@ -366,6 +302,14 @@ function SummaryReportPage() {
 
         {error && <p className="message error">{error}</p>}
 
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+        />
+
         <div className="transactions-table-wrap">
           <table className="transactions-table">
             <thead>
@@ -420,7 +364,14 @@ function SummaryReportPage() {
           </table>
         </div>
 
-        {totalRecords > 0 && renderPagination()}
+        <PaginationBar
+          currentPage={currentPage}
+          lastPage={lastPage}
+          totalRecords={totalRecords}
+          onPageChange={setPage}
+          disabled={loading}
+          className="compact-pagination-bottom"
+        />
       </div>
 
       {selectedTransaction && (

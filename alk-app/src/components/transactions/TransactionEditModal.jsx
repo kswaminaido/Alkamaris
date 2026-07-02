@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import PaginationBar from '../common/PaginationBar'
 import TransactionItemsModal from './TransactionItemsModal'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../../utils/countries'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../../utils/dropdownData'
@@ -750,6 +751,7 @@ function ItemsModal({ transaction, onClose }) {
 
           <section className="txe-items-table-card">
             <div className="txe-items-section-title">Items Detail</div>
+            <PaginationBar totalRecords={rows.length} />
             <div className="txe-items-table-wrap">
               <table className="txe-items-table">
                 <thead>
@@ -796,6 +798,7 @@ function ItemsModal({ transaction, onClose }) {
                 </tbody>
               </table>
             </div>
+            <PaginationBar totalRecords={rows.length} className="compact-pagination-bottom" />
           </section>
 
           <div className="txe-items-footer">
