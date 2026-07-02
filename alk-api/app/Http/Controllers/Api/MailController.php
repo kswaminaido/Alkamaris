@@ -63,10 +63,6 @@ class MailController extends Controller
             ->with(['generalInfoCustomer:transaction_id,customer', 'items:transaction_id,product,style'])
             ->whereHas('generalInfoCustomer', fn ($q) => $q->whereNotNull('customer')->where('customer', '<>', ''));
 
-        if (! empty($filters['countries'])) {
-            $query->whereIn('country', $filters['countries']);
-        }
-
         if (! empty($filters['product'])) {
             $product = $filters['product'];
             $query->whereHas('items', fn ($q) => $q->where('product', 'like', "%{$product}%"));
@@ -81,19 +77,26 @@ class MailController extends Controller
             $query->where('created_at', '>=', now()->subYears((int) $filters['years']));
         }
 
+        $countryFilter = array_values(array_filter((array) ($filters['countries'] ?? []), fn ($value) => is_string($value) && trim($value) !== ''));
+
         $recipients = $query
             ->orderByDesc('created_at')
             ->get()
             ->groupBy(fn (Transaction $transaction): string => trim((string) $transaction->generalInfoCustomer?->customer))
-            ->map(function ($transactions, string $customerName) use ($customerUsers): array {
+            ->map(function ($transactions, string $customerName) use ($customerUsers, $countryFilter): array {
                 $first = $transactions->first();
                 $user = $customerUsers->get(Str::lower($customerName));
+
+                $detectedCountry = $this->detectCountry($user?->address ?? $first?->country);
+                if ($countryFilter !== [] && ! in_array($detectedCountry, $countryFilter, true)) {
+                    return [];
+                }
 
                 return [
                     'id' => md5($customerName.'|'.($user?->email ?? '')),
                     'name' => $customerName,
                     'email' => $user?->email,
-                    'country' => $first?->country,
+                    'country' => $detectedCountry ?? $first?->country,
                     'products' => $transactions
                         ->flatMap(fn (Transaction $transaction) => $transaction->items->pluck('product'))
                         ->filter()
@@ -104,23 +107,33 @@ class MailController extends Controller
                     'source' => 'SCOL',
                 ];
             })
+            ->filter()
             ->values();
 
-        if (($filters['scol'] ?? false) && empty($filters['product']) && empty($filters['style']) && empty($filters['countries'])) {
+        if (($filters['scol'] ?? false) && empty($filters['product']) && empty($filters['style'])) {
             $existingEmails = $recipients->pluck('email')->filter()->map(fn (string $email): string => Str::lower($email))->all();
-            $customerUsers->values()->each(function (User $user) use (&$recipients, $existingEmails): void {
+            $customerUsers->values()->each(function (User $user) use (&$recipients, $existingEmails, $countryFilter): void {
                 if (! in_array(Str::lower($user->email), $existingEmails, true)) {
+                    $detectedCountry = $this->detectCountry($user->address);
+                    if ($countryFilter !== [] && ! in_array($detectedCountry, $countryFilter, true)) {
+                        return;
+                    }
+
                     $recipients->push([
                         'id' => (string) $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
-                        'country' => $user->address,
+                        'country' => $detectedCountry,
                         'products' => [],
                         'last_booking_at' => optional($user->created_at)->format('Y-m-d'),
                         'source' => 'SCOL',
                     ]);
                 }
             });
+        }
+
+        if (! empty($countryFilter ?? [])) {
+            $recipients = $recipients->filter(fn (array $recipient): bool => in_array($recipient['country'] ?? null, $countryFilter, true));
         }
 
         return response()->json(['data' => $recipients->sortBy('name')->values()]);
@@ -215,6 +228,56 @@ class MailController extends Controller
         return response()->json([
             'message' => 'Mail sent successfully to '.$recipients->count().' customer(s).',
         ]);
+    }
+
+    private function detectCountry(?string $address): ?string
+    {
+        if (blank($address)) {
+            return null;
+        }
+
+        $normalized = Str::lower($address);
+
+        $countryMap = [
+            'Hong Kong' => ['hong kong', 'hongkong', 'hk'],
+            'India' => ['india', 'in '],
+            'Singapore' => ['singapore', 'sg'],
+            'United Arab Emirates' => ['united arab emirates', 'uae', 'dubai', 'abu dhabi'],
+            'Jordan' => ['jordan', 'jo'],
+            'Netherlands' => ['netherlands', 'holland', 'nl'],
+            'Vietnam' => ['vietnam', 'vn'],
+            'China' => ['china', 'cn'],
+            'Bangladesh' => ['bangladesh', 'bd'],
+            'Malaysia' => ['malaysia', 'my'],
+            'Philippines' => ['philippines', 'ph'],
+            'Saudi Arabia' => ['saudi arabia', 'saudi', 'sa'],
+            'South Korea' => ['south korea', 'korea', 'kr'],
+            'Sri Lanka' => ['sri lanka', 'lk'],
+            'Thailand' => ['thailand', 'th'],
+            'Japan' => ['japan', 'jp'],
+            'Indonesia' => ['indonesia', 'id'],
+            'Pakistan' => ['pakistan', 'pk'],
+            'United Kingdom' => ['united kingdom', 'uk', 'england', 'britain'],
+            'United States' => ['united states', 'usa', 'us'],
+            'Canada' => ['canada', 'ca'],
+            'Australia' => ['australia', 'au'],
+            'New Zealand' => ['new zealand', 'nz'],
+            'Germany' => ['germany', 'de'],
+            'France' => ['france', 'fr'],
+            'Italy' => ['italy', 'it'],
+            'Spain' => ['spain', 'es'],
+            'Belgium' => ['belgium', 'be'],
+        ];
+
+        foreach ($countryMap as $country => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (Str::contains($normalized, $keyword)) {
+                    return $country;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function buildHtmlMail(string $title, string $body, bool $bodyIsHtml): string

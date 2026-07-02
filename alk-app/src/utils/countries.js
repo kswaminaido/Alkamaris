@@ -10,6 +10,7 @@ const LOCAL_FALLBACK_COUNTRIES = [
   'Jordan',
   'Netherlands',
   'Vietnam',
+  'Hong Kong',
 ]
 
 export const FALLBACK_COUNTRIES = IS_LOCAL_ENV ? LOCAL_FALLBACK_COUNTRIES : []
