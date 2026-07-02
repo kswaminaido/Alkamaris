@@ -530,6 +530,13 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
   const packer = transaction.general_info_packer ?? {}
   const revenueCustomer = transaction.revenue_customer ?? {}
   const revenuePacker = transaction.revenue_packer ?? {}
+  const itemRevenueTotals = getItemRevenueTotals(transaction)
+  const revenueCustomerCommissionEnabled = itemRevenueTotals.hasCustomerCommission || !!revenueCustomer.commission_enabled
+  const revenuePackerCommissionEnabled = itemRevenueTotals.hasPackerCommission || !!revenuePacker.commission_enabled
+  const totalCustomerCommissionValue = formatFormAmount(itemRevenueTotals.hasItems ? itemRevenueTotals.totalCustomerCommission : revenueCustomer.total_selling_value)
+  const revenueCustomerAmountValue = formatFormAmount(itemRevenueTotals.hasItems ? itemRevenueTotals.totalSellingPrice : revenueCustomer.amount)
+  const revenuePackerAmountValue = formatFormAmount(itemRevenueTotals.hasItems ? itemRevenueTotals.totalSellingPrice : revenuePacker.amount)
+  const totalPackerCommissionValue = formatFormAmount(itemRevenueTotals.hasItems ? itemRevenueTotals.totalPackerCommission : revenuePacker.total_buying_value)
   const cashFlowCustomer = transaction.cash_flow_customer ?? {}
   const cashFlowPacker = transaction.cash_flow_packer ?? {}
   const shippingCustomer = transaction.shipping_details_customer ?? {}
@@ -587,18 +594,18 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
 
       <div className="txe-two">
         <SectionCard title="REVENUE" side="CUSTOMER" tone="blue">
-          <Row label="Total Selling Value"><div className="txe-inline"><input name="revenue_customer.total_selling_value" defaultValue={revenueCustomer.total_selling_value ?? ''} /><NamedSearchableSelect name="revenue_customer.total_selling_currency" value={revenueCustomer.total_selling_currency ?? ''} list={withCurrent(optionsFor('revenue_customer.total_selling_currency'), revenueCustomer.total_selling_currency)} onAdd={(value) => addOption('revenue_customer.total_selling_currency', value)} /></div></Row>
-          <Row label="Commission"><div className="txe-inline"><label><input type="radio" name="revenue_customer.commission_enabled" value="Yes" defaultChecked={!!revenueCustomer.commission_enabled} /> Yes</label><label><input type="radio" name="revenue_customer.commission_enabled" value="No" defaultChecked={!revenueCustomer.commission_enabled} /> No</label><input name="revenue_customer.commission_percent" defaultValue={revenueCustomer.commission_percent ?? ''} placeholder="Percent" /></div></Row>
-          <Row label="Amount"><div className="txe-inline"><input name="revenue_customer.amount" defaultValue={revenueCustomer.amount ?? ''} /><NamedSearchableSelect name="revenue_customer.amount_currency" value={revenueCustomer.amount_currency ?? ''} list={withCurrent(optionsFor('revenue_customer.amount_currency'), revenueCustomer.amount_currency)} onAdd={(value) => addOption('revenue_customer.amount_currency', value)} /></div></Row>
+          <Row label="Total Selling Value"><div className="txe-inline"><input key={`revenue-customer-total-${transaction.id}-${totalCustomerCommissionValue}`} name="revenue_customer.total_selling_value" defaultValue={totalCustomerCommissionValue} /><NamedSearchableSelect name="revenue_customer.total_selling_currency" value={revenueCustomer.total_selling_currency ?? ''} list={withCurrent(optionsFor('revenue_customer.total_selling_currency'), revenueCustomer.total_selling_currency)} onAdd={(value) => addOption('revenue_customer.total_selling_currency', value)} /></div></Row>
+          <Row label="Commission"><div className="txe-inline"><label><input key={`revenue-customer-yes-${transaction.id}-${revenueCustomerCommissionEnabled}`} type="radio" name="revenue_customer.commission_enabled" value="Yes" defaultChecked={revenueCustomerCommissionEnabled} /> Yes</label><label><input key={`revenue-customer-no-${transaction.id}-${revenueCustomerCommissionEnabled}`} type="radio" name="revenue_customer.commission_enabled" value="No" defaultChecked={!revenueCustomerCommissionEnabled} /> No</label><input name="revenue_customer.commission_percent" defaultValue={revenueCustomer.commission_percent ?? ''} placeholder="Percent" /></div></Row>
+          <Row label="Amount"><div className="txe-inline"><input key={`revenue-customer-amount-${transaction.id}-${revenueCustomerAmountValue}`} name="revenue_customer.amount" defaultValue={revenueCustomerAmountValue} /><NamedSearchableSelect name="revenue_customer.amount_currency" value={revenueCustomer.amount_currency ?? ''} list={withCurrent(optionsFor('revenue_customer.amount_currency'), revenueCustomer.amount_currency)} onAdd={(value) => addOption('revenue_customer.amount_currency', value)} /></div></Row>
           <Row label="Description"><textarea name="revenue_customer.description" rows="2" defaultValue={revenueCustomer.description ?? ''} /></Row>
           <Row label="Rebate Memo"><div className="txe-inline"><input name="revenue_customer.rebate_memo_amount" defaultValue={revenueCustomer.rebate_memo_amount ?? ''} placeholder="Amount" /><input name="revenue_customer.rebate_memo_description" defaultValue={revenueCustomer.rebate_memo_description ?? ''} placeholder="Description" /></div></Row>
           <Row label="Overcharge SC"><div className="txe-inline"><input name="revenue_customer.overcharge_sc_amount" defaultValue={revenueCustomer.overcharge_sc_amount ?? ''} placeholder="Amount" /><input name="revenue_customer.overcharge_sc_description" defaultValue={revenueCustomer.overcharge_sc_description ?? ''} placeholder="Description" /></div></Row>
         </SectionCard>
 
         <SectionCard title="REVENUE" side="PACKER" tone="blue">
-          <Row label="Total Buying Value"><div className="txe-inline"><input name="revenue_packer.total_buying_value" defaultValue={revenuePacker.total_buying_value ?? ''} /><NamedSearchableSelect name="revenue_packer.total_buying_currency" value={revenuePacker.total_buying_currency ?? ''} list={withCurrent(optionsFor('revenue_packer.total_buying_currency'), revenuePacker.total_buying_currency)} onAdd={(value) => addOption('revenue_packer.total_buying_currency', value)} /></div></Row>
-          <Row label="Commission"><div className="txe-inline"><label><input type="radio" name="revenue_packer.commission_enabled" value="Yes" defaultChecked={!!revenuePacker.commission_enabled} /> Yes</label><label><input type="radio" name="revenue_packer.commission_enabled" value="No" defaultChecked={!revenuePacker.commission_enabled} /> No</label><input name="revenue_packer.commission_percent" defaultValue={revenuePacker.commission_percent ?? ''} placeholder="Percent" /></div></Row>
-          <Row label="Amount"><div className="txe-inline"><input name="revenue_packer.amount" defaultValue={revenuePacker.amount ?? ''} /><NamedSearchableSelect name="revenue_packer.amount_currency" value={revenuePacker.amount_currency ?? ''} list={withCurrent(optionsFor('revenue_packer.amount_currency'), revenuePacker.amount_currency)} onAdd={(value) => addOption('revenue_packer.amount_currency', value)} /></div></Row>
+          <Row label="Total Buying Value"><div className="txe-inline"><input key={`revenue-packer-total-${transaction.id}-${totalPackerCommissionValue}`} name="revenue_packer.total_buying_value" defaultValue={totalPackerCommissionValue} /><NamedSearchableSelect name="revenue_packer.total_buying_currency" value={revenuePacker.total_buying_currency ?? ''} list={withCurrent(optionsFor('revenue_packer.total_buying_currency'), revenuePacker.total_buying_currency)} onAdd={(value) => addOption('revenue_packer.total_buying_currency', value)} /></div></Row>
+          <Row label="Commission"><div className="txe-inline"><label><input key={`revenue-packer-yes-${transaction.id}-${revenuePackerCommissionEnabled}`} type="radio" name="revenue_packer.commission_enabled" value="Yes" defaultChecked={revenuePackerCommissionEnabled} /> Yes</label><label><input key={`revenue-packer-no-${transaction.id}-${revenuePackerCommissionEnabled}`} type="radio" name="revenue_packer.commission_enabled" value="No" defaultChecked={!revenuePackerCommissionEnabled} /> No</label><input name="revenue_packer.commission_percent" defaultValue={revenuePacker.commission_percent ?? ''} placeholder="Percent" /></div></Row>
+          <Row label="Amount"><div className="txe-inline"><input key={`revenue-packer-amount-${transaction.id}-${revenuePackerAmountValue}`} name="revenue_packer.amount" defaultValue={revenuePackerAmountValue} /><NamedSearchableSelect name="revenue_packer.amount_currency" value={revenuePacker.amount_currency ?? ''} list={withCurrent(optionsFor('revenue_packer.amount_currency'), revenuePacker.amount_currency)} onAdd={(value) => addOption('revenue_packer.amount_currency', value)} /></div></Row>
           <Row label="Description"><textarea name="revenue_packer.description" rows="2" defaultValue={revenuePacker.description ?? ''} /></Row>
           <Row label="Overcharge SC"><div className="txe-inline"><input name="revenue_packer.overcharge_sc_amount" defaultValue={revenuePacker.overcharge_sc_amount ?? ''} placeholder="Amount" /><input name="revenue_packer.overcharge_sc_description" defaultValue={revenuePacker.overcharge_sc_description ?? ''} placeholder="Description" /></div></Row>
         </SectionCard>
@@ -1570,6 +1577,11 @@ function formatAmount(value) {
   })
 }
 
+function formatFormAmount(value) {
+  const amount = Number(value)
+  return Number.isFinite(amount) ? amount.toFixed(2) : '0.00'
+}
+
 function formatUnitAmount(value) {
   const amount = Number(value)
   if (!Number.isFinite(amount)) return '0.00000'
@@ -1577,6 +1589,34 @@ function formatUnitAmount(value) {
     minimumFractionDigits: 5,
     maximumFractionDigits: 5,
     useGrouping: false,
+  })
+}
+
+function getItemRevenueTotals(transaction) {
+  const items = Array.isArray(transaction.items) ? transaction.items : []
+
+  return items.reduce((totals, item) => {
+    const sellingTotal = normalizeNumber(item.selling_total) ?? 0
+    const packerCommissionTotal = normalizeNumber(item.total_packer_commission) ?? 0
+    const customerCommissionTotal = normalizeNumber(item.total_customer_commission) ?? 0
+    const packerCommission = normalizeNumber(item.commission_from_packer) ?? 0
+    const customerCommission = normalizeNumber(item.commission_from_customer) ?? 0
+
+    return {
+      hasItems: totals.hasItems,
+      totalSellingPrice: totals.totalSellingPrice + sellingTotal,
+      totalPackerCommission: totals.totalPackerCommission + packerCommissionTotal,
+      totalCustomerCommission: totals.totalCustomerCommission + customerCommissionTotal,
+      hasPackerCommission: totals.hasPackerCommission || packerCommission !== 0,
+      hasCustomerCommission: totals.hasCustomerCommission || customerCommission !== 0,
+    }
+  }, {
+    hasItems: items.length > 0,
+    totalSellingPrice: 0,
+    totalPackerCommission: 0,
+    totalCustomerCommission: 0,
+    hasPackerCommission: false,
+    hasCustomerCommission: false,
   })
 }
 

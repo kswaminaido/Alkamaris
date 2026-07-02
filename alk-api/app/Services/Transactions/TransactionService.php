@@ -149,7 +149,7 @@ final class TransactionService
      */
     private function syncOneToOneRelations(int $transactionId, array $validated): void
     {
-        foreach ($this->oneToOnePayloads($validated) as $modelClass => $payload) {
+        foreach ($this->oneToOnePayloads($transactionId, $validated) as $modelClass => $payload) {
             $this->upsertOneToOne($transactionId, $modelClass, $payload);
         }
     }
@@ -165,8 +165,10 @@ final class TransactionService
      * @param  array<string, mixed>  $validated
      * @return array<string, array<string, mixed>>
      */
-    private function oneToOnePayloads(array $validated): array
+    private function oneToOnePayloads(int $transactionId, array $validated): array
     {
+        $validated = $this->applyRevenueDerivedFields($transactionId, $validated);
+
         return [
             GeneralInfoCustomer::class => $validated['general_info_customer'] ?? [],
             GeneralInfoPacker::class => $validated['general_info_packer'] ?? [],
@@ -179,6 +181,89 @@ final class TransactionService
             TransactionNote::class => $validated['notes'] ?? [],
             TransactionLogistics::class => $validated['logistics'] ?? [],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function applyRevenueDerivedFields(int $transactionId, array $validated): array
+    {
+        $items = $this->revenueSourceItems($transactionId, $validated);
+
+        if ($items === []) {
+            return $validated;
+        }
+
+        $totalSellingPrice = array_sum(array_map(
+            fn (array $item): float => (float) ($item['selling_total'] ?? 0),
+            $items,
+        ));
+        $totalPackerCommission = array_sum(array_map(
+            fn (array $item): float => (float) ($item['total_packer_commission'] ?? 0),
+            $items,
+        ));
+        $totalCustomerCommission = array_sum(array_map(
+            fn (array $item): float => (float) ($item['total_customer_commission'] ?? 0),
+            $items,
+        ));
+        $hasPackerCommission = collect($items)->contains(
+            fn (array $item): bool => (float) ($item['commission_from_packer'] ?? 0) !== 0.0,
+        );
+        $hasCustomerCommission = collect($items)->contains(
+            fn (array $item): bool => (float) ($item['commission_from_customer'] ?? 0) !== 0.0,
+        );
+
+        $validated['revenue_customer'] = $validated['revenue_customer'] ?? [];
+        $validated['revenue_packer'] = $validated['revenue_packer'] ?? [];
+
+        if (! array_key_exists('total_selling_value', $validated['revenue_customer'])) {
+            $validated['revenue_customer']['total_selling_value'] = $totalCustomerCommission;
+        }
+
+        if (! array_key_exists('amount', $validated['revenue_customer'])) {
+            $validated['revenue_customer']['amount'] = $totalSellingPrice;
+        }
+
+        if (! array_key_exists('total_buying_value', $validated['revenue_packer'])) {
+            $validated['revenue_packer']['total_buying_value'] = $totalPackerCommission;
+        }
+
+        if (! array_key_exists('amount', $validated['revenue_packer'])) {
+            $validated['revenue_packer']['amount'] = $totalSellingPrice;
+        }
+
+        $validated['revenue_customer']['commission_enabled'] = $hasCustomerCommission
+            ? true
+            : (bool) ($validated['revenue_customer']['commission_enabled'] ?? false);
+
+        $validated['revenue_packer']['commission_enabled'] = $hasPackerCommission
+            ? true
+            : (bool) ($validated['revenue_packer']['commission_enabled'] ?? false);
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<int, array<string, mixed>>
+     */
+    private function revenueSourceItems(int $transactionId, array $validated): array
+    {
+        if (array_key_exists('items', $validated)) {
+            $itemService = app(TransactionItemService::class);
+
+            return array_map(
+                fn (array $item): array => $itemService->applyDerivedTotals($item),
+                $validated['items'] ?? [],
+            );
+        }
+
+        return TransactionItem::query()
+            ->where('transaction_id', $transactionId)
+            ->get()
+            ->map(fn (TransactionItem $item): array => $item->toArray())
+            ->all();
     }
 
     /**

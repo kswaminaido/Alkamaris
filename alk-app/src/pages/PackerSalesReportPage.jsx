@@ -40,8 +40,8 @@ const csvColumns = [
 ]
 
 function PackerSalesReportPage({
-  title = 'Packer Sales',
-  heading = 'Reports > Packer Sales',
+  title = 'Sales Revenue Report',
+  heading = 'Reports > Sales Revenue',
   forcedStatus = '',
   showSummaryCards = true,
   showStatusFilter = true,

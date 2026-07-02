@@ -21,7 +21,7 @@ function DashboardPanel({ currentUser, authFetch }) {
   ]
 
   const reportLinks = [
-    { label: 'Packer Sales', path: '/reports/packer-sales' },
+    { label: 'Sales Revenue', path: '/reports/packer-sales' },
     { label: 'Order Progress Report' },
     { label: 'Report on Container' },
     { label: 'Item Report' },
