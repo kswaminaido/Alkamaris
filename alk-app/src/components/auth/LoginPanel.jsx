@@ -1,12 +1,10 @@
-import logoImage from '../../assets/Images/Logo.png'
-
 function LoginPanel({ loginForm, onFieldChange, onSubmit, loading, message, error }) {
   return (
     <section className="login-wrap">
       <article className="login-card">
         <div className="login-banner" aria-label="Brand logo">
           <img
-            src={logoImage}
+            src="https://www.alkamaris.com/images/header/header-logo.png"
             alt="Alkamaris logo"
             className="login-banner-logo"
           />

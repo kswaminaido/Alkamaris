@@ -947,8 +947,9 @@ select:focus {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   /* background-image: url("./assets/images/BGA.jpg"); */
-  background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
-              url('./assets/images/BGA.jpg') no-repeat center center fixed;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
