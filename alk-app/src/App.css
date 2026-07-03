@@ -703,7 +703,8 @@ select:focus {
   height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  background: linear-gradient(180deg, #24213a 0%, #1a1730 100%);
+  /* background: linear-gradient(180deg, #24213a 0%, #1a1730 100%); */
+  background: linear-gradient(180deg, #073273 0%, #091d3b 100%);
   border-right: 1px solid rgba(216, 224, 239, 0.55);
   color: #f8fafc;
   overflow: hidden;
@@ -774,7 +775,7 @@ select:focus {
 
 .sidebar-link:hover,
 .sidebar-link.active {
-  background: rgba(77, 155, 245, 0.18);
+  background: linear-gradient(180deg, #073273 0%, #091d3b 100%);
   color: #ffffff;
 }
 
@@ -905,7 +906,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background: linear-gradient(180deg, #24213a 0%, #1a1730 100%);
+  background: linear-gradient(180deg, #073273 0%, #091d3b 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
 }
@@ -945,6 +946,13 @@ select:focus {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  /* background-image: url("./assets/images/BGA.jpg"); */
+  background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+              url('./assets/images/BGA.jpg') no-repeat center center fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* opacity: 0.35; */
 }
 
 .dashboard-global-loader {

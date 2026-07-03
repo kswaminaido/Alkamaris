@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import logoImage from '../../assets/images/Logo.png'
 
 const SIDEBAR_STATE_KEY = 'alk-dashboard-sidebar-open'
 const navActions = [
@@ -102,7 +103,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
           <Link className="brand-btn" to="/dashboard" aria-label="Go to dashboard" onClick={closeMobileMenu}>
             <img
               className="dashboard-sidebar-logo"
-              src="https://www.alkamaris.com/images/header/header-logo.png"
+              src={logoImage}
               alt="Alkamaris"
             />
           </Link>

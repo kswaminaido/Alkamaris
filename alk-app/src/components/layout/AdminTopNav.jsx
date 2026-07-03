@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logoImage from '../../assets/images/Logo.png'
 
 const navActions = [
   {
@@ -18,7 +19,7 @@ function AdminTopNav({ activeKey, onAction, onLogout }) {
       <Link to="/dashboard" className="brand-btn" aria-label="Go to home">
         <img
           className="modern-dashboard-logo"
-          src="https://www.alkamaris.com/images/header/header-logo.png"
+          src={logoImage}
           alt="Alkamaris"
         />
       </Link>
