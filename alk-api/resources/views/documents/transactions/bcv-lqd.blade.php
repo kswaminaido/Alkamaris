@@ -342,6 +342,16 @@
       margin-top: 8px;
     }
 
+    .document-revision {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
     @media screen {
       body {
         background: #eef3fb;
@@ -446,25 +456,29 @@
             </div>
 
             @if ($bcv['buyer_reference'] !== '')
-            <div style="display:flex;border-bottom:1px solid #000;">
-              <div style="width:40%;padding:3px 5px;border-right:1px solid #000;font-weight:bold;">
-                Buyer's PO#
-              </div>
-              <div style="flex:1;padding:3px 5px;">
-                {{ str_replace(' ', '', $bcv['buyer_reference']) }}
-              </div>
-            </div>
+            <table class="order-ref-table" style="margin-top:0;font-size:inherit;">
+              <tr>
+                <td class="order-ref-label" style="width:40%;border-left:0;border-top:0;border-bottom:1px solid #000;border-right:1px solid #000;padding:3px 5px;font-weight:bold;">
+                  Buyer's PO#
+                </td>
+                <td style="border-left:0;border-top:0;border-right:0;border-bottom:1px solid #000;padding:3px 5px;">
+                  {{ str_replace(' ', '', $bcv['buyer_reference']) }}
+                </td>
+              </tr>
+            </table>
             @endif
 
             @if ($bcv['packer_reference'] !== '')
-            <div style="display:flex;border-bottom:1px solid #000;">
-              <div style="width:40%;padding:3px 5px;border-right:1px solid #000;font-weight:bold;">
-                Packer's PI#
-              </div>
-              <div style="flex:1;padding:3px 5px;">
-                {{ str_replace(' ', '', $bcv['packer_reference']) }}
-              </div>
-            </div>
+            <table class="order-ref-table" style="margin-top:0;font-size:inherit;">
+              <tr>
+                <td class="order-ref-label" style="width:40%;border-left:0;border-top:0;border-bottom:1px solid #000;border-right:1px solid #000;padding:3px 5px;font-weight:bold;">
+                  Packer's PI#
+                </td>
+                <td style="border-left:0;border-top:0;border-right:0;border-bottom:1px solid #000;padding:3px 5px;">
+                  {{ str_replace(' ', '', $bcv['packer_reference']) }}
+                </td>
+              </tr>
+            </table>
             @endif
           </td>
         </tr>
@@ -644,6 +658,9 @@
       <div class="disclaimer">
         {{ $view['footer_note'] }}
       </div>
+      @if (($view['revision_text'] ?? '') !== '')
+      <div class="document-revision">{{ $view['revision_text'] }}</div>
+      @endif
     </section>
   </div>
 </body>

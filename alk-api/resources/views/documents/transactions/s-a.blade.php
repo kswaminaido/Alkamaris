@@ -138,17 +138,24 @@
       padding: 0;
     }
 
-    .order-confirmation-label {
-      font-weight: 700;
+    .order-confirmation-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
     }
 
-    .order-confirmation-line {
+    .order-confirmation-table td {
+      border: 0;
       padding: 2px 4px;
+      line-height: 1.2;
       white-space: nowrap;
+      vertical-align: top;
     }
 
-    .order-confirmation-line:not(:last-child) {
-      border-bottom: 1px solid #000;
+    .order-confirmation-label {
+      width: 48%;
+      border-right: 1px solid #000 !important;
+      font-weight: 700;
     }
 
     .product {
@@ -248,6 +255,16 @@
       margin-top: 20px;
     }
 
+    .document-revision {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
     @media screen {
       body {
         background: #eef3fb;
@@ -335,22 +352,24 @@
           <td class="meta-label">Date</td>
           <td class="meta-value" colspan="2">{{ $sa['date'] }}</td>
           <td class="order-confirmation-box" colspan="2">
-            <div class="order-confirmation-line">
-              <span class="order-confirmation-label">Order Confirmation# </span>
-              {{ $sa['booking_reference'] }}
-            </div>
+            <table class="order-confirmation-table">
+              <tr>
+                <td class="order-confirmation-label" style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '') ? 'border-bottom:1px solid #000;' : '' }}">Order Confirmation#</td>
+                <td style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '') ? 'border-bottom:1px solid #000;' : '' }}">{{ $sa['booking_reference'] }}</td>
+              </tr>
             @if ($sa['buyer_reference'] !== '')
-            <div class="order-confirmation-line">
-              <span class="order-confirmation-label">Buyer's PO#</span>
-              {{ str_replace(' ', '', $sa['buyer_reference']) }}
-            </div>
+              <tr>
+                <td class="order-confirmation-label" style="{{ $sa['packer_reference'] !== '' ? 'border-bottom:1px solid #000;' : '' }}">Buyer's PO#</td>
+                <td style="{{ $sa['packer_reference'] !== '' ? 'border-bottom:1px solid #000;' : '' }}">{{ str_replace(' ', '', $sa['buyer_reference']) }}</td>
+              </tr>
             @endif
             @if ($sa['packer_reference'] !== '')
-            <div class="order-confirmation-line">
-              <span class="order-confirmation-label">Packer's PI#</span>
-              {{ str_replace(' ', '', $sa['packer_reference']) }}
-            </div>
+              <tr>
+                <td class="order-confirmation-label">Packer's PI#</td>
+                <td>{{ str_replace(' ', '', $sa['packer_reference']) }}</td>
+              </tr>
             @endif
+            </table>
           </td>
         </tr>
         <tr>
@@ -510,6 +529,9 @@
       <div class="disclaimer">
         {{ $view['footer_note'] }}
       </div>
+      @if (($view['revision_text'] ?? '') !== '')
+      <div class="document-revision">{{ $view['revision_text'] }}</div>
+      @endif
     </section>
   </div>
 </body>

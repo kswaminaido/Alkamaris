@@ -65,6 +65,8 @@ final class TransactionDocumentViewDataFactory
             'template' => $this->stringOrFallback(Arr::get($options, 'template'), 'India Private'),
             'approve_code' => $this->stringOrFallback(Arr::get($options, 'approve_code'), ''),
             'print_revised' => $this->stringOrFallback(Arr::get($options, 'print_revised'), 'NO'),
+            'revision_number' => $this->revisionNumber($options),
+            'revision_text' => $this->revisionText($options),
             'print_liquidation' => $this->stringOrFallback(Arr::get($options, 'print_liquidation'), 'NO'),
             'show_glazing' => $this->stringOrFallback(Arr::get($options, 'show_glazing'), 'Size'),
             'articles' => $this->articles($options),
@@ -873,6 +875,30 @@ final class TransactionDocumentViewDataFactory
         $text = trim((string) $value);
 
         return $text !== '' ? $text : $fallback;
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    private function revisionNumber(array $options): string
+    {
+        $number = (int) Arr::get($options, 'revision_number');
+
+        return $number >= 1 && $number <= 10 ? (string) $number : '';
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    private function revisionText(array $options): string
+    {
+        if (Str::upper($this->stringOrFallback(Arr::get($options, 'print_revised'), 'NO')) !== 'YES') {
+            return '';
+        }
+
+        $revisionNumber = $this->revisionNumber($options);
+
+        return $revisionNumber !== '' ? "Document Revised #{$revisionNumber}" : '';
     }
 
     private function firstFilled(mixed ...$values): string

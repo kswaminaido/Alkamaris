@@ -83,6 +83,7 @@ const PRINT_DOCUMENTS = [
 const PRINT_YES_NO_OPTIONS = ['NO', 'YES']
 const PRINT_GLAZING_OPTIONS = ['Size', 'NO', 'YES']
 const PRINT_TEMPLATE_OPTIONS = ['India Private']
+const PRINT_REVISION_NUMBER_OPTIONS = Array.from({ length: 10 }, (_, index) => String(index + 1))
 const PRICE_TERMS = ['EXW (Ex Works)', 'FCA', 'CIF', 'CFR', 'FOB', 'DAP', 'DDP', 'DPU']
 
 const ATTACHMENT_OPTIONS = [
@@ -247,6 +248,13 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
       return
     }
 
+    if (printOptions.print_revised === 'YES' && !printOptions.revision_number) {
+      const printError = 'Select a revision number.'
+      setError(printError)
+      showToast(printError, 'error')
+      return
+    }
+
     if (!authFetch) {
       const printError = 'Print service is unavailable.'
       setError(printError)
@@ -304,7 +312,11 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
   }
 
   function handlePrintOptionChange(key, value) {
-    setPrintOptions((current) => ({ ...current, [key]: value }))
+    setPrintOptions((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === 'print_revised' && value !== 'YES' ? { revision_number: '' } : {}),
+    }))
   }
 
   function handleArticleChange(index, value) {
@@ -962,9 +974,21 @@ function PrintDialog({
                 <div className="txe-print-settings">
                   <label>
                     <span>Print Revised</span>
-                    <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
-                      {withCurrent(PRINT_YES_NO_OPTIONS, options.print_revised).map((option) => <option key={option}>{option}</option>)}
-                    </select>
+                    <div className="txe-print-revised-controls">
+                      <select value={options.print_revised} onChange={(event) => onOptionChange('print_revised', event.target.value)}>
+                        {withCurrent(PRINT_YES_NO_OPTIONS, options.print_revised).map((option) => <option key={option}>{option}</option>)}
+                      </select>
+                      {options.print_revised === 'YES' && (
+                        <select
+                          aria-label="Revision Number"
+                          value={options.revision_number}
+                          onChange={(event) => onOptionChange('revision_number', event.target.value)}
+                        >
+                          <option value="">Revision #</option>
+                          {PRINT_REVISION_NUMBER_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                        </select>
+                      )}
+                    </div>
                   </label>
                   <label>
                     <span>Last Modified By</span>
@@ -1372,6 +1396,7 @@ function buildInitialPrintSelections() {
 function buildInitialPrintOptions() {
   return {
     print_revised: 'NO',
+    revision_number: '',
     print_liquidation: 'NO',
     show_glazing: 'Size',
     template: 'India Private',

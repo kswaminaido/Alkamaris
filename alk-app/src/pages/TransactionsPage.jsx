@@ -23,8 +23,8 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
-  { label: 'AME Inv. to Packer', value: (transaction) => transaction.revenue_packer?.description },
-  { label: 'AME Inv. to Customer', value: (transaction) => transaction.logistics?.sc_inv_to_customer },
+  { label: 'AME Inv. to Packer', value: (transaction) => transaction.revenue_packer?.amount },
+  { label: 'AME Inv. to Customer', value: (transaction) => transaction.revenue_customer?.amount },
   { label: 'Packer Inv.', value: (transaction) => transaction.logistics?.packer_inv },
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.logistics?.etd_date) },
@@ -383,8 +383,8 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
-                  <td>{transaction.revenue_packer?.description ?? '-'}</td>
-                  <td>{transaction.logistics?.sc_inv_to_customer ?? '-'}</td>
+                  <td>{transaction.revenue_packer?.amount ?? '-'}</td>
+                  <td>{transaction.revenue_customer?.amount ?? '-'}</td>
                   <td>{transaction.logistics?.packer_inv ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
                   <td>{displayDate(transaction.logistics?.etd_date)}</td>

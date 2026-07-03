@@ -3587,8 +3587,17 @@ h5 {
   background: #ffffff;
   min-height: 420px;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr auto;
   box-shadow: 0 14px 32px rgba(16, 24, 40, 0.05);
+}
+
+.txe-items-table-card .compact-pagination {
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+}
+
+.txe-items-table-card .compact-pagination-bottom {
+  margin: 0;
 }
 
 .txe-items-section-title {
@@ -4182,6 +4191,12 @@ h5 {
   align-items: center;
 }
 
+.txe-print-revised-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(84px, 0.75fr);
+  gap: 8px;
+}
+
 .txe-print-settings input,
 .txe-print-settings select,
 .txe-print-article textarea {
@@ -4445,6 +4460,10 @@ h5 {
   }
 
   .txe-print-settings label {
+    grid-template-columns: 1fr;
+  }
+
+  .txe-print-revised-controls {
     grid-template-columns: 1fr;
   }
 
