@@ -13,6 +13,7 @@ use App\Services\Users\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
 {
@@ -106,6 +107,15 @@ class UserController extends Controller
         );
 
         return response()->json(['data' => $summary], Response::HTTP_CREATED);
+    }
+
+    public function bulkSampleTemplate(): BinaryFileResponse
+    {
+        return response()->download(
+            resource_path('csv/sample_user_creation_template.csv'),
+            'sample_user_creation_template.csv',
+            ['Content-Type' => 'text/csv'],
+        );
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse

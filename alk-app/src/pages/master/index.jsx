@@ -60,6 +60,7 @@ function MasterData() {
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [bulkFile, setBulkFile] = useState(null)
   const [bulkUploading, setBulkUploading] = useState(false)
+  const [bulkSampleDownloading, setBulkSampleDownloading] = useState(false)
   const [bulkError, setBulkError] = useState('')
   const [bulkSummary, setBulkSummary] = useState(null)
 
@@ -150,6 +151,38 @@ function MasterData() {
       setBulkError('Bulk user creation failed.')
     } finally {
       setBulkUploading(false)
+    }
+  }
+
+  async function downloadSampleCsv() {
+    if (currentUser?.role !== 'admin' || bulkSampleDownloading) return
+
+    setBulkSampleDownloading(true)
+    setBulkError('')
+    try {
+      const response = await authFetch('/users/bulk/sample-template', {
+        headers: { Accept: 'text/csv' },
+        loadingLabel: 'Downloading sample CSV...',
+      })
+
+      if (!response.ok) {
+        setBulkError('Unable to download the sample CSV.')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'sample_user_creation_template.csv'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch {
+      setBulkError('Unable to download the sample CSV.')
+    } finally {
+      setBulkSampleDownloading(false)
     }
   }
 
@@ -491,29 +524,41 @@ function MasterData() {
                 <button type="button" className="close-btn" onClick={closeBulkModal} disabled={bulkUploading}>x</button>
               </div>
               <form className="bulk-user-form" onSubmit={submitBulkUpload}>
-                <div className="bulk-format-box">
-                  <strong>Required file format</strong>
-                  <p>Upload a .xlsx or .csv file with one header row and one user per row.</p>
-                  <div className="bulk-columns-grid">
-                    {requiredBulkColumns.map((column) => (
-                      <span key={column}>{column}</span>
-                    ))}
+                <div className="bulk-upload-panel">
+                  <div className="bulk-template-panel">
+                    <span className="bulk-panel-label">Template</span>
+                    <h4>Start with the sample CSV</h4>
+                    <p>Use the sample file to keep column names and user details in the expected order.</p>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      onClick={downloadSampleCsv}
+                      disabled={bulkUploading || bulkSampleDownloading}
+                    >
+                      {bulkSampleDownloading ? 'Downloading...' : 'Download Sample CSV'}
+                    </button>
                   </div>
-                  <p>Password and Confirm Password can be blank or omitted. Blank passwords use Password@123.</p>
-                </div>
 
-                <div className="form-group">
-                  <label htmlFor="bulk-user-file">Upload File:</label>
-                  <input
-                    id="bulk-user-file"
-                    type="file"
-                    accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    onChange={(event) => {
-                      setBulkError('')
-                      setBulkSummary(null)
-                      setBulkFile(event.target.files?.[0] ?? null)
-                    }}
-                  />
+                  <div className="bulk-file-panel">
+                    <span className="bulk-panel-label">Upload</span>
+                    <div className="form-group bulk-file-input">
+                      <label htmlFor="bulk-user-file">Select CSV or XLSX file</label>
+                      <input
+                        id="bulk-user-file"
+                        type="file"
+                        accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        onChange={(event) => {
+                          setBulkError('')
+                          setBulkSummary(null)
+                          setBulkFile(event.target.files?.[0] ?? null)
+                        }}
+                      />
+                    </div>
+                    <div className="bulk-selected-file">
+                      <span>Selected file</span>
+                      <strong>{bulkFile?.name ?? 'No file selected'}</strong>
+                    </div>
+                  </div>
                 </div>
 
                 {bulkError && <p className="message error">{bulkError}</p>}
@@ -689,17 +734,6 @@ function MasterData() {
 }
 
 export default MasterData
-
-const requiredBulkColumns = [
-  'Company Name / Name',
-  'Contact Name',
-  'Phone Number',
-  'User Type',
-  'Email ID',
-  'Address',
-  'Password',
-  'Confirm Password',
-]
 
 function formatRole(role) {
   if (role === 'packer' || role === 'vendor') return 'Packer'
