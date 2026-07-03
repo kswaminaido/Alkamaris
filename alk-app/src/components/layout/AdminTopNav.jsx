@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import logoImage from '../../assets/images/Logo.png'
+import logoImage from '../../assets/Images/Logo.png'
 
 const navActions = [
   {
