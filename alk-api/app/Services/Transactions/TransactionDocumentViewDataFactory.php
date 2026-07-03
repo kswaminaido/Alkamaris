@@ -249,6 +249,7 @@ final class TransactionDocumentViewDataFactory
             'items' => $productItems,
             'groups' => $this->bcvLqdGroups($productItems),
             'total_cartons' => $cartonValues->isEmpty() ? '' : $this->quantityOrBlank($cartonValues->sum()),
+            'weight_header' => $this->weightHeader($productItems),
             'total_weight' => $weightValues->isEmpty() ? '' : $this->weightOrBlank($weightValues->sum()),
             'total_amount' => $this->moneyOrBlank($totalAmount),
             'total_amount_currency' => $this->currencyTotalLabel($firstCurrency),
@@ -468,6 +469,7 @@ final class TransactionDocumentViewDataFactory
             'cartons_value' => $quantity,
             'weight' => $this->weightOrBlank($this->numberOrNull($item?->total_weight_value) ?? $this->numberOrNull($item?->lqd_qty)),
             'weight_value' => $this->numberOrNull($item?->total_weight_value) ?? $this->numberOrNull($item?->lqd_qty),
+            'weight_unit' => $this->displayWeightUnit($item?->total_weight_unit_slug),
             'price' => $this->decimalOrBlank($line['price'], 3),
             'amount' => $this->moneyOrBlank($line['amount']),
             'amount_value' => $line['amount'],
@@ -723,6 +725,30 @@ final class TransactionDocumentViewDataFactory
         $unit = $this->displayText($value);
 
         return is_numeric($unit) ? '' : $unit;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    private function weightHeader(array $items): string
+    {
+        $unit = $this->firstProductItemValue($items, 'weight_unit');
+
+        return $unit !== '' ? "Weight in {$unit}" : 'Weight in Kg';
+    }
+
+    private function displayWeightUnit(mixed $value): string
+    {
+        $unit = $this->displayUnit($value);
+
+        return match (Str::upper($unit)) {
+            'KG', 'KG(S)', 'KGS', 'KILOGRAM', 'KILOGRAMS' => 'Kg(s)',
+            'LB', 'LB(S)', 'LBS', 'POUND', 'POUNDS' => 'LB(s)',
+            'OZ', 'OUNCE', 'OUNCES' => 'OZ',
+            'G', 'GRAM', 'GRAMS' => 'G',
+            'MT', 'METRIC TON', 'METRIC TONS' => 'MT',
+            default => $unit,
+        };
     }
 
     private function upperText(mixed $value): string

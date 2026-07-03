@@ -526,7 +526,7 @@
             <th class="desc">DESCRIPTION</th>
             <th class="size">Size</th>
             <th>Cartons</th>
-            <th>Weight in Kg</th>
+            <th>{{ $bcv['weight_header'] ?? 'Weight in LB(s)' }}</th>
             <th>{{ $bcv['items'][0]['price_header'] ?? 'Price US$/kg' }}</th>
             <th class="amount">{{ $bcv['items'][0]['amount_header'] ?? 'Amount' }}</th>
           </tr>
