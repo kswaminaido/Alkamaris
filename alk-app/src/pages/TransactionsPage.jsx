@@ -23,8 +23,8 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
-  { label: 'AME Inv. to Packer', value: (transaction) => transaction.revenue_packer?.amount },
-  { label: 'AME Inv. to Customer', value: (transaction) => transaction.revenue_customer?.amount },
+  { label: 'AME Inv. to Packer', value: (transaction) => ameInvoiceToPacker(transaction) },
+  { label: 'AME Inv. to Customer', value: (transaction) => ameInvoiceToCustomer(transaction) },
   { label: 'Packer Inv.', value: (transaction) => transaction.logistics?.packer_inv },
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.logistics?.etd_date) },
@@ -382,8 +382,8 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
-                  <td>{transaction.revenue_packer?.amount ?? '-'}</td>
-                  <td>{transaction.revenue_customer?.amount ?? '-'}</td>
+                  <td>{ameInvoiceToPacker(transaction)}</td>
+                  <td>{ameInvoiceToCustomer(transaction)}</td>
                   <td>{transaction.logistics?.packer_inv ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
                   <td>{displayDate(transaction.logistics?.etd_date)}</td>
@@ -444,6 +444,30 @@ function displayDate(value) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleDateString('en-GB')
+}
+
+function ameInvoiceToPacker(transaction) {
+  return transaction.revenue_packer?.amount
+    ?? itemSellingTotal(transaction)
+    ?? '-'
+}
+
+function ameInvoiceToCustomer(transaction) {
+  return transaction.revenue_customer?.amount
+    ?? itemSellingTotal(transaction)
+    ?? '-'
+}
+
+function itemSellingTotal(transaction) {
+  const items = Array.isArray(transaction.items) ? transaction.items : []
+  if (items.length === 0) return null
+
+  const total = items.reduce((sum, item) => {
+    const value = Number(item?.selling_total ?? 0)
+    return Number.isFinite(value) ? sum + value : sum
+  }, 0)
+
+  return total === 0 ? null : total.toFixed(2)
 }
 
 function buildTransactionParams(filters, targetPage, perPage, options = {}) {

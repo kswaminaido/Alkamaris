@@ -21,6 +21,7 @@ final class TransactionItemService
                 ...$payload,
                 'sort_order' => $sortOrder,
             ]);
+            app(TransactionService::class)->refreshRevenueDerivedFields($transaction);
             $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
@@ -37,6 +38,7 @@ final class TransactionItemService
                 ...$item->toArray(),
                 ...$payload,
             ]));
+            app(TransactionService::class)->refreshRevenueDerivedFields($transaction);
             $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
@@ -159,6 +161,7 @@ final class TransactionItemService
         return DB::transaction(function () use ($transaction, $item): Transaction {
             $item->delete();
             $this->resequence($transaction);
+            app(TransactionService::class)->refreshRevenueDerivedFields($transaction);
             $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());
@@ -177,6 +180,7 @@ final class TransactionItemService
                 ->increment('sort_order');
 
             $transaction->items()->create($payload);
+            app(TransactionService::class)->refreshRevenueDerivedFields($transaction);
             $transaction->touch();
 
             return $transaction->fresh()->load(Transaction::detailRelations());

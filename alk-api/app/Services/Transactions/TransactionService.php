@@ -141,7 +141,33 @@ final class TransactionService
 
         if (array_key_exists('items', $validated)) {
             $this->replaceItems($transaction->id, $validated['items'] ?? []);
+            $this->refreshRevenueDerivedFields($transaction->id);
         }
+    }
+
+    public function refreshRevenueDerivedFields(Transaction|int $transaction): void
+    {
+        $transactionId = $transaction instanceof Transaction ? $transaction->id : $transaction;
+        $items = $this->revenueSourceItems($transactionId, []);
+        $totals = $this->revenueTotals($items);
+
+        RevenueCustomer::query()->updateOrCreate(
+            ['transaction_id' => $transactionId],
+            [
+                'total_selling_value' => $totals['total_customer_commission'],
+                'amount' => $totals['total_selling_price'],
+                'commission_enabled' => $totals['has_customer_commission'],
+            ],
+        );
+
+        RevenuePacker::query()->updateOrCreate(
+            ['transaction_id' => $transactionId],
+            [
+                'total_buying_value' => $totals['total_packer_commission'],
+                'amount' => $totals['total_selling_price'],
+                'commission_enabled' => $totals['has_packer_commission'],
+            ],
+        );
     }
 
     /**
@@ -195,53 +221,64 @@ final class TransactionService
             return $validated;
         }
 
-        $totalSellingPrice = array_sum(array_map(
-            fn (array $item): float => (float) ($item['selling_total'] ?? 0),
-            $items,
-        ));
-        $totalPackerCommission = array_sum(array_map(
-            fn (array $item): float => (float) ($item['total_packer_commission'] ?? 0),
-            $items,
-        ));
-        $totalCustomerCommission = array_sum(array_map(
-            fn (array $item): float => (float) ($item['total_customer_commission'] ?? 0),
-            $items,
-        ));
-        $hasPackerCommission = collect($items)->contains(
-            fn (array $item): bool => (float) ($item['commission_from_packer'] ?? 0) !== 0.0,
-        );
-        $hasCustomerCommission = collect($items)->contains(
-            fn (array $item): bool => (float) ($item['commission_from_customer'] ?? 0) !== 0.0,
-        );
+        $totals = $this->revenueTotals($items);
 
         $validated['revenue_customer'] = $validated['revenue_customer'] ?? [];
         $validated['revenue_packer'] = $validated['revenue_packer'] ?? [];
 
         if (! array_key_exists('total_selling_value', $validated['revenue_customer'])) {
-            $validated['revenue_customer']['total_selling_value'] = $totalCustomerCommission;
+            $validated['revenue_customer']['total_selling_value'] = $totals['total_customer_commission'];
         }
 
         if (! array_key_exists('amount', $validated['revenue_customer'])) {
-            $validated['revenue_customer']['amount'] = $totalSellingPrice;
+            $validated['revenue_customer']['amount'] = $totals['total_selling_price'];
         }
 
         if (! array_key_exists('total_buying_value', $validated['revenue_packer'])) {
-            $validated['revenue_packer']['total_buying_value'] = $totalPackerCommission;
+            $validated['revenue_packer']['total_buying_value'] = $totals['total_packer_commission'];
         }
 
         if (! array_key_exists('amount', $validated['revenue_packer'])) {
-            $validated['revenue_packer']['amount'] = $totalSellingPrice;
+            $validated['revenue_packer']['amount'] = $totals['total_selling_price'];
         }
 
-        $validated['revenue_customer']['commission_enabled'] = $hasCustomerCommission
+        $validated['revenue_customer']['commission_enabled'] = $totals['has_customer_commission']
             ? true
             : (bool) ($validated['revenue_customer']['commission_enabled'] ?? false);
 
-        $validated['revenue_packer']['commission_enabled'] = $hasPackerCommission
+        $validated['revenue_packer']['commission_enabled'] = $totals['has_packer_commission']
             ? true
             : (bool) ($validated['revenue_packer']['commission_enabled'] ?? false);
 
         return $validated;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array{total_selling_price: float, total_packer_commission: float, total_customer_commission: float, has_packer_commission: bool, has_customer_commission: bool}
+     */
+    private function revenueTotals(array $items): array
+    {
+        return [
+            'total_selling_price' => array_sum(array_map(
+                fn (array $item): float => (float) ($item['selling_total'] ?? 0),
+                $items,
+            )),
+            'total_packer_commission' => array_sum(array_map(
+                fn (array $item): float => (float) ($item['total_packer_commission'] ?? 0),
+                $items,
+            )),
+            'total_customer_commission' => array_sum(array_map(
+                fn (array $item): float => (float) ($item['total_customer_commission'] ?? 0),
+                $items,
+            )),
+            'has_packer_commission' => collect($items)->contains(
+                fn (array $item): bool => (float) ($item['commission_from_packer'] ?? 0) !== 0.0,
+            ),
+            'has_customer_commission' => collect($items)->contains(
+                fn (array $item): bool => (float) ($item['commission_from_customer'] ?? 0) !== 0.0,
+            ),
+        ];
     }
 
     /**
