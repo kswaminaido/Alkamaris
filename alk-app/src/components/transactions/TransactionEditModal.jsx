@@ -1565,24 +1565,29 @@ function displayValue(value) {
 }
 
 function formatDate(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-GB')
+  const inputDate = toInputDate(value)
+  if (!inputDate) return ''
+  const [yyyy, mm, dd] = inputDate.split('-')
+  return `${dd}/${mm}/${yyyy}`
 }
 
 function toInputDate(value) {
   const text = normalizeText(value)
   if (!text) return ''
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+  const isoDate = text.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/)
+  if (isoDate) return isoDate[1]
   const parts = text.split('/')
   if (parts.length === 3) {
     const [dd, mm, yyyy] = parts
     if (yyyy?.length === 4) return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
   }
-  const date = new Date(text)
+  const date = new Date(`${text}T00:00:00`)
   if (Number.isNaN(date.getTime())) return ''
-  return date.toISOString().slice(0, 10)
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
 }
 
 function normalizeText(value) {
@@ -1727,15 +1732,20 @@ function normalizeNumber(value) {
 function toApiDate(value) {
   const text = normalizeText(value)
   if (!text) return null
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+  const isoDate = text.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/)
+  if (isoDate) return isoDate[1]
   const parts = text.split('/')
   if (parts.length === 3) {
     const [dd, mm, yyyy] = parts
     if (yyyy?.length === 4) return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
   }
-  const date = new Date(text)
+  const date = new Date(`${text}T00:00:00`)
   if (Number.isNaN(date.getTime())) return null
-  return date.toISOString().slice(0, 10)
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
 }
 
 function getField(formData, name) {

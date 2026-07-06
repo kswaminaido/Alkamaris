@@ -44,13 +44,41 @@ final class TransactionResource extends JsonResource
             'revenue_packer' => $this->whenLoaded('revenuePacker'),
             'cash_flow_customer' => $this->whenLoaded('cashFlowCustomer'),
             'cash_flow_packer' => $this->whenLoaded('cashFlowPacker'),
-            'shipping_details_customer' => $this->whenLoaded('shippingDetailsCustomer'),
-            'shipping_details_packer' => $this->whenLoaded('shippingDetailsPacker'),
+            'shipping_details_customer' => $this->whenLoaded(
+                'shippingDetailsCustomer',
+                fn () => $this->shippingDetailsPayload($this->shippingDetailsCustomer)
+            ),
+            'shipping_details_packer' => $this->whenLoaded(
+                'shippingDetailsPacker',
+                fn () => $this->shippingDetailsPayload($this->shippingDetailsPacker)
+            ),
             'notes' => $this->whenLoaded('note'),
             'logistics' => $this->whenLoaded('logistics'),
             'expense_lines' => $this->whenLoaded('expenseLines'),
             'note_entries' => $this->whenLoaded('noteEntries'),
             'items' => TransactionItemResource::collection($this->whenLoaded('items')),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function shippingDetailsPayload(mixed $shippingDetails): ?array
+    {
+        if (! $shippingDetails) {
+            return null;
+        }
+
+        return [
+            'id' => $shippingDetails->id,
+            'transaction_id' => $shippingDetails->transaction_id,
+            'lsd_min' => $shippingDetails->getRawOriginal('lsd_min'),
+            'lsd_max' => $shippingDetails->getRawOriginal('lsd_max'),
+            'presentation_days' => $shippingDetails->presentation_days,
+            'lc_expiry' => $shippingDetails->getRawOriginal('lc_expiry'),
+            'req_eta' => $shippingDetails->getRawOriginal('req_eta'),
+            'created_at' => optional($shippingDetails->created_at)->toJSON(),
+            'updated_at' => optional($shippingDetails->updated_at)->toJSON(),
         ];
     }
 

@@ -354,21 +354,30 @@
           <td class="order-confirmation-box" colspan="2">
             <table class="order-confirmation-table">
               <tr>
-                <td class="order-confirmation-label" style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '') ? 'border-bottom:1px solid #000;' : '' }}">Order Confirmation#</td>
-                <td style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '') ? 'border-bottom:1px solid #000;' : '' }}">{{ $sa['booking_reference'] }}</td>
+                <td class="order-confirmation-label" style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '' || ($view['revision_text'] ?? '') !== '') ? 'border-bottom:1px solid #000;' : '' }}">Order Confirmation#</td>
+                <td style="{{ ($sa['buyer_reference'] !== '' || $sa['packer_reference'] !== '' || ($view['revision_text'] ?? '') !== '') ? 'border-bottom:1px solid #000;' : '' }}">{{ $sa['booking_reference'] }}</td>
               </tr>
-            @if ($sa['buyer_reference'] !== '')
+              @if ($sa['buyer_reference'] !== '')
               <tr>
-                <td class="order-confirmation-label" style="{{ $sa['packer_reference'] !== '' ? 'border-bottom:1px solid #000;' : '' }}">Buyer's PO#</td>
-                <td style="{{ $sa['packer_reference'] !== '' ? 'border-bottom:1px solid #000;' : '' }}">{{ str_replace(' ', '', $sa['buyer_reference']) }}</td>
+                <td class="order-confirmation-label" style="{{ ($sa['packer_reference'] !== '' || ($view['revision_text'] ?? '') !== '') ? 'border-bottom:1px solid #000;' : '' }}">Buyer's PO#</td>
+                <td style="{{ ($sa['packer_reference'] !== '' || ($view['revision_text'] ?? '') !== '') ? 'border-bottom:1px solid #000;' : '' }}">{{ str_replace(' ', '', $sa['buyer_reference']) }}</td>
               </tr>
-            @endif
-            @if ($sa['packer_reference'] !== '')
+              @endif
+              @if ($sa['packer_reference'] !== '')
               <tr>
-                <td class="order-confirmation-label">Packer's PI#</td>
-                <td>{{ str_replace(' ', '', $sa['packer_reference']) }}</td>
+                <td class="order-confirmation-label" style="{{ ($view['revision_text'] ?? '') !== '' ? 'border-bottom:1px solid #000;' : '' }}">Packer's PI#</td>
+                <td style="{{ ($view['revision_text'] ?? '') !== '' ? 'border-bottom:1px solid #000;' : '' }}">{{ str_replace(' ', '', $sa['packer_reference']) }}</td>
               </tr>
-            @endif
+              @endif
+              @if (($view['revision_text'] ?? '') !== '')
+              <tr>
+                <td colspan="2" style="font-weight:bold;padding:4px 6px;">
+                  <span style="background-color:#bae6fd;padding:2px 6px;display:inline-block;">
+                    {{ $view['revision_text'] }}
+                  </span>
+                </td>
+              </tr>
+              @endif
             </table>
           </td>
         </tr>
@@ -529,9 +538,6 @@
       <div class="disclaimer">
         {{ $view['footer_note'] }}
       </div>
-      @if (($view['revision_text'] ?? '') !== '')
-      <div class="document-revision">{{ $view['revision_text'] }}</div>
-      @endif
     </section>
   </div>
 </body>

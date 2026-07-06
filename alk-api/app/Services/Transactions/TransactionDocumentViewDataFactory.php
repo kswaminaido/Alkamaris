@@ -924,7 +924,7 @@ final class TransactionDocumentViewDataFactory
 
         $revisionNumber = $this->revisionNumber($options);
 
-        return $revisionNumber !== '' ? "Document Revised #{$revisionNumber}" : '';
+        return $revisionNumber !== '' ? "REVISED - {$revisionNumber} - Date: " . Carbon::now()->format('d/m/Y') : '';
     }
 
     private function firstFilled(mixed ...$values): string

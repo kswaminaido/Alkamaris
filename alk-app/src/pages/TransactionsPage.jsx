@@ -360,7 +360,6 @@ function TransactionsPage({ overdueOnly = false }) {
                 <th>ETA</th>
                 <th>LSD</th>
                 <th>Status</th>
-                {/* <th>SH Date</th> */}
                 <th>Destination</th>
                 <th>Date Modified</th>
                 <th>Duplicate</th>
@@ -391,7 +390,7 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{displayDate(transaction.logistics?.eta_date)}</td>
                   <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
-                  <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td>
+                  {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
                   <td>{transaction.destination ?? '-'}</td>
                   <td>{displayDate(transaction.updated_at)}</td>
                   <td>

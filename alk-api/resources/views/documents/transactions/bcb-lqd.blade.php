@@ -460,6 +460,18 @@
               </tr>
             </table>
             @endif
+
+            @if (($view['revision_text'] ?? '') !== '')
+            <table class="order-ref-table" style="margin-top:0;font-size:inherit;">
+              <tr>
+                <td colspan="2" style="border-left:0;border-top:0;border-right:0;border-bottom:0;padding:3px 5px;font-weight:bold;">
+                  <span style="background-color:#bae6fd;">
+                    {{ $view['revision_text'] }}
+                  </span>
+                </td>
+              </tr>
+            </table>
+            @endif
           </td>
         </tr>
         <tr class="section-head">
@@ -612,9 +624,6 @@
       <div class="disclaimer">
         {{ $view['footer_note'] }}
       </div>
-      @if (($view['revision_text'] ?? '') !== '')
-      <div class="document-revision">{{ $view['revision_text'] }}</div>
-      @endif
     </section>
   </div>
 </body>
