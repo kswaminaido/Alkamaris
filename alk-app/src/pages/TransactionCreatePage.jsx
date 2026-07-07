@@ -170,7 +170,7 @@ function TransactionCreatePage() {
     setCountries(await fetchCountryOptions())
   }
 
-  async function loadNextBookingNo(issueDate = getTodayInputValue()) {
+  async function loadNextBookingNo(issueDate = getTodayInputValue(), force = false) {
     try {
       const bookingPrefix = `${BOOKING_PREFIX}${getFinancialYearSuffix(issueDate)}`
       const response = await authFetch(`/transactions?booking_no=${encodeURIComponent(bookingPrefix)}&per_page=100`)
@@ -183,7 +183,7 @@ function TransactionCreatePage() {
         const initialBookingNo = generateBookingNo(currentIssueDate)
         const currentBookingNo = previous.transaction.booking_no
 
-        if (currentBookingNo && currentBookingNo !== initialBookingNo) {
+        if (!force && currentBookingNo && currentBookingNo !== initialBookingNo) {
           return previous
         }
 
@@ -198,6 +198,12 @@ function TransactionCreatePage() {
     } catch {
       // Keep the local fallback when the latest transaction cannot be loaded.
     }
+  }
+
+  function handleIssueDateChange(value) {
+    const issueDate = value || getTodayInputValue()
+    setValue('transaction', 'issue_date', issueDate)
+    loadNextBookingNo(issueDate, true)
   }
 
   async function loadDropdownConfigs() {
@@ -264,7 +270,7 @@ function TransactionCreatePage() {
 
     const payload = JSON.parse(JSON.stringify(form))
     payload.transaction.booking_no = (payload.transaction.booking_no ?? '').trim()
-    payload.transaction.issue_date = getTodayInputValue()
+    payload.transaction.issue_date = payload.transaction.issue_date || getTodayInputValue()
     payload.transaction.sales_person_id = payload.transaction.sales_person_id || currentUser?.id || null
     payload.transaction.product_origin = payload.transaction.product_origin || ''
     payload.transaction.certified = payload.transaction.certified === 'Yes'
@@ -300,7 +306,7 @@ function TransactionCreatePage() {
       <form className="transaction-page" onSubmit={onSubmit}>
         <section className="txn-panel txn-top">
           <h5>TRANSACTION DETAILS</h5>
-          <TxHeader form={form} setValue={setValue} salesPeople={salesPeople} optionsFor={optionsFor} addOption={addDropdownOption} />
+          <TxHeader form={form} setValue={setValue} onIssueDateChange={handleIssueDateChange} salesPeople={salesPeople} optionsFor={optionsFor} addOption={addDropdownOption} />
         </section>
         <section className="txn-double-grid">
           <TxnColumn title="GENERAL INFO" side="CUSTOMER"><GeneralCustomer form={form} setValue={setValue} customers={customers} customerContacts={customerContacts} packers={packers} optionsFor={optionsFor} addOption={addDropdownOption} /></TxnColumn>
@@ -323,14 +329,14 @@ function TransactionCreatePage() {
   )
 }
 
-function TxHeader({ form, setValue, salesPeople, optionsFor, addOption }) {
+function TxHeader({ form, setValue, onIssueDateChange, salesPeople, optionsFor, addOption }) {
   const productOriginOptions = mergeCountryOptions(optionsFor('transaction.product_origin'))
   const destinationOptions = optionsFor('transaction.destination')
 
   return (
     <div className="txn-grid cols-4">
       <Field label="Booking No."><input value={form.transaction.booking_no} onChange={(e) => setValue('transaction', 'booking_no', e.target.value)} required /></Field>
-      <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} disabled className="txn-readonly" /></Field>
+      <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} onChange={(e) => onIssueDateChange(e.target.value)} /></Field>
       <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} onAdd={(value) => addOption('transaction.category', value)} /></Field>
       {/* <Field label="Country"><Select value={form.transaction.country} list={optionsFor('transaction.country')} onChange={(value) => setValue('transaction', 'country', value)} onAdd={(value) => addOption('transaction.country', value)} /></Field> */}
       <Field label="Sales Person"><SalesPersonSelect value={form.transaction.sales_person_id} list={salesPeople} onChange={(value) => setValue('transaction', 'sales_person_id', value)} /></Field>

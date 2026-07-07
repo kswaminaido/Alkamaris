@@ -364,7 +364,7 @@ final class TransactionService
      */
     private function prepareCreateTransactionPayload(array $transactionData, User $actor): array
     {
-        $issueDate = CarbonImmutable::now()->toDateString();
+        $issueDate = $this->normalizeIssueDate($transactionData['issue_date'] ?? null);
         $requestedBookingNo = trim((string) ($transactionData['booking_no'] ?? ''));
         $productOrigin = trim((string) ($transactionData['product_origin'] ?? ''));
         $bookingNo = $this->resolveCreateBookingNo($requestedBookingNo, $issueDate);
@@ -376,6 +376,17 @@ final class TransactionService
             'sales_person_id' => $transactionData['sales_person_id'] ?? $actor->id,
             'product_origin' => $productOrigin !== '' ? $productOrigin : null,
         ];
+    }
+
+    private function normalizeIssueDate(mixed $issueDate): string
+    {
+        $dateText = trim((string) ($issueDate ?? ''));
+
+        if ($dateText === '') {
+            return CarbonImmutable::now()->toDateString();
+        }
+
+        return CarbonImmutable::parse($dateText)->toDateString();
     }
 
     private function resolveCreateBookingNo(string $requestedBookingNo, string $issueDate): string

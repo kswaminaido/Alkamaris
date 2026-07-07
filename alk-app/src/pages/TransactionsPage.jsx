@@ -183,6 +183,7 @@ function TransactionsPage({ overdueOnly = false }) {
         const next = [duplicated, ...previous]
         return next.slice(0, PAGE_SIZE)
       })
+      setSelectedTransaction(duplicated)
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
       return { ok: true, data: duplicated }
     } catch {

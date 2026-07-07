@@ -518,7 +518,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
     <div className="txe-card txe-header-card">
       <div className="txe-grid-4">
         <LabelField label="Booking No."><input name="transaction.booking_no" defaultValue={transaction.booking_no ?? ''} /></LabelField>
-        <LabelField label="Issue Date"><DateInput name="transaction.issue_date" value={issueDate} readOnly className="txe-readonly" /></LabelField>
+        <LabelField label="Issue Date"><DateInput name="transaction.issue_date" value={issueDate} /></LabelField>
         <LabelField label="Category"><NamedSearchableSelect name="transaction.category" value={category} list={withCurrent(optionsFor('transaction.category'), category)} onAdd={(value) => addOption('transaction.category', value)} /></LabelField>
         <LabelField label="Status"><select name="transaction.status" defaultValue={transaction.status ?? 'P'}>{STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></LabelField>
         <LabelField label="Last Modified By"><input readOnly value={lastModifiedBy} /></LabelField>
