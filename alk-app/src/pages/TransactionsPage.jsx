@@ -349,8 +349,9 @@ function TransactionsPage({ overdueOnly = false }) {
           <table className="transactions-table">
             <thead>
               <tr>
-                <th>Code</th>
+                <th>Txn ID</th>
                 <th>Date</th>
+                <th>LSD</th>
                 <th>Packer</th>
                 <th>Customer</th>
                 <th>AME Inv. to Packer</th>
@@ -359,7 +360,6 @@ function TransactionsPage({ overdueOnly = false }) {
                 <th>PO/Contract</th>
                 <th>ETD</th>
                 <th>ETA</th>
-                <th>LSD</th>
                 <th>Status</th>
                 <th>Destination</th>
                 <th>Date Modified</th>
@@ -381,6 +381,7 @@ function TransactionsPage({ overdueOnly = false }) {
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
                   <td>{transaction.booking_no}</td>
                   <td>{displayDate(transaction.issue_date)}</td>
+                  <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
                   <td>{ameInvoiceToPacker(transaction)}</td>
@@ -389,7 +390,6 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
                   <td>{displayDate(transaction.logistics?.etd_date)}</td>
                   <td>{displayDate(transaction.logistics?.eta_date)}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
                   <td>{transaction.destination ?? '-'}</td>
