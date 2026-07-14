@@ -704,6 +704,7 @@ final class TransactionApiTest extends TestCase
         ]);
         $received->items()->create([
             'product' => 'Collected Item',
+            'selling_total' => 110.25,
             'total_packer_commission' => 10.25,
             'total_customer_commission' => 5.75,
         ]);
@@ -716,8 +717,25 @@ final class TransactionApiTest extends TestCase
         ]);
         $pending->items()->create([
             'product' => 'Pending Item',
+            'selling_total' => 60.25,
             'total_packer_commission' => 7.50,
             'total_customer_commission' => 2.25,
+        ]);
+        $pending->revenueCustomer()->create([
+            'amount' => 125.75,
+            'amount_currency' => 'USD',
+        ]);
+        $unshipped = Transaction::query()->create([
+            'booking_no' => 'TRX-COM-UNSHIPPED',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unshipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $unshipped->items()->create([
+            'product' => 'Unshipped Item',
+            'selling_total' => 40.00,
+            'total_packer_commission' => 3.00,
+            'total_customer_commission' => 2.00,
         ]);
 
         $this
@@ -725,6 +743,15 @@ final class TransactionApiTest extends TestCase
             ->getJson('/api/dashboard/commission-summary')
             ->assertOk()
             ->assertJsonPath('data.total_collected_commission', 16)
-            ->assertJsonPath('data.total_pending_commission', 9.75);
+            ->assertJsonPath('data.total_pending_commission', 14.75)
+            ->assertJsonPath('data.status_summary.0.status', TransactionStatus::Invoice->value)
+            ->assertJsonPath('data.status_summary.0.transaction_count', 1)
+            ->assertJsonPath('data.status_summary.0.total_invoice_value', 125.75)
+            ->assertJsonPath('data.status_summary.4.status', TransactionStatus::Received->value)
+            ->assertJsonPath('data.status_summary.4.transaction_count', 1)
+            ->assertJsonPath('data.status_summary.4.total_invoice_value', 110.25)
+            ->assertJsonPath('data.status_summary.5.status', TransactionStatus::Unshipped->value)
+            ->assertJsonPath('data.status_summary.5.transaction_count', 1)
+            ->assertJsonPath('data.status_summary.5.total_invoice_value', 40);
     }
 }

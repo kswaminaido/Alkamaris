@@ -1341,6 +1341,68 @@ select:focus {
   font-size: 0.82rem;
 }
 
+.dashboard-status-summary {
+  border: 1px solid #dfe6f3;
+  background: #ffffff;
+}
+
+.dashboard-status-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #edf1f7;
+  padding: 0.85rem 1rem;
+}
+
+.dashboard-status-summary-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.dashboard-status-summary-head span {
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dashboard-status-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.dashboard-status-card {
+  min-width: 0;
+  display: grid;
+  gap: 0.32rem;
+  border-right: 1px solid #edf1f7;
+  padding: 0.85rem;
+}
+
+.dashboard-status-card:last-child {
+  border-right: 0;
+}
+
+.dashboard-status-card span {
+  color: #475467;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.dashboard-status-card strong {
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.dashboard-status-card small {
+  color: #079455;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .module-card {
   background: var(--dash-panel);
   border-radius: 0;
@@ -4496,6 +4558,10 @@ h5 {
     grid-template-columns: 1fr;
   }
 
+  .dashboard-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .dashboard-sidebar {
     position: fixed;
     left: 0;
@@ -5839,6 +5905,7 @@ textarea {
   .user-edit-meta,
   .dashboard-cards,
   .dashboard-commission-grid,
+  .dashboard-status-grid,
   .modern-report-grid,
   .data-hero-strip,
   .data-field-grid,

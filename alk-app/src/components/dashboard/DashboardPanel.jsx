@@ -8,10 +8,11 @@ function DashboardPanel({ currentUser, authFetch }) {
   const [commissionSummary, setCommissionSummary] = useState({
     total_collected_commission: 0,
     total_pending_commission: 0,
+    status_summary: [],
   })
   const [commissionLoading, setCommissionLoading] = useState(false)
   const [commissionError, setCommissionError] = useState('')
-  const totalRevenue = Number(commissionSummary.total_collected_commission ?? 0)
+  const totalCommission = Number(commissionSummary.total_collected_commission ?? 0)
     + Number(commissionSummary.total_pending_commission ?? 0)
 
   const transactionLinks = [
@@ -55,6 +56,7 @@ function DashboardPanel({ currentUser, authFetch }) {
         setCommissionSummary({
           total_collected_commission: payload?.data?.total_collected_commission ?? 0,
           total_pending_commission: payload?.data?.total_pending_commission ?? 0,
+          status_summary: Array.isArray(payload?.data?.status_summary) ? payload.data.status_summary : [],
         })
       } catch {
         if (active) {
@@ -79,8 +81,8 @@ function DashboardPanel({ currentUser, authFetch }) {
       {currentUser.role === 'admin' ? (
         <section className="dashboard-commission-grid" aria-label="Commission summary">
           <article className="dashboard-commission-card revenue">
-            <span>Total Revenue</span>
-            <strong>{commissionLoading ? '-' : formatCommission(totalRevenue)}</strong>
+            <span>Total Commission</span>
+            <strong>{commissionLoading ? '-' : formatCommission(totalCommission)}</strong>
           </article>
           <article className="dashboard-commission-card collected">
             <span>Total Collected Commission</span>
@@ -91,6 +93,24 @@ function DashboardPanel({ currentUser, authFetch }) {
             <strong>{commissionLoading ? '-' : formatCommission(commissionSummary.total_pending_commission)}</strong>
           </article>
           {commissionError ? <p className="dashboard-commission-error">{commissionError}</p> : null}
+        </section>
+      ) : null}
+
+      {currentUser.role === 'admin' ? (
+        <section className="dashboard-status-summary" aria-label="Status wise transaction summary">
+          <div className="dashboard-status-summary-head">
+            <h3>Status Summary</h3>
+            <span>Total Count & Invoice Value</span>
+          </div>
+          <div className="dashboard-status-grid">
+            {statusSummaryRows(commissionSummary.status_summary).map((status) => (
+              <article key={status.status} className="dashboard-status-card">
+                <span>{status.label}</span>
+                <strong>{commissionLoading ? '-' : formatInteger(status.transaction_count)}</strong>
+                <small>{commissionLoading ? '-' : formatCommission(status.total_invoice_value)}</small>
+              </article>
+            ))}
+          </div>
         </section>
       ) : null}
 
@@ -147,10 +167,35 @@ function DashboardPanel({ currentUser, authFetch }) {
   )
 }
 
+const defaultStatusSummary = [
+  { status: 'I', label: 'Invoice', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'P', label: 'Unpaid', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'D', label: 'Paid', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'S', label: 'Shipped', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'R', label: 'Received', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'U', label: 'Unshipped', transaction_count: 0, total_invoice_value: 0 },
+  { status: 'T', label: 'Tally', transaction_count: 0, total_invoice_value: 0 },
+]
+
+function statusSummaryRows(rows) {
+  const rowMap = new Map((Array.isArray(rows) ? rows : []).map((row) => [row.status, row]))
+
+  return defaultStatusSummary.map((status) => ({
+    ...status,
+    ...rowMap.get(status.status),
+  }))
+}
+
 function formatCommission(value) {
   const number = Number(value)
   if (!Number.isFinite(number)) return '$0.00'
   return `$${number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function formatInteger(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '0'
+  return number.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
 export default DashboardPanel
