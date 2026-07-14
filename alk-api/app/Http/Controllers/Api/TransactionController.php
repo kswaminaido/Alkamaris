@@ -64,6 +64,10 @@ class TransactionController extends Controller
             });
         }
 
+        if (request()->filled('sales_person_id')) {
+            $query->where('sales_person_id', (int) request('sales_person_id'));
+        }
+
         if (request()->boolean('overdue_invoice')) {
             $today = CarbonImmutable::now()->toDateString();
 

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
+const SALES_PERSON_ROLE_VALUES = ['sales', 'admin', 'logistics']
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
@@ -51,15 +52,23 @@ function TransactionsPage({ overdueOnly = false }) {
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+  const [salesPeople, setSalesPeople] = useState([])
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
     vendor: '',
     customer: '',
+    salesPersonId: '',
     status: defaultStatus,
     fromDate: '',
     toDate: '',
   })
   const [selectedTransaction, setSelectedTransaction] = useState(null)
+
+  useEffect(() => {
+    if (!currentUser) return
+    loadSalesPeople()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser])
 
   useEffect(() => {
     if (!currentUser) return
@@ -96,6 +105,16 @@ function TransactionsPage({ overdueOnly = false }) {
     }
   }
 
+  async function loadSalesPeople() {
+    try {
+      const response = await authFetch('/users?roles=sales,admin,logistics&per_page=100')
+      const payload = await response.json()
+      setSalesPeople(response.ok ? extractSalesPersonOptions(payload?.data, currentUser) : extractSalesPersonOptions([], currentUser))
+    } catch {
+      setSalesPeople(extractSalesPersonOptions([], currentUser))
+    }
+  }
+
   function handleFilterChange(key, value) {
     setSearchFilters((previous) => ({ ...previous, [key]: value }))
     setPage(1)
@@ -106,6 +125,7 @@ function TransactionsPage({ overdueOnly = false }) {
       bookingNo: '',
       vendor: '',
       customer: '',
+      salesPersonId: '',
       status: defaultStatus,
       fromDate: '',
       toDate: '',
@@ -279,6 +299,23 @@ function TransactionsPage({ overdueOnly = false }) {
               </div>
 
               <div className="filter-group">
+                <label htmlFor="sales-person-filter">Sales Person</label>
+                <select
+                  id="sales-person-filter"
+                  value={searchFilters.salesPersonId}
+                  onChange={(e) => handleFilterChange('salesPersonId', e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">All Sales Persons</option>
+                  {salesPeople.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
                 <select
                   id="status-filter"
@@ -323,11 +360,8 @@ function TransactionsPage({ overdueOnly = false }) {
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
                     Clear
                   </button>
-                  <button type="button" className="primary-btn" disabled>
-                    Total Bookings: {totalRecords}
-                  </button>
                   <button type="button" className="primary-btn" onClick={exportCsv} disabled={loading || exporting || totalRecords === 0}>
-                    {exporting ? 'Exporting...' : 'Export'}
+                    {exporting ? 'Exporting...' : 'CSV'}
                   </button>
                 </div>
               </div>
@@ -479,11 +513,28 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
   if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
+  if (filters.salesPersonId) params.append('sales_person_id', filters.salesPersonId)
   if (filters.status) params.append('status', filters.status)
   if (!options.overdueOnly && filters.status === 'U') params.append('sort_direction', 'asc')
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
   return params
+}
+
+function extractSalesPersonOptions(users, currentUser) {
+  const userMap = new Map()
+  const fallbackUsers = SALES_PERSON_ROLE_VALUES.includes(currentUser?.role) ? [currentUser] : []
+
+  for (const user of [...fallbackUsers, ...(Array.isArray(users) ? users : [])]) {
+    if (!user?.id) continue
+    const label = [user.name, user.email].find((value) => typeof value === 'string' && value.trim()) ?? `User #${user.id}`
+    userMap.set(String(user.id), {
+      id: String(user.id),
+      label,
+    })
+  }
+
+  return [...userMap.values()]
 }
 
 function formatCsvCell(value) {

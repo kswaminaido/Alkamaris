@@ -476,6 +476,48 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('pagination.total', 6);
     }
 
+    public function test_index_can_filter_transactions_by_sales_person(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $firstSalesPerson = User::factory()->create(['role' => UserRole::Sales->value]);
+        $secondSalesPerson = User::factory()->create(['role' => UserRole::Sales->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        Transaction::query()->create([
+            'booking_no' => 'TRX-SALES-ONE',
+            'booking_mode' => 'trade_commission',
+            'sales_person_id' => $firstSalesPerson->id,
+            'created_by_user_id' => $admin->id,
+        ]);
+        Transaction::query()->create([
+            'booking_no' => 'TRX-SALES-TWO',
+            'booking_mode' => 'trade_commission',
+            'sales_person_id' => $secondSalesPerson->id,
+            'created_by_user_id' => $admin->id,
+        ]);
+        Transaction::query()->create([
+            'booking_no' => 'TRX-SALES-THREE',
+            'booking_mode' => 'trade_commission',
+            'sales_person_id' => $firstSalesPerson->id,
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson("/api/transactions?sales_person_id={$firstSalesPerson->id}&per_page=10");
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('pagination.total', 2);
+
+        $bookingNumbers = collect($response->json('data'))->pluck('booking_no')->all();
+
+        $this->assertEqualsCanonicalizing([
+            'TRX-SALES-ONE',
+            'TRX-SALES-THREE',
+        ], $bookingNumbers);
+    }
+
     public function test_index_sorts_recently_created_transactions_first_after_item_updates(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
