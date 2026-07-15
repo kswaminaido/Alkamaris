@@ -66,6 +66,7 @@ function PackerSalesReportPage({
   const [page, setPage] = useState(1)
   const [selectedReportRow, setSelectedReportRow] = useState(null)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+  const [summary, setSummary] = useState(null)
   const [salesPeople, setSalesPeople] = useState([])
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
@@ -111,6 +112,7 @@ function PackerSalesReportPage({
 
       setTransactions(payload?.data ?? [])
       setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+      setSummary(payload?.summary ?? null)
       setPage(targetPage)
     } catch {
       setError(`Unable to load ${errorLabel}.`)
@@ -204,7 +206,7 @@ function PackerSalesReportPage({
   const totalRecords = pagination.total ?? 0
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
-  const summaryCards = showSummaryCards ? buildSummaryCards(rows, totalRecords) : []
+  const summaryCards = showSummaryCards ? buildSummaryCards(rows, totalRecords, summary) : []
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={title} activeKey="reports" onLogout={onLogout} authFetch={authFetch}>
@@ -600,10 +602,10 @@ function getStatusClass(value) {
   }
 }
 
-function buildSummaryCards(rows, totalRecords) {
-  const buyerCommissionTotal = sumRows(rows, 'buyerCommission')
-  const packerCommissionTotal = sumRows(rows, 'packerCommission')
-  const totalCommission = buyerCommissionTotal + packerCommissionTotal
+function buildSummaryCards(rows, totalRecords, summary = null) {
+  const buyerCommissionTotal = numericValue(summary?.buyer_commission_total) ?? sumRows(rows, 'buyerCommission')
+  const packerCommissionTotal = numericValue(summary?.packer_commission_total) ?? sumRows(rows, 'packerCommission')
+  const totalCommission = numericValue(summary?.total_commission) ?? (buyerCommissionTotal + packerCommissionTotal)
   const unshippedCount = rows.filter((row) => row.status === 'U').length
 
   return [

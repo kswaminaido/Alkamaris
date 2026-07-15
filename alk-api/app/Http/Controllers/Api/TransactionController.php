@@ -14,6 +14,7 @@ use App\Models\TransactionItem;
 use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionService;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -100,6 +101,8 @@ class TransactionController extends Controller
             $query->whereDate('updated_at', '<=', $toDate);
         }
 
+        $summary = $this->transactionIndexSummary($query);
+
         $sortUnshippedAscending = ! request()->boolean('overdue_invoice')
             && request('status') === TransactionStatus::Unshipped->value
             && request('sort_direction') === 'asc';
@@ -112,7 +115,33 @@ class TransactionController extends Controller
 
         $paginator = $query->paginate($perPage);
 
-        return (new TransactionCollection($paginator))->response();
+        return (new TransactionCollection($paginator))
+            ->additional(['summary' => $summary])
+            ->response();
+    }
+
+    /**
+     * @return array{buyer_commission_total: float, packer_commission_total: float, total_commission: float}
+     */
+    private function transactionIndexSummary(Builder $query): array
+    {
+        $matchingTransactionIds = (clone $query)
+            ->select('transactions.id');
+
+        $summary = TransactionItem::query()
+            ->whereIn('transaction_id', $matchingTransactionIds)
+            ->selectRaw('COALESCE(SUM(total_customer_commission), 0) as buyer_commission_total')
+            ->selectRaw('COALESCE(SUM(total_packer_commission), 0) as packer_commission_total')
+            ->first();
+
+        $buyerCommissionTotal = round((float) ($summary?->buyer_commission_total ?? 0), 5);
+        $packerCommissionTotal = round((float) ($summary?->packer_commission_total ?? 0), 5);
+
+        return [
+            'buyer_commission_total' => $buyerCommissionTotal,
+            'packer_commission_total' => $packerCommissionTotal,
+            'total_commission' => round($buyerCommissionTotal + $packerCommissionTotal, 5),
+        ];
     }
 
     public function summaryReports(): JsonResponse

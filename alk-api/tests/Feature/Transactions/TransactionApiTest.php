@@ -476,6 +476,51 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('pagination.total', 6);
     }
 
+    public function test_index_summary_commissions_include_all_matching_transactions_not_only_current_page(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        foreach (range(1, 6) as $index) {
+            $transaction = Transaction::query()->create([
+                'booking_no' => "TRX-COM-PAGE-{$index}",
+                'booking_mode' => 'trade_commission',
+                'status' => TransactionStatus::Invoice->value,
+                'created_by_user_id' => $admin->id,
+            ]);
+
+            $transaction->items()->create([
+                'product' => "Commission Item {$index}",
+                'total_packer_commission' => $index,
+                'total_customer_commission' => $index * 2,
+                'sort_order' => 0,
+            ]);
+        }
+
+        $excluded = Transaction::query()->create([
+            'booking_no' => 'TRX-COM-EXCLUDED',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Unpaid->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $excluded->items()->create([
+            'product' => 'Excluded Item',
+            'total_packer_commission' => 100,
+            'total_customer_commission' => 200,
+            'sort_order' => 0,
+        ]);
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?status=I&per_page=5')
+            ->assertOk()
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('pagination.total', 6)
+            ->assertJsonPath('summary.buyer_commission_total', 42)
+            ->assertJsonPath('summary.packer_commission_total', 21)
+            ->assertJsonPath('summary.total_commission', 63);
+    }
+
     public function test_index_can_filter_transactions_by_sales_person(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
