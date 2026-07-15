@@ -17,6 +17,7 @@ const statusOptions = [
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
   { value: 'T', label: 'Tally' },
+  { value: 'C', label: 'Cancelled' },
 ]
 
 function buildCsvColumns(showQcInspectionColumn = false, qcInspectionColumnLabel = 'QC Data') {
@@ -597,6 +598,8 @@ function getStatusClass(value) {
       return 'received'
     case 'T':
       return 'tally'
+    case 'C':
+      return 'cancelled'
     default:
       return 'unshipped'
   }

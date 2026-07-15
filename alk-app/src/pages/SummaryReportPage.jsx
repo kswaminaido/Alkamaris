@@ -10,6 +10,7 @@ const EXPORT_PAGE_SIZE = 1000
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
+  { value: 'C', label: 'Cancelled' },
 ]
 
 const csvColumns = [

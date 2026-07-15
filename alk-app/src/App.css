@@ -3133,6 +3133,11 @@ select:focus {
   color: #b42318;
 }
 
+.status-pill.cancelled {
+  background: #f2f4f7;
+  color: #475467;
+}
+
 .table-message-cell {
   padding: 1.15rem !important;
   text-align: center;

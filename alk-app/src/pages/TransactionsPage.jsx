@@ -17,6 +17,7 @@ const statusOptions = [
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
   { value: 'T', label: 'Tally' },
+  { value: 'C', label: 'Cancelled' },
 ]
 
 const csvColumns = [

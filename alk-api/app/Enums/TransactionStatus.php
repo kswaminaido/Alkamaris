@@ -11,6 +11,7 @@ enum TransactionStatus: string
     case Received = 'R'; // payment and documents received
     case Unshipped = 'U';
     case Tally = 'T';
+    case Cancelled = 'C';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum TransactionStatus: string
             self::Received => 'Received',
             self::Unshipped => 'Unshipped',
             self::Tally => 'Tally',
+            self::Cancelled => 'Cancelled',
         };
     }
 

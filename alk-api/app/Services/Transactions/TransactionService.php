@@ -482,10 +482,15 @@ final class TransactionService
     {
         $logistics = TransactionLogistics::query()->where('transaction_id', $transactionId)->first();
         $cashFlowPacker = CashFlowPacker::query()->where('transaction_id', $transactionId)->first();
+        $currentStatus = Transaction::query()->where('id', $transactionId)->value('status');
 
         $status = TransactionStatus::Unshipped;
 
-        if ($cashFlowPacker?->date_balance !== null) {
+        if ($logistics?->cancel_reject) {
+            $status = TransactionStatus::Cancelled;
+        } elseif ($currentStatus === TransactionStatus::Cancelled->value) {
+            return;
+        } elseif ($cashFlowPacker?->date_balance !== null) {
             $status = TransactionStatus::Paid;
         } elseif ($cashFlowPacker?->invoice_date !== null) {
             $status = TransactionStatus::Invoice;

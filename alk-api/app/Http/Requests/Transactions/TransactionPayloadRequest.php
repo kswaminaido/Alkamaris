@@ -52,7 +52,7 @@ abstract class TransactionPayloadRequest extends FormRequest
             'transaction.certified' => ['nullable', 'boolean'],
             'transaction.net_margin' => ['nullable', 'numeric'],
             'transaction.lc_days' => ['nullable', 'integer'],
-            'transaction.status' => ['nullable', 'string', Rule::in(['I', 'P', 'D', 'S', 'R', 'U', 'T'])],
+            'transaction.status' => ['nullable', 'string', Rule::in(\App\Enums\TransactionStatus::values())],
         ];
     }
 
