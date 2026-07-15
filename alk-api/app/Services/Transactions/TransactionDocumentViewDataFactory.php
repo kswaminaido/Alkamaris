@@ -14,6 +14,7 @@ final class TransactionDocumentViewDataFactory
 {
     private const CHINA_ASIA_CUSTOMER_NAME = 'CHINA ASIA MARINE PRODUCTS CO., LIMITED.';
     private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
+    private const LUEN_TAI_HONG_TO_REFERENCE_NAME = 'LUEN TAI HONG MARINE PRODUCT (FATHER & SON) LTD.';
 
     private ?string $logoDataUri = null;
 
@@ -331,6 +332,7 @@ final class TransactionDocumentViewDataFactory
             ->pluck('cartons_value')
             ->filter(fn(mixed $value): bool => $value !== null);
         $etaDate = $this->formatDisplayDate($logistics?->eta_date);
+        $customerName = $this->displayText($customer?->customer);
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -338,7 +340,7 @@ final class TransactionDocumentViewDataFactory
             'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
             // 'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDisplayDate(Carbon::now())),
             'fax' => '',
-            'to' => $this->displayText($customer?->customer),
+            'to' => $this->shippingAdviceToName($customerName),
             'attention' => $this->displayText($customer?->attention),
             'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
             'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
@@ -370,6 +372,13 @@ final class TransactionDocumentViewDataFactory
                 ),
             'shipping_line_agent' => $this->upperText($logistics?->shipping_line_agent),
         ];
+    }
+
+    private function shippingAdviceToName(string $customerName): string
+    {
+        return $this->samePartyName($customerName, self::CHINA_ASIA_CUSTOMER_NAME)
+            ? self::LUEN_TAI_HONG_TO_REFERENCE_NAME
+            : $customerName;
     }
 
     /**
