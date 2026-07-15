@@ -247,6 +247,7 @@ function MasterData() {
       const params = new URLSearchParams()
       params.append('page', targetPage)
       params.append('per_page', 20)
+      params.append('include_inactive', '1')
       if (filters.name) params.append('name', filters.name)
       if (filters.role) params.append('role', filters.role)
       if (filters.fromDate) params.append('from_date', filters.fromDate)

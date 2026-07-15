@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
 const ALLOWED_ROLES = ['admin', 'accounts']
-const SALES_PERSON_ROLE_VALUES = ['sales', 'admin', 'logistics']
+const SALES_PERSON_ROLE_VALUES = ['sales']
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
@@ -121,7 +121,7 @@ function PackerSalesReportPage({
 
   async function loadSalesPeople() {
     try {
-      const response = await authFetch('/users?roles=sales,admin,logistics&per_page=100')
+      const response = await authFetch('/users?role=sales&per_page=100')
       const payload = await response.json()
       setSalesPeople(response.ok ? extractSalesPersonOptions(payload?.data, currentUser) : extractSalesPersonOptions([], currentUser))
     } catch {

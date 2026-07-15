@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
@@ -34,11 +35,20 @@ class UserController extends Controller
             $query->where('name', 'like', "%{$name}%");
         }
 
-        $roles = request('roles') ? explode(',', request('roles')) : [];
+        $roles = request('roles') ? array_filter(array_map('trim', explode(',', request('roles')))) : [];
+        $role = request('role') ? trim((string) request('role')) : null;
+        $requestUserRole = request()->user()?->role;
+        $isAdmin = ($requestUserRole instanceof UserRole ? $requestUserRole->value : $requestUserRole) === UserRole::Admin->value;
+        $includeInactive = $isAdmin && request()->boolean('include_inactive');
+
         if (! empty($roles)) {
             $query->whereIn('role', $roles);
-        } elseif ($role = request('role')) {
+        } elseif ($role) {
             $query->where('role', $role);
+        }
+
+        if ((! empty($roles) || $role) && ! $includeInactive) {
+            $query->where('is_active', true);
         }
 
         if ($fromDate = request('from_date')) {

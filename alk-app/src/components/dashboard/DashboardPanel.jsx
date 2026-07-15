@@ -167,23 +167,30 @@ function DashboardPanel({ currentUser, authFetch }) {
   )
 }
 
-const defaultStatusSummary = [
-  { status: 'I', label: 'Invoice', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'P', label: 'Unpaid', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'D', label: 'Paid', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'S', label: 'Shipped', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'R', label: 'Received', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'U', label: 'Unshipped', transaction_count: 0, total_invoice_value: 0 },
-  { status: 'T', label: 'Tally', transaction_count: 0, total_invoice_value: 0 },
+const dashboardStatusSummary = [
+  { status: 'U', label: 'Unshipped', sourceStatuses: ['U'] },
+  { status: 'S_R', label: 'Shipped + Received', sourceStatuses: ['S', 'R'] },
+  { status: 'I', label: 'Invoice', sourceStatuses: ['I'] },
+  { status: 'P', label: 'Unpaid', sourceStatuses: ['P'] },
+  { status: 'D', label: 'Paid', sourceStatuses: ['D'] },
 ]
 
 function statusSummaryRows(rows) {
   const rowMap = new Map((Array.isArray(rows) ? rows : []).map((row) => [row.status, row]))
 
-  return defaultStatusSummary.map((status) => ({
-    ...status,
-    ...rowMap.get(status.status),
+  return dashboardStatusSummary.map((status) => ({
+    status: status.status,
+    label: status.label,
+    transaction_count: sumStatusField(rowMap, status.sourceStatuses, 'transaction_count'),
+    total_invoice_value: sumStatusField(rowMap, status.sourceStatuses, 'total_invoice_value'),
   }))
+}
+
+function sumStatusField(rowMap, statuses, field) {
+  return statuses.reduce((total, status) => {
+    const value = Number(rowMap.get(status)?.[field] ?? 0)
+    return total + (Number.isFinite(value) ? value : 0)
+  }, 0)
 }
 
 function formatCommission(value) {

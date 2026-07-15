@@ -82,6 +82,11 @@ final class AdminApiTest extends TestCase
             'name' => 'Customer One',
             'role' => UserRole::Customer->value,
         ]);
+        User::factory()->create([
+            'name' => 'Inactive Customer',
+            'role' => UserRole::Customer->value,
+            'is_active' => false,
+        ]);
 
         $logisticsUser = User::factory()->create(['role' => UserRole::Logistics->value]);
         $token = $logisticsUser->createToken('logistics_token')->plainTextToken;
@@ -92,7 +97,8 @@ final class AdminApiTest extends TestCase
 
         $usersResponse
             ->assertOk()
-            ->assertJsonFragment(['name' => 'Customer One']);
+            ->assertJsonFragment(['name' => 'Customer One'])
+            ->assertJsonMissing(['name' => 'Inactive Customer']);
 
         $configsResponse = $this
             ->withHeader('Authorization', "Bearer {$token}")
@@ -110,6 +116,31 @@ final class AdminApiTest extends TestCase
             ]);
 
         $storeResponse->assertForbidden();
+    }
+
+    public function test_admin_user_master_list_can_include_inactive_role_results(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $activeCustomer = User::factory()->create([
+            'name' => 'Active Master Customer',
+            'role' => UserRole::Customer->value,
+            'is_active' => true,
+        ]);
+        $inactiveCustomer = User::factory()->create([
+            'name' => 'Inactive Master Customer',
+            'role' => UserRole::Customer->value,
+            'is_active' => false,
+        ]);
+        $token = $admin->createToken('admin_token')->plainTextToken;
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/users?role=customer&include_inactive=1&per_page=100');
+
+        $response
+            ->assertOk()
+            ->assertJsonFragment(['id' => $activeCustomer->id, 'name' => 'Active Master Customer'])
+            ->assertJsonFragment(['id' => $inactiveCustomer->id, 'name' => 'Inactive Master Customer']);
     }
 
     public function test_admin_can_update_any_users_password(): void
