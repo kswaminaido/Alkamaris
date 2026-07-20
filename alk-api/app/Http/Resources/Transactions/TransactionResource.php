@@ -42,8 +42,14 @@ final class TransactionResource extends JsonResource
             'general_info_packer' => $this->whenLoaded('generalInfoPacker'),
             'revenue_customer' => $this->whenLoaded('revenueCustomer'),
             'revenue_packer' => $this->whenLoaded('revenuePacker'),
-            'cash_flow_customer' => $this->whenLoaded('cashFlowCustomer'),
-            'cash_flow_packer' => $this->whenLoaded('cashFlowPacker'),
+            'cash_flow_customer' => $this->whenLoaded(
+                'cashFlowCustomer',
+                fn () => $this->cashFlowCustomerPayload($this->cashFlowCustomer)
+            ),
+            'cash_flow_packer' => $this->whenLoaded(
+                'cashFlowPacker',
+                fn () => $this->cashFlowPackerPayload($this->cashFlowPacker)
+            ),
             'shipping_details_customer' => $this->whenLoaded(
                 'shippingDetailsCustomer',
                 fn () => $this->shippingDetailsPayload($this->shippingDetailsCustomer)
@@ -57,6 +63,50 @@ final class TransactionResource extends JsonResource
             'expense_lines' => $this->whenLoaded('expenseLines'),
             'note_entries' => $this->whenLoaded('noteEntries'),
             'items' => TransactionItemResource::collection($this->whenLoaded('items')),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function cashFlowCustomerPayload(mixed $cashFlow): ?array
+    {
+        if (! $cashFlow) {
+            return null;
+        }
+
+        return [
+            'id' => $cashFlow->id,
+            'transaction_id' => $cashFlow->transaction_id,
+            'date_advance' => $cashFlow->getRawOriginal('date_advance'),
+            'amount_advance' => $cashFlow->amount_advance,
+            'invoice_date' => $cashFlow->getRawOriginal('invoice_date'),
+            'date_balance' => $cashFlow->getRawOriginal('date_balance'),
+            'amount_balance' => $cashFlow->amount_balance,
+            'created_at' => optional($cashFlow->created_at)->toJSON(),
+            'updated_at' => optional($cashFlow->updated_at)->toJSON(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function cashFlowPackerPayload(mixed $cashFlow): ?array
+    {
+        if (! $cashFlow) {
+            return null;
+        }
+
+        return [
+            'id' => $cashFlow->id,
+            'transaction_id' => $cashFlow->transaction_id,
+            'date_advance' => $cashFlow->getRawOriginal('date_advance'),
+            'amount_advance' => $cashFlow->amount_advance,
+            'invoice_date' => $cashFlow->getRawOriginal('invoice_date'),
+            'date_balance' => $cashFlow->getRawOriginal('date_balance'),
+            'amount_balance' => $cashFlow->amount_balance,
+            'created_at' => optional($cashFlow->created_at)->toJSON(),
+            'updated_at' => optional($cashFlow->updated_at)->toJSON(),
         ];
     }
 

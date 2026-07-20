@@ -628,7 +628,7 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
       <div className="txe-two">
         <SectionCard title="RECEIVE" side="CUSTOMER" tone="gold">
           <Row label="Date Advance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_advance" value={cashFlowCustomer.date_advance} /><input name="cash_flow_customer.amount_advance" defaultValue={cashFlowCustomer.amount_advance ?? ''} /></div></Row>
-          <Row label="Invoice Date"><div className="txe-inline"><DateInput /><input /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_customer.invoice_date" value={cashFlowCustomer.invoice_date} /><input /></div></Row>
           <Row label="Date Balance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_balance" value={cashFlowCustomer.date_balance} /><input name="cash_flow_customer.amount_balance" defaultValue={cashFlowCustomer.amount_balance ?? ''} /></div></Row>
         </SectionCard>
         <SectionCard title="PAYMENT" side="PACKER" tone="gold">
@@ -1915,6 +1915,7 @@ function buildPayload(formElement, transaction) {
     cash_flow_customer: {
       date_advance: getDateValue(formData, 'cash_flow_customer.date_advance', transaction.cash_flow_customer?.date_advance),
       amount_advance: getNumberValue(formData, 'cash_flow_customer.amount_advance', transaction.cash_flow_customer?.amount_advance),
+      invoice_date: getDateValue(formData, 'cash_flow_customer.invoice_date', transaction.cash_flow_customer?.invoice_date),
       date_balance: getDateValue(formData, 'cash_flow_customer.date_balance', transaction.cash_flow_customer?.date_balance),
       amount_balance: getNumberValue(formData, 'cash_flow_customer.amount_balance', transaction.cash_flow_customer?.amount_balance),
     },
