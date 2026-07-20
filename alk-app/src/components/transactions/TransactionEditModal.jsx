@@ -668,9 +668,14 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
 
       <SectionCard title="Cancel Transaction ( Claim / Reject )" tone="gray">
         <div className="txe-checkline">
-          <label><input type="checkbox" name="logistics.cancel_claim" defaultChecked={transaction.logistics?.cancel_claim ?? false} /> Claim</label>
-          <label><input type="checkbox" name="logistics.cancel_reject" defaultChecked={transaction.logistics?.cancel_reject ?? false} /> Reject</label>
-          <label><input type="checkbox" name="logistics.cancel_move" defaultChecked={transaction.logistics?.cancel_move ?? false} /> Move</label>
+          <label>
+            <input
+              type="checkbox"
+              name="logistics.cancel_reject"
+              defaultChecked={transaction.logistics?.cancel_reject ?? false}
+            />
+            <span style={{ color: 'red' }}> Cancel </span>
+          </label>
         </div>
       </SectionCard>
     </div>
@@ -891,9 +896,14 @@ function ShipTab({ transaction, optionsFor, addOption }) {
 
       <SectionCard title="Cancel Transaction ( Claim / Reject )" tone="gray">
         <div className="txe-checkline">
-          <label><input type="checkbox" name="logistics.cancel_claim" defaultChecked={transaction.logistics?.cancel_claim ?? false} /> Claim</label>
-          <label><input type="checkbox" name="logistics.cancel_reject" defaultChecked={transaction.logistics?.cancel_reject ?? false} /> Reject</label>
-          <label><input type="checkbox" name="logistics.cancel_move" defaultChecked={transaction.logistics?.cancel_move ?? false} /> Move</label>
+          <label>
+            <input
+              type="checkbox"
+              name="logistics.cancel_reject"
+              defaultChecked={transaction.logistics?.cancel_reject ?? false}
+            />{" "}
+            <span className="text-red-600 font-medium">Cancel</span>
+          </label>
         </div>
       </SectionCard>
     </div>
