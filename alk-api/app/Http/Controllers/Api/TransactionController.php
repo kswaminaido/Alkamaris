@@ -84,7 +84,16 @@ class TransactionController extends Controller
                         });
                 });
         } elseif ($status = request('status')) {
-            $query->where('status', $status);
+            if ($status === TransactionStatus::Shipped->value) {
+                $query->whereIn('status', [
+                    TransactionStatus::Shipped->value,
+                    TransactionStatus::Received->value,
+                    TransactionStatus::Paid->value,
+                    TransactionStatus::Invoice->value,
+                ]);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         if (request()->boolean('has_qc_inspection_date')) {
