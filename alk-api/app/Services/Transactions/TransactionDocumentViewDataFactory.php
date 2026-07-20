@@ -216,7 +216,9 @@ final class TransactionDocumentViewDataFactory
             ->pluck('commission')
             ->first(fn(string $value): bool => $value !== '');
         $packerName = $this->associatedPackerName($packer?->packer_name, $packer?->vendor);
-
+        // info($this->combinedReferenceText($customer?->buyer, $customer?->buyer_number));
+        $valuePO = preg_replace('/^PO\s*/i', '', $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number));
+        $valuePI = preg_replace('/^PI\s*/i', '', $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number));
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
             'company_address_lines' => [
@@ -230,8 +232,8 @@ final class TransactionDocumentViewDataFactory
             'date' => $this->formatDotDate($transaction->issue_date ?: Carbon::now()),
             'booking_reference' => trim(($transaction->booking_no ?? '') . ' - ' . $this->formatDate($transaction->issue_date), ' -'),
             'order_confirmation_no' => $this->displayText($transaction->booking_no),
-            'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
-            'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
+            'buyer_reference' => $valuePO,
+            'packer_reference' => $valuePI,
             'fax' => '',
             'to' => $customerName,
             'attention' => $this->displayText($customer?->attention),
@@ -333,6 +335,8 @@ final class TransactionDocumentViewDataFactory
             ->filter(fn(mixed $value): bool => $value !== null);
         $etaDate = $this->formatDisplayDate($logistics?->eta_date);
         $customerName = $this->displayText($customer?->customer);
+        $valuePO = preg_replace('/^PO\s*/i', '', $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number));
+        $valuePI = preg_replace('/^PI\s*/i', '', $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number));
 
         return [
             'company_legal_name' => 'ALKAMARIS EXPORTS (OPC) PRIVATE LIMITED',
@@ -342,8 +346,8 @@ final class TransactionDocumentViewDataFactory
             'fax' => '',
             'to' => $this->shippingAdviceToName($customerName),
             'attention' => $this->displayText($customer?->attention),
-            'buyer_reference' => $this->combinedReferenceText($customer?->buyer, $customer?->buyer_number),
-            'packer_reference' => $this->combinedReferenceText($packer?->packer_name, $packer?->packer_number),
+            'buyer_reference' => $valuePO,
+            'packer_reference' => $valuePI,
             'buyer_name' => $this->displayText($customer?->customer),
             'packer_name' => $this->upperText($packer?->vendor),
             'product' => $this->upperText($firstItem?->product ?: $transaction->category),

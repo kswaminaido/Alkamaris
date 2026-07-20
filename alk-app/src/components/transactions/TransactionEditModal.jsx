@@ -633,7 +633,7 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
         </SectionCard>
         <SectionCard title="PAYMENT" side="PACKER" tone="gold">
           <Row label="Sales Proceeds"><div className="txe-inline"><DateInput name="cash_flow_packer.date_advance" value={cashFlowPacker.date_advance} /><input name="cash_flow_packer.amount_advance" defaultValue={cashFlowPacker.amount_advance ?? ''} /></div></Row>
-          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_packer.invoice_date" value={cashFlowPacker.invoice_date} /><input /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_packer.invoice_date" value={cashFlowPacker.invoice_date} /><input name="cash_flow_packer.invoice_number" defaultValue={cashFlowPacker.invoice_number ?? ''} placeholder="Inv Number" /></div></Row>
           <Row label="Comm. Paid On"><div className="txe-inline"><DateInput name="cash_flow_packer.date_balance" value={cashFlowPacker.date_balance} /><input name="cash_flow_packer.amount_balance" defaultValue={cashFlowPacker.amount_balance ?? ''} /></div></Row>
         </SectionCard>
       </div>
@@ -1933,6 +1933,7 @@ function buildPayload(formElement, transaction) {
       date_advance: getDateValue(formData, 'cash_flow_packer.date_advance', transaction.cash_flow_packer?.date_advance),
       amount_advance: getNumberValue(formData, 'cash_flow_packer.amount_advance', transaction.cash_flow_packer?.amount_advance),
       invoice_date: getDateValue(formData, 'cash_flow_packer.invoice_date', transaction.cash_flow_packer?.invoice_date),
+      invoice_number: getFieldValue(formData, 'cash_flow_packer.invoice_number', transaction.cash_flow_packer?.invoice_number),
       date_balance: getDateValue(formData, 'cash_flow_packer.date_balance', transaction.cash_flow_packer?.date_balance),
       amount_balance: getNumberValue(formData, 'cash_flow_packer.amount_balance', transaction.cash_flow_packer?.amount_balance),
     },

@@ -103,6 +103,7 @@ final class TransactionResource extends JsonResource
             'date_advance' => $cashFlow->getRawOriginal('date_advance'),
             'amount_advance' => $cashFlow->amount_advance,
             'invoice_date' => $cashFlow->getRawOriginal('invoice_date'),
+            'invoice_number' => $cashFlow->invoice_number,
             'date_balance' => $cashFlow->getRawOriginal('date_balance'),
             'amount_balance' => $cashFlow->amount_balance,
             'created_at' => optional($cashFlow->created_at)->toJSON(),

@@ -14,6 +14,7 @@ class CashFlowPacker extends Model
         'date_advance',
         'amount_advance',
         'invoice_date',
+        'invoice_number',
         'date_balance',
         'amount_balance',
     ];

@@ -483,15 +483,23 @@ function displayDate(value) {
 }
 
 function ameInvoiceToPacker(transaction) {
-  return transaction.revenue_packer?.amount
-    ?? itemSellingTotal(transaction)
-    ?? '-'
+  const invoiceNumber = String(transaction.cash_flow_packer?.invoice_number ?? '').trim()
+  return invoiceNumber || '-'
 }
 
 function ameInvoiceToCustomer(transaction) {
-  return transaction.revenue_customer?.amount
-    ?? itemSellingTotal(transaction)
-    ?? '-'
+  return hasCustomerItemCommission(transaction) ? 'Comm' : 'No Comm'
+}
+
+function hasCustomerItemCommission(transaction) {
+  const items = Array.isArray(transaction.items) ? transaction.items : []
+
+  return items.some((item) => toNumber(item?.commission_from_customer) !== 0)
+}
+
+function toNumber(value) {
+  const number = Number(String(value ?? '').replace(/,/g, ''))
+  return Number.isFinite(number) ? number : 0
 }
 
 function itemSellingTotal(transaction) {
