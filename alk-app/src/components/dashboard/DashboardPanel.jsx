@@ -100,14 +100,14 @@ function DashboardPanel({ currentUser, authFetch }) {
         <section className="dashboard-status-summary" aria-label="Status wise transaction summary">
           <div className="dashboard-status-summary-head">
             <h3>Status Summary</h3>
-            <span>Total Count & Invoice Value</span>
+            <span>Total Count & Commission Value</span>
           </div>
           <div className="dashboard-status-grid">
             {statusSummaryRows(commissionSummary.status_summary).map((status) => (
               <article key={status.status} className="dashboard-status-card">
                 <span>{status.label}</span>
                 <strong>{commissionLoading ? '-' : formatInteger(status.transaction_count)}</strong>
-                <small>{commissionLoading ? '-' : formatCommission(status.total_invoice_value)}</small>
+                <small>{commissionLoading ? '-' : formatCommission(status.total_commission_value)}</small>
               </article>
             ))}
           </div>
@@ -169,7 +169,7 @@ function DashboardPanel({ currentUser, authFetch }) {
 
 const dashboardStatusSummary = [
   { status: 'U', label: 'Unshipped', sourceStatuses: ['U'] },
-  { status: 'S_R', label: 'Shipped + Received', sourceStatuses: ['S', 'R'] },
+  { status: 'S_R', label: 'Shipped', sourceStatuses: ['S', 'R'] },
   { status: 'I', label: 'Invoice', sourceStatuses: ['I'] },
   { status: 'P', label: 'Unpaid', sourceStatuses: ['P'] },
   { status: 'D', label: 'Paid', sourceStatuses: ['D'] },
@@ -182,7 +182,7 @@ function statusSummaryRows(rows) {
     status: status.status,
     label: status.label,
     transaction_count: sumStatusField(rowMap, status.sourceStatuses, 'transaction_count'),
-    total_invoice_value: sumStatusField(rowMap, status.sourceStatuses, 'total_invoice_value'),
+    total_commission_value: sumStatusField(rowMap, status.sourceStatuses, 'total_commission_value'),
   }))
 }
 
