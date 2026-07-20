@@ -746,12 +746,12 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('data.total_pending_commission', 14.75)
             ->assertJsonPath('data.status_summary.0.status', TransactionStatus::Invoice->value)
             ->assertJsonPath('data.status_summary.0.transaction_count', 1)
-            ->assertJsonPath('data.status_summary.0.total_invoice_value', 125.75)
+            ->assertJsonPath('data.status_summary.0.total_commission_value', 9.75)
             ->assertJsonPath('data.status_summary.4.status', TransactionStatus::Received->value)
             ->assertJsonPath('data.status_summary.4.transaction_count', 1)
-            ->assertJsonPath('data.status_summary.4.total_invoice_value', 110.25)
+            ->assertJsonPath('data.status_summary.4.total_commission_value', 16)
             ->assertJsonPath('data.status_summary.5.status', TransactionStatus::Unshipped->value)
             ->assertJsonPath('data.status_summary.5.transaction_count', 1)
-            ->assertJsonPath('data.status_summary.5.total_invoice_value', 40);
+            ->assertJsonPath('data.status_summary.5.total_commission_value', 5);
     }
 }

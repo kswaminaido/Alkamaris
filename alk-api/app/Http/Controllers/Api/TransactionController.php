@@ -194,25 +194,16 @@ class TransactionController extends Controller
                 return [$status => (int) $transaction->transaction_count];
             });
 
-        $itemSellingTotals = TransactionItem::query()
-            ->selectRaw('transaction_id, COALESCE(SUM(selling_total), 0) as selling_total')
-            ->groupBy('transaction_id');
-
-        $statusInvoiceValues = Transaction::query()
-            ->leftJoin('revenue_customer', 'revenue_customer.transaction_id', '=', 'transactions.id')
-            ->leftJoinSub($itemSellingTotals, 'item_totals', function ($join): void {
-                $join->on('item_totals.transaction_id', '=', 'transactions.id');
-            })
+        $statusCommissionValues = TransactionItem::query()
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->selectRaw('transactions.status as status')
-            ->selectRaw('COALESCE(SUM(COALESCE(revenue_customer.amount, item_totals.selling_total, 0)), 0) as total_invoice_value')
+            ->selectRaw("COALESCE(SUM({$commissionExpression}), 0) as total_commission_value")
             ->groupBy('transactions.status')
             ->get()
-            ->mapWithKeys(function (Transaction $transaction): array {
-                $status = $transaction->status instanceof TransactionStatus
-                    ? $transaction->status->value
-                    : (string) $transaction->status;
+            ->mapWithKeys(function (TransactionItem $item): array {
+                $status = (string) $item->status;
 
-                return [$status => round((float) ($transaction->total_invoice_value ?? 0), 5)];
+                return [$status => round((float) ($item->total_commission_value ?? 0), 5)];
             });
 
         return response()->json([
@@ -224,7 +215,7 @@ class TransactionController extends Controller
                         'status' => $status->value,
                         'label' => $status->label(),
                         'transaction_count' => $statusCounts->get($status->value, 0),
-                        'total_invoice_value' => $statusInvoiceValues->get($status->value, 0),
+                        'total_commission_value' => $statusCommissionValues->get($status->value, 0),
                     ])
                     ->values()
                     ->all(),

@@ -306,7 +306,7 @@ function TransactionsPage({ overdueOnly = false }) {
                   onChange={(e) => handleFilterChange('salesPersonId', e.target.value)}
                   disabled={loading}
                 >
-                  <option value="">All Sales Persons</option>
+                  <option value="">Sales Persons</option>
                   {salesPeople.map((option) => (
                     <option key={option.id} value={option.id}>
                       {option.label}
