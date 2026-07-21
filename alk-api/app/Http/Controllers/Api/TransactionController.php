@@ -130,12 +130,16 @@ class TransactionController extends Controller
     }
 
     /**
-     * @return array{buyer_commission_total: float, packer_commission_total: float, total_commission: float}
+     * @return array{buyer_commission_total: float, packer_commission_total: float, total_commission: float, unshipped_count: int}
      */
     private function transactionIndexSummary(Builder $query): array
     {
         $matchingTransactionIds = (clone $query)
             ->select('transactions.id');
+
+        $unshippedCount = (clone $query)
+            ->where('status', TransactionStatus::Unshipped->value)
+            ->count();
 
         $summary = TransactionItem::query()
             ->whereIn('transaction_id', $matchingTransactionIds)
@@ -150,6 +154,7 @@ class TransactionController extends Controller
             'buyer_commission_total' => $buyerCommissionTotal,
             'packer_commission_total' => $packerCommissionTotal,
             'total_commission' => round($buyerCommissionTotal + $packerCommissionTotal, 5),
+            'unshipped_count' => $unshippedCount,
         ];
     }
 

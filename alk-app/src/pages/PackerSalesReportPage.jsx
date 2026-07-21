@@ -609,7 +609,7 @@ function buildSummaryCards(rows, totalRecords, summary = null) {
   const buyerCommissionTotal = numericValue(summary?.buyer_commission_total) ?? sumRows(rows, 'buyerCommission')
   const packerCommissionTotal = numericValue(summary?.packer_commission_total) ?? sumRows(rows, 'packerCommission')
   const totalCommission = numericValue(summary?.total_commission) ?? (buyerCommissionTotal + packerCommissionTotal)
-  const unshippedCount = rows.filter((row) => row.status === 'U').length
+  const unshippedCount = numericValue(summary?.unshipped_count) ?? rows.filter((row) => row.status === 'U').length
 
   return [
     {

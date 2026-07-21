@@ -518,7 +518,38 @@ final class TransactionApiTest extends TestCase
             ->assertJsonPath('pagination.total', 6)
             ->assertJsonPath('summary.buyer_commission_total', 42)
             ->assertJsonPath('summary.packer_commission_total', 21)
-            ->assertJsonPath('summary.total_commission', 63);
+            ->assertJsonPath('summary.total_commission', 63)
+            ->assertJsonPath('summary.unshipped_count', 0);
+    }
+
+    public function test_index_summary_unshipped_count_includes_all_matching_transactions_not_only_current_page(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $token = $admin->createToken('admin-token')->plainTextToken;
+
+        foreach (range(1, 6) as $index) {
+            Transaction::query()->create([
+                'booking_no' => "TRX-UNSHIPPED-PAGE-{$index}",
+                'booking_mode' => 'trade_commission',
+                'status' => TransactionStatus::Unshipped->value,
+                'created_by_user_id' => $admin->id,
+            ]);
+        }
+
+        Transaction::query()->create([
+            'booking_no' => 'TRX-SHIPPED-PAGE-1',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Shipped->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/transactions?per_page=5')
+            ->assertOk()
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('pagination.total', 7)
+            ->assertJsonPath('summary.unshipped_count', 6);
     }
 
     public function test_index_can_filter_transactions_by_sales_person(): void
