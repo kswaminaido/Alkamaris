@@ -11,6 +11,7 @@ use App\Http\Resources\Transactions\TransactionCollection;
 use App\Http\Resources\Transactions\TransactionResource;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Models\UsersEventLog;
 use App\Services\Audit\UserEventLogger;
 use App\Services\Transactions\TransactionService;
 use Carbon\CarbonImmutable;
@@ -18,9 +19,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TransactionController extends Controller
 {
+    private const LAST_MODIFIED_ACTIONS = [
+        'Transaction updated',
+        'Status updated',
+        'Transaction created',
+    ];
+
     public function __construct(
         private readonly TransactionService $transactionService,
         private readonly UserEventLogger $userEventLogger,
@@ -123,6 +131,7 @@ class TransactionController extends Controller
         }
 
         $paginator = $query->paginate($perPage);
+        $this->preloadLastModifiedEvents($paginator);
 
         return (new TransactionCollection($paginator))
             ->additional(['summary' => $summary])
@@ -210,8 +219,56 @@ class TransactionController extends Controller
         $paginator = $query
             ->orderByDesc('id')
             ->paginate($perPage);
+        $this->preloadLastModifiedEvents($paginator);
 
         return (new TransactionCollection($paginator))->response();
+    }
+
+    /**
+     * Avoid per-row audit-log lookups while serializing paginated transaction lists.
+     */
+    private function preloadLastModifiedEvents(LengthAwarePaginator $paginator): void
+    {
+        $transactions = $paginator->getCollection();
+        $transactionIds = $transactions
+            ->pluck('id')
+            ->filter()
+            ->values();
+
+        if ($transactionIds->isEmpty()) {
+            return;
+        }
+
+        $events = UsersEventLog::query()
+            ->with('user:id,name,email')
+            ->where('event_type', 'Transaction')
+            ->whereIn('data->record_id', $transactionIds->all())
+            ->whereIn('data->action', self::LAST_MODIFIED_ACTIONS)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $updatedEvents = $events
+            ->filter(static fn (UsersEventLog $event): bool => in_array($event->data['action'] ?? null, [
+                'Transaction updated',
+                'Status updated',
+            ], true))
+            ->unique(static fn (UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
+            ->keyBy(static fn (UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
+
+        $createdEvents = $events
+            ->filter(static fn (UsersEventLog $event): bool => ($event->data['action'] ?? null) === 'Transaction created')
+            ->unique(static fn (UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
+            ->keyBy(static fn (UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
+
+        $transactions->each(function (Transaction $transaction) use ($updatedEvents, $createdEvents): void {
+            $key = (string) $transaction->id;
+
+            $transaction->setRelation(
+                'lastModifiedEvent',
+                $updatedEvents->get($key) ?? $createdEvents->get($key)
+            );
+        });
     }
 
     public function commissionSummary(): JsonResponse

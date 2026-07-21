@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('cash_flow_packer', 'invoice_date')) {
+            return;
+        }
+
         Schema::table('cash_flow_packer', function (Blueprint $table): void {
             $table->date('invoice_date')->nullable()->after('amount_advance');
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('cash_flow_packer', 'invoice_date')) {
+            return;
+        }
+
         Schema::table('cash_flow_packer', function (Blueprint $table): void {
             $table->dropColumn('invoice_date');
         });

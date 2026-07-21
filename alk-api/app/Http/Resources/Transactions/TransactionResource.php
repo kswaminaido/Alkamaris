@@ -138,11 +138,13 @@ final class TransactionResource extends JsonResource
      */
     private function lastModifiedBy(): ?array
     {
-        $event = $this->latestTransactionEvent([
-            'Transaction updated',
-            'Status updated',
-        ])
-            ?? $this->latestTransactionEvent(['Transaction created']);
+        $event = $this->resource->relationLoaded('lastModifiedEvent')
+            ? $this->resource->getRelation('lastModifiedEvent')
+            : $this->latestTransactionEvent([
+                'Transaction updated',
+                'Status updated',
+            ])
+                ?? $this->latestTransactionEvent(['Transaction created']);
 
         if ($event) {
             return [
