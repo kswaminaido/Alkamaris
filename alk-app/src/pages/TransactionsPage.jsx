@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DateFilterInput from '../components/common/DateFilterInput'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
@@ -262,7 +263,7 @@ function TransactionsPage({ overdueOnly = false }) {
         <div className="transactions-toolbar">
           <div>
             <h5>Transaction &gt; {overdueOnly ? 'Overdue Invoice' : 'All Transaction'}</h5>
-            <div className="search-filters">
+            <div className="search-filters date-search-filters">
               <div className="filter-group">
                 <label htmlFor="booking-no-filter">Transaction Id / Code:</label>
                 <input
@@ -335,22 +336,20 @@ function TransactionsPage({ overdueOnly = false }) {
 
               <div className="filter-group">
                 <label htmlFor="from-date-filter">From date</label>
-                <input
+                <DateFilterInput
                   id="from-date-filter"
-                  type="date"
                   value={searchFilters.fromDate}
-                  onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                  onChange={(value) => handleFilterChange('fromDate', value)}
                   disabled={loading}
                 />
               </div>
 
               <div className="filter-group">
                 <label htmlFor="to-date-filter">To date</label>
-                <input
+                <DateFilterInput
                   id="to-date-filter"
-                  type="date"
                   value={searchFilters.toDate}
-                  onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                  onChange={(value) => handleFilterChange('toDate', value)}
                   disabled={loading}
                 />
               </div>

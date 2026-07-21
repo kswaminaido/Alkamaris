@@ -2061,6 +2061,10 @@ select:focus {
   padding: 0;
 }
 
+.date-search-filters {
+  overflow: visible;
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
@@ -2087,6 +2091,136 @@ select:focus {
   border: 1px solid var(--field-border);
   border-radius: 4px;
   font-size: 0.875rem;
+}
+
+.date-filter-input {
+  position: relative;
+  display: flex;
+  min-width: 140px;
+}
+
+.date-filter-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.5rem 2rem 0.5rem 0.5rem;
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.date-filter-trigger.is-empty {
+  color: #667085;
+}
+
+.date-filter-trigger:disabled {
+  background: #f9fafb;
+  color: #98a2b3;
+  cursor: not-allowed;
+}
+
+.date-filter-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #667085;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.date-filter-clear:hover {
+  background: #f2f4f7;
+  color: #111827;
+}
+
+.date-filter-calendar {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  z-index: 30;
+  width: 252px;
+  padding: 0.65rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
+.date-filter-calendar-header {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2rem;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+
+.date-filter-calendar-header strong {
+  color: #111827;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.date-filter-calendar-header button,
+.date-filter-days button {
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.date-filter-calendar-header button {
+  width: 2rem;
+  height: 2rem;
+  color: #344054;
+  font-size: 1rem;
+}
+
+.date-filter-calendar-header button:hover,
+.date-filter-days button:hover {
+  background: #eef4ff;
+  color: #175cd3;
+}
+
+.date-filter-weekdays,
+.date-filter-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.2rem;
+}
+
+.date-filter-weekdays span {
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.date-filter-days button {
+  aspect-ratio: 1;
+  color: #344054;
+  font-size: 0.82rem;
+}
+
+.date-filter-days button.is-muted {
+  color: #98a2b3;
+}
+
+.date-filter-days button.is-selected {
+  background: #4a2d73;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .transactions-toolbar input,
@@ -5729,6 +5863,7 @@ textarea {
 
   .filter-group input,
   .filter-group select,
+  .filter-group .date-filter-input,
   .transactions-toolbar input,
   .transactions-toolbar select {
     width: 100%;

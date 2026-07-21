@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DateFilterInput from '../components/common/DateFilterInput'
 import PaginationBar from '../components/common/PaginationBar'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
@@ -215,7 +216,7 @@ function PackerSalesReportPage({
         <div className="transactions-toolbar packer-sales-toolbar">
           <div>
             <h5>{heading}</h5>
-            <div className="search-filters">
+            <div className="search-filters date-search-filters">
               <div className="filter-group">
                 <label htmlFor="packer-sales-code-filter">Transaction Id / Code:</label>
                 <input
@@ -286,22 +287,20 @@ function PackerSalesReportPage({
 
               <div className="filter-group">
                 <label htmlFor="packer-sales-from-date-filter">From date</label>
-                <input
+                <DateFilterInput
                   id="packer-sales-from-date-filter"
-                  type="date"
                   value={searchFilters.fromDate}
-                  onChange={(event) => handleFilterChange('fromDate', event.target.value)}
+                  onChange={(value) => handleFilterChange('fromDate', value)}
                   disabled={loading}
                 />
               </div>
 
               <div className="filter-group">
                 <label htmlFor="packer-sales-to-date-filter">To date</label>
-                <input
+                <DateFilterInput
                   id="packer-sales-to-date-filter"
-                  type="date"
                   value={searchFilters.toDate}
-                  onChange={(event) => handleFilterChange('toDate', event.target.value)}
+                  onChange={(value) => handleFilterChange('toDate', value)}
                   disabled={loading}
                 />
               </div>

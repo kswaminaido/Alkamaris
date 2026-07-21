@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DateFilterInput from '../../components/common/DateFilterInput'
 import PaginationBar from '../../components/common/PaginationBar'
 import AdminSidebarLayout from '../../components/layout/AdminSidebarLayout'
 import { useAuth } from '../../context/AuthContext'
@@ -315,7 +316,7 @@ function MasterData() {
           <div>
             <h5>Master Data &gt; Users</h5>
 
-            <div className="search-filters">
+            <div className="search-filters date-search-filters">
               <div className="filter-group">
                 <label htmlFor="name-filter">Name:</label>
                 <input
@@ -346,21 +347,19 @@ function MasterData() {
 
               <div className="filter-group">
                 <label htmlFor="from-date-filter">From Date:</label>
-                <input
+                <DateFilterInput
                   id="from-date-filter"
-                  type="date"
                   value={searchFilters.fromDate}
-                  onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                  onChange={(value) => handleFilterChange('fromDate', value)}
                 />
               </div>
 
               <div className="filter-group">
                 <label htmlFor="to-date-filter">To Date:</label>
-                <input
+                <DateFilterInput
                   id="to-date-filter"
-                  type="date"
                   value={searchFilters.toDate}
-                  onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                  onChange={(value) => handleFilterChange('toDate', value)}
                 />
               </div>
             </div>
