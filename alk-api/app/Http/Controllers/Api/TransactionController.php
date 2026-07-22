@@ -111,11 +111,11 @@ class TransactionController extends Controller
         }
 
         if ($fromDate = request('from_date')) {
-            $query->whereDate('updated_at', '>=', $fromDate);
+            $query->whereDate('created_at', '>=', $fromDate);
         }
 
         if ($toDate = request('to_date')) {
-            $query->whereDate('updated_at', '<=', $toDate);
+            $query->whereDate('created_at', '<=', $toDate);
         }
 
         $summary = $this->transactionIndexSummary($query);
@@ -209,11 +209,11 @@ class TransactionController extends Controller
         $query->where('status', 'I');
 
         if ($fromDate = request('from_date')) {
-            $query->whereDate('updated_at', '>=', $fromDate);
+            $query->whereDate('created_at', '>=', $fromDate);
         }
 
         if ($toDate = request('to_date')) {
-            $query->whereDate('updated_at', '<=', $toDate);
+            $query->whereDate('created_at', '<=', $toDate);
         }
 
         $paginator = $query

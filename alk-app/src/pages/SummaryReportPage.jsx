@@ -319,7 +319,7 @@ function SummaryReportPage() {
                 <th>Packer</th>
                 <th>Customer</th>
                 <th>Status</th>
-                <th>Date Modified</th>
+                <th>Created At</th>
                 <th>Duplicate</th>
               </tr>
             </thead>
@@ -341,7 +341,7 @@ function SummaryReportPage() {
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
-                  <td>{displayDate(transaction.updated_at)}</td>
+                  <td>{displayDate(transaction.created_at)}</td>
                   <td>
                     <button
                       type="button"

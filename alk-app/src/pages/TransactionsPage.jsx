@@ -36,7 +36,7 @@ const csvColumns = [
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
   // { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
   { label: 'Destination', value: (transaction) => transaction.destination },
-  { label: 'Date Modified', value: (transaction) => displayDate(transaction.updated_at) },
+  { label: 'Created At', value: (transaction) => displayDate(transaction.created_at) },
 ]
 
 function getStatusLabel(value) {
@@ -396,7 +396,7 @@ function TransactionsPage({ overdueOnly = false }) {
                 <th>ETA</th>
                 <th>Status</th>
                 <th>Destination</th>
-                <th>Date Modified</th>
+                <th>Created At</th>
                 <th>Duplicate</th>
               </tr>
             </thead>
@@ -427,7 +427,7 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
                   <td>{transaction.destination ?? '-'}</td>
-                  <td>{displayDate(transaction.updated_at)}</td>
+                  <td>{displayDate(transaction.created_at)}</td>
                   <td>
                     <button
                       type="button"
