@@ -1507,7 +1507,7 @@ async function loadBookingPartyOptions(authFetch) {
       customerContacts: extractCustomerContactMap(customers),
       packers: extractUserNames(packers),
       packedByPackers: extractUserNamesWithAddresses(packers),
-      salesPeople: extractSalesPersonOptions(payload.data.filter((user) => ['sales', 'admin', 'logistics'].includes(user.role))),
+      salesPeople: extractSalesPersonOptions(payload.data.filter((user) => user.role === 'sales')),
     }
   } catch {
     return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
