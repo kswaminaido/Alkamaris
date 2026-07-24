@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserRole;
+use App\Http\Middleware\PreventSearchIndexing;
 use App\Jobs\OverdueEmailJob;
 use App\Jobs\ProcessLcTermsJob;
 use App\Jobs\SendHiMailJob;
@@ -41,6 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
         //     ->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(PreventSearchIndexing::class);
+
         $middleware->alias([
             'role' => EnsureUserRole::class,
         ]);
