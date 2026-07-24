@@ -4,6 +4,7 @@ import TransactionItemsModal from './TransactionItemsModal'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../../utils/countries'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../../utils/dropdownData'
 import { APP_ENV } from '../../config/api'
+import { fetchAllUsers, extractSalesPersonOptions } from '../../utils/userOptions'
 
 const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
 const LOCAL_OPTIONS = {
@@ -1495,19 +1496,18 @@ async function loadBookingPartyOptions(authFetch) {
   if (!authFetch) return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
 
   try {
-    const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
-    const payload = await response.json()
+    const users = await fetchAllUsers(authFetch, { roles: 'customer,packer,vendor,sales,admin,logistics' })
 
-    if (!response.ok || !payload?.data) return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
-    const customers = payload.data.filter((user) => user.role === 'customer')
-    const packers = payload.data.filter((user) => ['packer', 'vendor'].includes(user.role))
+    if (!users) return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
+    const customers = users.filter((user) => user.role === 'customer')
+    const packers = users.filter((user) => ['packer', 'vendor'].includes(user.role))
 
     return {
       customers: extractUserNames(customers),
       customerContacts: extractCustomerContactMap(customers),
       packers: extractUserNames(packers),
       packedByPackers: extractUserNamesWithAddresses(packers),
-      salesPeople: extractSalesPersonOptions(payload.data.filter((user) => user.role === 'sales')),
+      salesPeople: extractSalesPersonOptions(users.filter((user) => user.role === 'sales')),
     }
   } catch {
     return { customers: [], customerContacts: {}, packers: [], packedByPackers: [], salesPeople: [] }
@@ -1542,21 +1542,6 @@ function extractCustomerContactMap(users) {
       ])
       .filter(([name, contactName]) => name && contactName),
   )
-}
-
-function extractSalesPersonOptions(users) {
-  const userMap = new Map()
-
-  for (const user of Array.isArray(users) ? users : []) {
-    if (!user?.id) continue
-    const label = [user.name, user.email].find((value) => typeof value === 'string' && value.trim()) ?? `User #${user.id}`
-    userMap.set(String(user.id), {
-      id: String(user.id),
-      label,
-    })
-  }
-
-  return [...userMap.values()]
 }
 
 function localFallback(value) {

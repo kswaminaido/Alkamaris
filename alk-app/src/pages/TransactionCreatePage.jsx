@@ -4,6 +4,7 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../utils/dropdownData'
 import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '../utils/countries'
+import { fetchAllUsers, extractSalesPersonOptions } from '../utils/userOptions'
 
 const PACKER_ROLE_VALUES = ['packer', 'vendor']
 const NEW_BOOKING_ROLES = ['admin', 'logistics']
@@ -123,7 +124,7 @@ function TransactionCreatePage() {
           booking_mode: bookingMode,
           booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
           issue_date: issueDate,
-          sales_person_id: previous.transaction.sales_person_id || currentUser.id || '',
+          sales_person_id: previous.transaction.sales_person_id || (currentUser.role === 'sales' ? currentUser.id : '') || '',
           product_origin: previous.transaction.product_origin || 'India',
         },
       }
@@ -138,13 +139,12 @@ function TransactionCreatePage() {
 
   async function loadBookingParties() {
     try {
-      const response = await authFetch('/users?roles=customer,packer,vendor,sales,admin,logistics&per_page=100')
-      const payload = await response.json()
+      const users = await fetchAllUsers(authFetch, { roles: 'customer,packer,vendor,sales' })
 
-      if (response.ok && payload?.data) {
-        const customers = payload.data.filter(user => user.role === 'customer')
-        const packers = payload.data.filter(user => PACKER_ROLE_VALUES.includes(user.role))
-        const salesUsers = payload.data.filter(user => ['sales', 'admin', 'logistics'].includes(user.role))
+      if (users) {
+        const customers = users.filter(user => user.role === 'customer')
+        const packers = users.filter(user => PACKER_ROLE_VALUES.includes(user.role))
+        const salesUsers = users.filter(user => user.role === 'sales')
         setCustomers(extractUserNames(customers))
         setCustomerContacts(extractCustomerContactMap(customers))
         setPackers(extractUserNames(packers))
@@ -271,7 +271,7 @@ function TransactionCreatePage() {
     const payload = JSON.parse(JSON.stringify(form))
     payload.transaction.booking_no = (payload.transaction.booking_no ?? '').trim()
     payload.transaction.issue_date = payload.transaction.issue_date || getTodayInputValue()
-    payload.transaction.sales_person_id = payload.transaction.sales_person_id || currentUser?.id || null
+    payload.transaction.sales_person_id = payload.transaction.sales_person_id || (currentUser?.role === 'sales' ? currentUser.id : null)
     payload.transaction.product_origin = payload.transaction.product_origin || ''
     payload.transaction.certified = payload.transaction.certified === 'Yes'
 
@@ -404,21 +404,6 @@ function extractCustomerContactMap(users) {
       ])
       .filter(([name, contactName]) => name && contactName),
   )
-}
-
-function extractSalesPersonOptions(users, currentUser) {
-  const userMap = new Map()
-
-  for (const user of [currentUser, ...(Array.isArray(users) ? users : [])]) {
-    if (!user?.id) continue
-    const label = [user.name, user.email].find((value) => typeof value === 'string' && value.trim()) ?? `User #${user.id}`
-    userMap.set(String(user.id), {
-      id: String(user.id),
-      label,
-    })
-  }
-
-  return [...userMap.values()]
 }
 
 function extractBookingSequence(bookingNo, dateValue) {

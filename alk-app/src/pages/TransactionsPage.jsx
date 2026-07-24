@@ -5,10 +5,10 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
+import { fetchSalesPersonOptions } from '../utils/userOptions'
 
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
-const SALES_PERSON_ROLE_VALUES = ['sales']
 
 const statusOptions = [
   { value: 'I', label: 'Invoice' },
@@ -109,11 +109,9 @@ function TransactionsPage({ overdueOnly = false }) {
 
   async function loadSalesPeople() {
     try {
-      const response = await authFetch('/users?role=sales&per_page=100')
-      const payload = await response.json()
-      setSalesPeople(response.ok ? extractSalesPersonOptions(payload?.data, currentUser) : extractSalesPersonOptions([], currentUser))
+      setSalesPeople(await fetchSalesPersonOptions(authFetch, currentUser))
     } catch {
-      setSalesPeople(extractSalesPersonOptions([], currentUser))
+      setSalesPeople([])
     }
   }
 
@@ -527,22 +525,6 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
   return params
-}
-
-function extractSalesPersonOptions(users, currentUser) {
-  const userMap = new Map()
-  const fallbackUsers = SALES_PERSON_ROLE_VALUES.includes(currentUser?.role) ? [currentUser] : []
-
-  for (const user of [...fallbackUsers, ...(Array.isArray(users) ? users : [])]) {
-    if (!user?.id) continue
-    const label = [user.name, user.email].find((value) => typeof value === 'string' && value.trim()) ?? `User #${user.id}`
-    userMap.set(String(user.id), {
-      id: String(user.id),
-      label,
-    })
-  }
-
-  return [...userMap.values()]
 }
 
 function formatCsvCell(value) {
