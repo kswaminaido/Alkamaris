@@ -5,6 +5,8 @@ import PaginationBar from '../../components/common/PaginationBar'
 import AdminSidebarLayout from '../../components/layout/AdminSidebarLayout'
 import { useAuth } from '../../context/AuthContext'
 
+const PAGE_SIZE = 50
+
 function ShowIcon() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -40,6 +42,17 @@ function StatusIcon({ active }) {
   )
 }
 
+function DeleteIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        d="M7 21c-.6 0-1-.4-1-1V7h12v13c0 .6-.4 1-1 1H7zm3-3h2V10h-2v8zm4 0h2V10h-2v8zM15 4l-1-1h-4L9 4H5v2h14V4h-4z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 function MasterData() {
   const navigate = useNavigate()
   const { currentUser, dashboardTitle, logout, authFetch } = useAuth()
@@ -54,16 +67,21 @@ function MasterData() {
     toDate: ''
   })
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: 20, total: 0 })
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [viewingUser, setViewingUser] = useState(null)
+  const [deleteCandidate, setDeleteCandidate] = useState(null)
+  const [deleting, setDeleting] = useState(null)
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [bulkFile, setBulkFile] = useState(null)
   const [bulkUploading, setBulkUploading] = useState(false)
   const [bulkSampleDownloading, setBulkSampleDownloading] = useState(false)
   const [bulkError, setBulkError] = useState('')
   const [bulkSummary, setBulkSummary] = useState(null)
+  const [bulkFailedPage, setBulkFailedPage] = useState(1)
+  const [bulkFailedPageSize, setBulkFailedPageSize] = useState(PAGE_SIZE)
 
   useEffect(() => {
     if (!currentUser) return
@@ -71,9 +89,9 @@ function MasterData() {
     const nameVal = (searchFilters.name ?? '').trim()
     if (nameVal !== '' && nameVal.length < 4) return
 
-    loadUsers(searchFilters, page)
+    loadUsers(searchFilters, page, pageSize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, searchFilters, page])
+  }, [currentUser, searchFilters, page, pageSize])
 
   function handleFilterChange(key, value) {
     setSearchFilters(prev => ({ ...prev, [key]: value }))
@@ -84,8 +102,13 @@ function MasterData() {
     setPage(newPage)
   }
 
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
+
   function openEditModal(user) {
-    if (currentUser?.role !== 'admin') return
+    if (!canManageUsers) return
     setError('')
     setEditingUser({ ...user, password: '', password_confirmation: '' })
     setShowEditModal(true)
@@ -104,10 +127,22 @@ function MasterData() {
     setViewingUser(null)
   }
 
+  function requestDeleteUser(user) {
+    if (currentUser?.role !== 'admin') return
+    setError('')
+    setDeleteCandidate(user)
+  }
+
+  function cancelDeleteUser() {
+    if (deleting) return
+    setDeleteCandidate(null)
+  }
+
   function openBulkModal() {
     setBulkFile(null)
     setBulkError('')
     setBulkSummary(null)
+    setBulkFailedPage(1)
     setShowBulkModal(true)
   }
 
@@ -117,6 +152,7 @@ function MasterData() {
     setBulkFile(null)
     setBulkError('')
     setBulkSummary(null)
+    setBulkFailedPage(1)
   }
 
   async function submitBulkUpload(event) {
@@ -142,8 +178,9 @@ function MasterData() {
       const body = await response.json().catch(() => null)
       if (response.ok) {
         setBulkSummary(body?.data ?? null)
+        setBulkFailedPage(1)
         setBulkFile(null)
-        await loadUsers(searchFilters, page)
+        await loadUsers(searchFilters, page, pageSize)
       } else {
         const firstValidationMessage = body?.errors ? Object.values(body.errors)?.[0]?.[0] : null
         setBulkError(firstValidationMessage ?? body?.message ?? 'Bulk user creation failed.')
@@ -188,7 +225,7 @@ function MasterData() {
   }
 
   async function saveUserChanges() {
-    if (currentUser?.role !== 'admin') return
+    if (!canManageUsers) return
     if (!editingUser) return
 
     setError('')
@@ -241,13 +278,13 @@ function MasterData() {
     }
   }
 
-  async function loadUsers(filters = {}, targetPage = 1) {
+  async function loadUsers(filters = {}, targetPage = 1, selectedPageSize = pageSize) {
     setLoading(true)
     setError('')
     try {
       const params = new URLSearchParams()
       params.append('page', targetPage)
-      params.append('per_page', 20)
+      params.append('per_page', selectedPageSize)
       params.append('include_inactive', '1')
       if (filters.name) params.append('name', filters.name)
       if (filters.role) params.append('role', filters.role)
@@ -261,7 +298,7 @@ function MasterData() {
       const payload = await response.json()
       if (response.ok) {
         setUsers(payload?.data ?? [])
-        setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: 20, total: 0 })
+        setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: selectedPageSize, total: 0 })
         setPage(targetPage)
       } else {
         setError(payload?.message ?? 'Failed to load users')
@@ -274,7 +311,7 @@ function MasterData() {
   }
 
   async function toggleUserStatus(userId, currentStatus) {
-    if (currentUser?.role !== 'admin') return
+    if (!canManageUsers) return
     setUpdating(userId)
     try {
       const response = await authFetch(`/users/${userId}`, {
@@ -293,6 +330,29 @@ function MasterData() {
     }
   }
 
+  async function confirmDeleteUser() {
+    if (currentUser?.role !== 'admin' || !deleteCandidate) return
+
+    setDeleting(deleteCandidate.id)
+    setError('')
+    try {
+      const response = await authFetch(`/users/${deleteCandidate.id}`, {
+        method: 'DELETE',
+      })
+      const body = await response.json().catch(() => null)
+      if (response.ok) {
+        setUsers(users.filter((user) => user.id !== deleteCandidate.id))
+        setDeleteCandidate(null)
+      } else {
+        setError(body?.message ?? 'Failed to delete user')
+      }
+    } catch {
+      setError('Failed to delete user')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   async function handleLogout() {
     await logout()
     navigate('/', { replace: true })
@@ -303,11 +363,16 @@ function MasterData() {
   }
 
   const isAdmin = currentUser.role === 'admin'
+  const canManageUsers = ['admin', 'logistics'].includes(currentUser.role)
   const canAddUsers = ['admin', 'logistics'].includes(currentUser.role)
-  const tableColumnCount = isAdmin ? 6 : 5
+  const tableColumnCount = canManageUsers ? 6 : 5
   const currentPage = pagination.current_page ?? page
   const lastPage = Math.max(1, pagination.last_page ?? 1)
   const totalRecords = pagination.total ?? 0
+  const bulkFailedUsers = bulkSummary?.failed_users ?? []
+  const bulkFailedLastPage = Math.max(1, Math.ceil(bulkFailedUsers.length / bulkFailedPageSize))
+  const bulkFailedCurrentPage = Math.min(bulkFailedPage, bulkFailedLastPage)
+  const visibleBulkFailedUsers = bulkFailedUsers.slice((bulkFailedCurrentPage - 1) * bulkFailedPageSize, bulkFailedCurrentPage * bulkFailedPageSize)
 
   return (
     <AdminSidebarLayout currentUser={currentUser} title={dashboardTitle} activeKey="" onLogout={handleLogout} authFetch={authFetch}>
@@ -396,6 +461,8 @@ function MasterData() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={handlePageChange}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
         />
 
@@ -408,7 +475,7 @@ function MasterData() {
                 <th>Phone</th>
                 <th>Role</th>
                 <th>Status</th>
-                {isAdmin ? <th>Actions</th> : null}
+                {canManageUsers ? <th>Actions</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -429,7 +496,7 @@ function MasterData() {
                       {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  {isAdmin ? (
+                  {canManageUsers ? (
                     <td>
                       <div className="action-buttons">
                         <button
@@ -460,6 +527,18 @@ function MasterData() {
                         >
                           <StatusIcon active={user.is_active} />
                         </button>
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            className="icon-btn delete"
+                            onClick={() => requestDeleteUser(user)}
+                            disabled={deleting === user.id}
+                            title="Delete user"
+                            aria-label={`Delete ${user.name}`}
+                          >
+                            <DeleteIcon />
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   ) : null}
@@ -474,6 +553,8 @@ function MasterData() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={handlePageChange}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
           className="compact-pagination-bottom"
         />
@@ -499,7 +580,7 @@ function MasterData() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="secondary-btn" onClick={closeDetailsModal}>Close</button>
-                {isAdmin ? (
+                {canManageUsers ? (
                   <button
                     type="button"
                     className="primary-btn"
@@ -574,7 +655,17 @@ function MasterData() {
                     {(bulkSummary.failed_users?.length ?? 0) > 0 && (
                       <div className="bulk-failures">
                         <strong>Failed users</strong>
-                        <PaginationBar totalRecords={bulkSummary.failed_users.length} />
+                        <PaginationBar
+                          currentPage={bulkFailedCurrentPage}
+                          lastPage={bulkFailedLastPage}
+                          totalRecords={bulkFailedUsers.length}
+                          onPageChange={setBulkFailedPage}
+                          pageSize={bulkFailedPageSize}
+                          onPageSizeChange={(nextPageSize) => {
+                            setBulkFailedPageSize(nextPageSize)
+                            setBulkFailedPage(1)
+                          }}
+                        />
                         <div className="transactions-table-wrap">
                           <table className="transactions-table">
                             <thead>
@@ -585,7 +676,7 @@ function MasterData() {
                               </tr>
                             </thead>
                             <tbody>
-                              {bulkSummary.failed_users.map((failure, index) => (
+                              {visibleBulkFailedUsers.map((failure, index) => (
                                 <tr key={`${failure.row}-${failure.email || index}`}>
                                   <td>{failure.row}</td>
                                   <td>{failure.email || '-'}</td>
@@ -595,7 +686,18 @@ function MasterData() {
                             </tbody>
                           </table>
                         </div>
-                        <PaginationBar totalRecords={bulkSummary.failed_users.length} className="compact-pagination-bottom" />
+                        <PaginationBar
+                          currentPage={bulkFailedCurrentPage}
+                          lastPage={bulkFailedLastPage}
+                          totalRecords={bulkFailedUsers.length}
+                          onPageChange={setBulkFailedPage}
+                          pageSize={bulkFailedPageSize}
+                          onPageSizeChange={(nextPageSize) => {
+                            setBulkFailedPageSize(nextPageSize)
+                            setBulkFailedPage(1)
+                          }}
+                          className="compact-pagination-bottom"
+                        />
                       </div>
                     )}
                   </div>
@@ -612,7 +714,7 @@ function MasterData() {
           </div>
         )}
 
-        {isAdmin && showEditModal && editingUser && (
+        {canManageUsers && showEditModal && editingUser && (
           <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Edit user">
             <div className="modal-content p-4">
               <div className="modal-header p-0">
@@ -723,6 +825,25 @@ function MasterData() {
                 <button type="button" className="secondary-btn" onClick={closeEditModal}>Cancel</button> &nbsp; &nbsp;
                 <button type="button" className="save-btn primary-btn" onClick={saveUserChanges} disabled={updating === editingUser.id}>
                   {updating === editingUser.id ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isAdmin && deleteCandidate && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Delete user">
+            <div className="confirm-card">
+              <h3>Delete User</h3>
+              <p>
+                Are you sure you want to delete <strong>{deleteCandidate.name}</strong>?
+              </p>
+              <div className="confirm-actions">
+                <button type="button" className="secondary-btn" onClick={cancelDeleteUser} disabled={Boolean(deleting)}>
+                  Cancel
+                </button>
+                <button type="button" className="danger-btn" onClick={confirmDeleteUser} disabled={Boolean(deleting)}>
+                  {deleting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

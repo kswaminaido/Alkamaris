@@ -1,18 +1,29 @@
 const DEFAULT_MAX_VISIBLE_PAGES = 3
+const DEFAULT_PAGE_SIZE_OPTIONS = [50, 100]
 
 function PaginationBar({
   currentPage = 1,
   lastPage = 1,
   totalRecords = 0,
   onPageChange,
+  pageSize,
+  onPageSizeChange,
   disabled = false,
   className = '',
   maxVisiblePages = DEFAULT_MAX_VISIBLE_PAGES,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
 }) {
   const safeLastPage = Math.max(1, Number(lastPage) || 1)
   const safeCurrentPage = Math.min(Math.max(1, Number(currentPage) || 1), safeLastPage)
   const safeTotalRecords = Math.max(0, Number(totalRecords) || 0)
+  const safePageSizeOptions = pageSizeOptions
+    .map((option) => Number(option))
+    .filter((option) => Number.isFinite(option) && option > 0)
+  const safePageSize = safePageSizeOptions.includes(Number(pageSize))
+    ? Number(pageSize)
+    : safePageSizeOptions[0]
   const canChangePage = typeof onPageChange === 'function' && !disabled
+  const canChangePageSize = typeof onPageSizeChange === 'function' && !disabled
   const canGoPrevious = safeCurrentPage > 1
   const canGoNext = safeCurrentPage < safeLastPage
   const pageNumbers = getVisiblePageNumbers(safeCurrentPage, safeLastPage, maxVisiblePages)
@@ -54,8 +65,27 @@ function PaginationBar({
           {'>>'}
         </button>
       </div>
-      <div className="compact-pagination-summary">
-        Page {safeCurrentPage} of {safeLastPage} ({safeTotalRecords} records)
+      <div className="compact-pagination-meta">
+        {typeof onPageSizeChange === 'function' ? (
+          <label className="compact-pagination-size">
+            <span>Page Count</span>
+            <select
+              value={safePageSize}
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
+              disabled={!canChangePageSize}
+              aria-label="Page Count"
+            >
+              {safePageSizeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <div className="compact-pagination-summary">
+          Page {safeCurrentPage} of {safeLastPage} ({safeTotalRecords} records)
+        </div>
       </div>
     </div>
   )

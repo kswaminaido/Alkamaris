@@ -6,11 +6,11 @@ import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
 
 const statusOptions = [
-  { value: 'I', label: 'Invoice' },
+  { value: 'I', label: 'Invoiced' },
   { value: 'C', label: 'Cancelled' },
 ]
 
@@ -35,6 +35,7 @@ function SummaryReportPage() {
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
@@ -56,15 +57,15 @@ function SummaryReportPage() {
         return
       }
     }
-    loadTransactions(searchFilters, page)
+    loadTransactions(searchFilters, page, pageSize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchFilters, page])
+  }, [searchFilters, page, pageSize])
 
-  async function loadTransactions(filters = searchFilters, targetPage = page) {
+  async function loadTransactions(filters = searchFilters, targetPage = page, selectedPageSize = pageSize) {
     setLoading(true)
     setError('')
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE)
+      const params = buildTransactionParams(filters, targetPage, selectedPageSize)
       const response = await authFetch(`/summary-reports?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
@@ -72,7 +73,7 @@ function SummaryReportPage() {
         return
       }
       setTransactions(payload?.data ?? [])
-      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: selectedPageSize, total: 0 })
       setPage(targetPage)
     } catch {
       setError('Unable to load summary reports.')
@@ -88,6 +89,11 @@ function SummaryReportPage() {
 
   function clearFilters() {
     setSearchFilters({ bookingNo: '', vendor: '', customer: '', status: 'I', fromDate: '', toDate: '' })
+    setPage(1)
+  }
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
     setPage(1)
   }
 
@@ -153,7 +159,7 @@ function SummaryReportPage() {
       }
       const duplicated = payload?.data
       if (!duplicated) {
-        await loadTransactions(searchFilters, page)
+        await loadTransactions(searchFilters, page, pageSize)
         return { ok: true }
       }
 
@@ -162,7 +168,7 @@ function SummaryReportPage() {
         if (index === -1) return [duplicated, ...previous]
         const next = [...previous]
         next.splice(index + 1, 0, duplicated)
-        return next.slice(0, PAGE_SIZE)
+        return next.slice(0, pageSize)
       })
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
       return { ok: true, data: duplicated }
@@ -261,7 +267,7 @@ function SummaryReportPage() {
               <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
                 <select id="status-filter" value={searchFilters.status} disabled>
-                  <option value="I">Invoice</option>
+                  <option value="I">Invoiced</option>
                 </select>
               </div>
 
@@ -307,6 +313,8 @@ function SummaryReportPage() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
         />
 
@@ -369,6 +377,8 @@ function SummaryReportPage() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
           className="compact-pagination-bottom"
         />

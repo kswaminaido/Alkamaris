@@ -23,6 +23,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class TransactionController extends Controller
 {
+    private const SALES_PROCEED_STATUS_FILTER = 'SP';
+
     private const LAST_MODIFIED_ACTIONS = [
         'Transaction updated',
         'Status updated',
@@ -92,16 +94,7 @@ class TransactionController extends Controller
                         });
                 });
         } elseif ($status = request('status')) {
-            if ($status === TransactionStatus::Shipped->value) {
-                $query->whereIn('status', [
-                    TransactionStatus::Shipped->value,
-                    TransactionStatus::Received->value,
-                    TransactionStatus::Paid->value,
-                    TransactionStatus::Invoice->value,
-                ]);
-            } else {
-                $query->where('status', $status);
-            }
+            $this->applyStatusFilter($query, (string) $status);
         }
 
         if (request()->boolean('has_qc_inspection_date')) {
@@ -136,6 +129,30 @@ class TransactionController extends Controller
         return (new TransactionCollection($paginator))
             ->additional(['summary' => $summary])
             ->response();
+    }
+
+    private function applyStatusFilter(Builder $query, string $status): void
+    {
+        if ($status === self::SALES_PROCEED_STATUS_FILTER) {
+            $query->whereHas('cashFlowPacker', function ($query): void {
+                $query->whereNotNull('date_advance');
+            });
+
+            return;
+        }
+
+        if ($status === TransactionStatus::Shipped->value) {
+            $query->whereIn('status', [
+                TransactionStatus::Shipped->value,
+                TransactionStatus::Received->value,
+                TransactionStatus::Paid->value,
+                TransactionStatus::Invoice->value,
+            ]);
+
+            return;
+        }
+
+        $query->where('status', $status);
     }
 
     /**

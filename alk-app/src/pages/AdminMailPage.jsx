@@ -28,6 +28,7 @@ const initialFilters = {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PAGE_SIZE = 50
 
 let transactionItemOptionsCache = null
 let transactionItemOptionsPromise = null
@@ -50,6 +51,8 @@ function AdminMailPage() {
   const [products, setProducts] = useState([])
   const [styles, setStyles] = useState([])
   const [recipients, setRecipients] = useState([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [selectedRecipientIds, setSelectedRecipientIds] = useState([])
   const [composeOpen, setComposeOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -163,6 +166,7 @@ function AdminMailPage() {
         return
       }
       setRecipients(payload?.data ?? [])
+      setPage(1)
     } catch {
       setError('Unable to search customers.')
     } finally {
@@ -173,6 +177,7 @@ function AdminMailPage() {
   function clearFilters() {
     setFilters(initialFilters)
     setRecipients([])
+    setPage(1)
     setSelectedRecipientIds([])
     setMessage('')
     setError('')
@@ -296,7 +301,17 @@ function AdminMailPage() {
     setAttachments([])
   }
 
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
+
   if (!currentUser) return null
+
+  const totalRecords = recipients.length
+  const lastPage = Math.max(1, Math.ceil(totalRecords / pageSize))
+  const currentPage = Math.min(page, lastPage)
+  const visibleRecipients = recipients.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   return (
     <AdminSidebarLayout currentUser={currentUser} activeKey="mail" onLogout={handleLogout} authFetch={authFetch}>
@@ -343,14 +358,22 @@ function AdminMailPage() {
             <h3>Customers List</h3>
             <button type="button" className="primary-btn" onClick={openCompose} disabled={selectedEmails.length === 0 || !filters.defaultMail}>Default Mail ({selectedEmails.length})</button>
           </div>
-          <PaginationBar totalRecords={recipients.length} disabled={loading} />
+          <PaginationBar
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalRecords={totalRecords}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            disabled={loading}
+          />
           <div className="users-table-wrap">
             <table className="users-table">
               <thead>
                 <tr><th><input type="checkbox" aria-label="Select all customers" checked={recipients.some((item) => item.email) && selectedRecipientIds.length === recipients.filter((item) => item.email).length} onChange={toggleSelectAll} /></th><th>Customer</th><th>Email</th><th>Country</th><th>Products</th><th>Last Booking</th></tr>
               </thead>
               <tbody>
-                {recipients.map((recipient) => (
+                {visibleRecipients.map((recipient) => (
                   <tr key={recipientKey(recipient)}>
                     <td><input type="checkbox" checked={selectedRecipientIds.includes(recipientKey(recipient))} onChange={() => toggleRecipient(recipient)} disabled={!recipient.email} /></td>
                     <td>{recipient.name}</td>
@@ -364,7 +387,16 @@ function AdminMailPage() {
               </tbody>
             </table>
           </div>
-          <PaginationBar totalRecords={recipients.length} disabled={loading} className="compact-pagination-bottom" />
+          <PaginationBar
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalRecords={totalRecords}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            disabled={loading}
+            className="compact-pagination-bottom"
+          />
         </article>
       </section>
 

@@ -6,6 +6,7 @@ import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../../ut
 import { APP_ENV } from '../../config/api'
 import { fetchAllUsers, extractSalesPersonOptions } from '../../utils/userOptions'
 
+const PAGE_SIZE = 50
 const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
 const LOCAL_OPTIONS = {
   salesPeople: ['Chaipat', 'Keerthana Gubbala', 'Nina', 'Sahil'],
@@ -31,7 +32,7 @@ const OPTIONS = {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'I', label: 'Invoice' },
+  { value: 'I', label: 'Invoiced' },
   { value: 'P', label: 'Unpaid' },
   { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
@@ -366,9 +367,13 @@ function TransactionEditModal({ transaction, authFetch, onClose, onSave, onDupli
     <div className="txn-edit-overlay" role="dialog" aria-modal="true" aria-label="Edit Transaction">
       <form ref={formRef} className="txn-edit-modal" onSubmit={(event) => event.preventDefault()}>
         <div className="txn-edit-header">
-          <div className="txn-edit-header-copy">
-            <span className="txn-edit-eyebrow">Transaction Details</span>
-            <h2>Transaction# {displayValue(transaction.booking_no)}</h2>
+          <div className="txn-edit-header-copy" style={{ color: "#000" }}>
+            <span className="txn-edit-eyebrow" style={{ color: "#000" }}>
+              Transaction Details
+            </span>
+            <h2 className="txn-edit-eyebrow" style={{ color: "#000" }}>
+              Transaction - {displayValue(transaction.booking_no)}
+            </h2>
           </div>
           <button type="button" className="txn-edit-close" onClick={onClose} aria-label="Close transaction details">x</button>
         </div>
@@ -735,7 +740,12 @@ function DollarTab({ transaction }) {
 }
 
 function ItemsModal({ transaction, onClose }) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const rows = buildItemDetailRows(transaction)
+  const lastPage = Math.max(1, Math.ceil(rows.length / pageSize))
+  const currentPage = Math.min(page, lastPage)
+  const visibleRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
   const totalSellingPrice = rows.reduce((sum, row) => sum + (row.totalSellingPriceValue ?? 0), 0)
   const totalBuyingPrice = rows.reduce((sum, row) => sum + (row.totalBuyingPriceValue ?? 0), 0)
   const totalWeight = rows.reduce((sum, row) => sum + (row.weightValue ?? 0), 0)
@@ -743,6 +753,11 @@ function ItemsModal({ transaction, onClose }) {
   const customer = transaction.general_info_customer?.customer ?? ''
   const etaDate = transaction.shipping_details_customer?.req_eta ?? transaction.shipping_details_packer?.req_eta ?? ''
   const lsdDate = transaction.shipping_details_customer?.lsd_max ?? transaction.shipping_details_packer?.lsd_min ?? ''
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
 
   return (
     <div className="txe-items-overlay" role="dialog" aria-modal="true" aria-label="Transaction items">
@@ -770,7 +785,14 @@ function ItemsModal({ transaction, onClose }) {
 
           <section className="txe-items-table-card">
             <div className="txe-items-section-title">Items Detail</div>
-            <PaginationBar totalRecords={rows.length} />
+            <PaginationBar
+              currentPage={currentPage}
+              lastPage={lastPage}
+              totalRecords={rows.length}
+              onPageChange={setPage}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+            />
             <div className="txe-items-table-wrap">
               <table className="txe-items-table">
                 <thead>
@@ -794,7 +816,7 @@ function ItemsModal({ transaction, onClose }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => (
+                  {visibleRows.map((row) => (
                     <tr key={row.no}>
                       <td>{row.no}</td>
                       <td>{row.product}</td>
@@ -817,7 +839,15 @@ function ItemsModal({ transaction, onClose }) {
                 </tbody>
               </table>
             </div>
-            <PaginationBar totalRecords={rows.length} className="compact-pagination-bottom" />
+            <PaginationBar
+              currentPage={currentPage}
+              lastPage={lastPage}
+              totalRecords={rows.length}
+              onPageChange={setPage}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              className="compact-pagination-bottom"
+            />
           </section>
 
           <div className="txe-items-footer">
@@ -865,15 +895,15 @@ function ShipTab({ transaction, optionsFor, addOption }) {
             <Row label="ETD Date"><DateInput name="logistics.etd_date" value={logisticsDate('etd_date', localFallback('08/01/2026'))} /></Row>
             <Row label="ETA Date"><DateInput name="logistics.eta_date" value={logisticsDate('eta_date', localFallback('26/02/2026'))} /></Row>
             <Row label="QC Inspection Date"><DateInput name="logistics.qc_inspection_date" value={logisticsDate('qc_inspection_date')} /></Row>
-            <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row>
-            <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row>
-            <Row label="Service Type"><NamedSearchableSelect name="logistics.service_type" value={logisticsValue('service_type')} list={withCurrent(OPTIONS.serviceType, logistics.service_type)} /></Row>
+            {/* <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row> */}
+            {/* <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row> */}
+            {/* <Row label="Service Type"><NamedSearchableSelect name="logistics.service_type" value={logisticsValue('service_type')} list={withCurrent(OPTIONS.serviceType, logistics.service_type)} /></Row> */}
             <Row label="B/L Date"><DateInput name="logistics.bl_date" value={logisticsDate('bl_date', '')} /></Row>
             <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '')} /></Row>
-            <Row label="Port"><input name="logistics.port" defaultValue={logisticsValue('port', localFallback('VISAKHAPATNAM, IND'))} /></Row>
-            <Row label="Destination"><NamedSearchableSelect name="logistics.destination" value={destination} list={mergeCountryOptions(optionsFor('transaction.destination'), destination)} onAdd={(value) => addOption('transaction.destination', value)} /></Row>
+            <Row label="POL"><input name="logistics.port" defaultValue={logisticsValue('port', localFallback('VISAKHAPATNAM, IND'))} /></Row>
+            <Row label="POD"><NamedSearchableSelect name="logistics.destination" value={destination} list={mergeCountryOptions(optionsFor('transaction.destination'), destination)} onAdd={(value) => addOption('transaction.destination', value)} /></Row>
             <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', localFallback('MAERSK'))} /></Row>
-            <Row label="AME Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row>
+            {/* <Row label="AME Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row> */}
             <Row label="Packer Inv Date"><DateInput name="logistics.packer_inv_date" value={logisticsDate('packer_inv_date', localFallback('26/12/2025'))} /></Row>
             <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', localFallback('MAA/286/2025-26'))} /></Row>
           </div>

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useGlobalLoading } from './GlobalLoadingContext'
 import { API_BASE } from '../config/api'
@@ -198,7 +199,8 @@ export function AuthProvider({ children }) {
       ? options.loadingLabel
       : 'Loading...'
 
-    const { loadingLabel, ...requestOptions } = options
+    const requestOptions = { ...options }
+    delete requestOptions.loadingLabel
 
     const response = await trackGlobalLoad(
       () => fetch(`${API_BASE}${path}`, {

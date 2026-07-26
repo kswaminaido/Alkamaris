@@ -11,9 +11,10 @@ const EXPORT_PAGE_SIZE = 1000
 const ALLOWED_ROLES = ['admin', 'accounts']
 
 const statusOptions = [
-  { value: 'I', label: 'Invoice' },
+  { value: 'I', label: 'Invoiced' },
   { value: 'P', label: 'Unpaid' },
   { value: 'D', label: 'Paid' },
+  { value: 'SP', label: 'Sales Proceed' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
@@ -66,6 +67,7 @@ function PackerSalesReportPage({
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [selectedReportRow, setSelectedReportRow] = useState(null)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [summary, setSummary] = useState(null)
@@ -94,16 +96,16 @@ function PackerSalesReportPage({
       if (value !== '' && value.length < 4) return
     }
 
-    loadTransactions(searchFilters, page)
+    loadTransactions(searchFilters, page, pageSize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchFilters, page, currentUser?.role])
+  }, [searchFilters, page, pageSize, currentUser?.role])
 
-  async function loadTransactions(filters = searchFilters, targetPage = page) {
+  async function loadTransactions(filters = searchFilters, targetPage = page, selectedPageSize = pageSize) {
     setLoading(true)
     setError('')
 
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, forcedStatus, filterByQcInspectionDate)
+      const params = buildTransactionParams(filters, targetPage, selectedPageSize, forcedStatus, filterByQcInspectionDate)
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
 
@@ -113,7 +115,7 @@ function PackerSalesReportPage({
       }
 
       setTransactions(payload?.data ?? [])
-      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: selectedPageSize, total: 0 })
       setSummary(payload?.summary ?? null)
       setPage(targetPage)
     } catch {
@@ -138,6 +140,11 @@ function PackerSalesReportPage({
 
   function clearFilters() {
     setSearchFilters({ bookingNo: '', vendor: '', customer: '', salesPersonId: '', status: '', fromDate: '', toDate: '' })
+    setPage(1)
+  }
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
     setPage(1)
   }
 
@@ -344,11 +351,28 @@ function PackerSalesReportPage({
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
         />
 
         <div className="transactions-table-wrap packer-sales-table-wrap">
           <table className="transactions-table packer-sales-table">
+            <colgroup>
+              {showQcInspectionColumn ? <col className="packer-sales-col-qc" /> : null}
+              <col className="packer-sales-col-code" />
+              <col className="packer-sales-col-date" />
+              <col className="packer-sales-col-packer" />
+              <col className="packer-sales-col-customer" />
+              <col className="packer-sales-col-weight" />
+              <col className="packer-sales-col-money" />
+              <col className="packer-sales-col-money" />
+              <col className="packer-sales-col-money" />
+              <col className="packer-sales-col-date" />
+              <col className="packer-sales-col-date" />
+              <col className="packer-sales-col-date" />
+              <col className="packer-sales-col-status" />
+            </colgroup>
             <thead>
               <tr>
                 {showQcInspectionColumn ? <th>{qcInspectionColumnLabel}</th> : null}
@@ -359,6 +383,7 @@ function PackerSalesReportPage({
                 <th className="numeric">Total Weight</th>
                 <th className="numeric">Buying Total</th>
                 <th className="numeric">Packer Commission</th>
+                <th className="numeric">Buyer Commission</th>
                 <th>ETA Date</th>
                 <th>ETD Date</th>
                 <th>LSD Date</th>
@@ -368,13 +393,13 @@ function PackerSalesReportPage({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">
+                  <td colSpan={12 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">
                     {loadingText}
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={11 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">{emptyText}</td></tr>
+                <tr><td colSpan={12 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">{emptyText}</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
@@ -390,6 +415,7 @@ function PackerSalesReportPage({
                   <td className="numeric">{formatNumber(row.totalWeight)}</td>
                   <td className="numeric">{formatMoney(row.buyingTotal)}</td>
                   <td className="numeric">{formatMoney(row.packerCommission)}</td>
+                  <td className="numeric">{formatMoney(row.buyerCommission)}</td>
                   <td>{displayDate(row.etaDate)}</td>
                   <td>{displayDate(row.etdDate)}</td>
                   <td>{displayDate(row.lsdDate)}</td>
@@ -409,6 +435,8 @@ function PackerSalesReportPage({
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
           className="compact-pagination-bottom"
         />
@@ -422,7 +450,17 @@ function PackerSalesReportPage({
 }
 
 function PackerSalesDetailModal({ row, onClose }) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const items = row.items ?? []
+  const lastPage = Math.max(1, Math.ceil(items.length / pageSize))
+  const currentPage = Math.min(page, lastPage)
+  const visibleItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
 
   return (
     <div className="modal-overlay packer-sales-modal-overlay" role="dialog" aria-modal="true" aria-label={`Items for ${row.bookingNo}`} onClick={onClose}>
@@ -451,13 +489,24 @@ function PackerSalesDetailModal({ row, onClose }) {
             <strong>{formatMoney(row.packerCommission)}</strong>
           </div>
           <div>
+            <span>Buyer Commission</span>
+            <strong>{formatMoney(row.buyerCommission)}</strong>
+          </div>
+          <div>
             <span>Items</span>
             <strong>{formatInteger(items.length)}</strong>
           </div>
         </div>
 
         <div className="packer-sales-detail-table-wrap">
-          <PaginationBar totalRecords={items.length} />
+          <PaginationBar
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalRecords={items.length}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+          />
           <table className="transactions-table packer-sales-detail-table">
             <thead>
               <tr>
@@ -471,14 +520,15 @@ function PackerSalesDetailModal({ row, onClose }) {
                 <th className="numeric">Total Weight</th>
                 <th className="numeric">Buying Total</th>
                 <th className="numeric">Packer Commission</th>
+                <th className="numeric">Buyer Commission</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr><td colSpan={10} className="table-message-cell">No product details found for this booking.</td></tr>
-              ) : items.map((item, index) => (
+                <tr><td colSpan={11} className="table-message-cell">No product details found for this booking.</td></tr>
+              ) : visibleItems.map((item, index) => (
                 <tr key={item.id}>
-                  <td>{index + 1}</td>
+                  <td>{((currentPage - 1) * pageSize) + index + 1}</td>
                   <td>{item.product || '-'}</td>
                   <td>{item.style || '-'}</td>
                   <td>{item.packing || '-'}</td>
@@ -488,11 +538,20 @@ function PackerSalesDetailModal({ row, onClose }) {
                   <td className="numeric">{formatNumber(item.totalWeight)}</td>
                   <td className="numeric">{formatMoney(item.buyingTotal)}</td>
                   <td className="numeric">{formatMoney(item.packerCommission)}</td>
+                  <td className="numeric">{formatMoney(item.buyerCommission)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <PaginationBar totalRecords={items.length} className="compact-pagination-bottom" />
+          <PaginationBar
+            currentPage={currentPage}
+            lastPage={lastPage}
+            totalRecords={items.length}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            className="compact-pagination-bottom"
+          />
         </div>
       </div>
     </div>

@@ -11,9 +11,10 @@ const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
 
 const statusOptions = [
-  { value: 'I', label: 'Invoice' },
+  { value: 'I', label: 'Invoiced' },
   { value: 'P', label: 'Unpaid' },
   { value: 'D', label: 'Paid' },
+  { value: 'SP', label: 'Sales Proceed' },
   { value: 'S', label: 'Shipped' },
   { value: 'R', label: 'Received' },
   { value: 'U', label: 'Unshipped' },
@@ -53,6 +54,7 @@ function TransactionsPage({ overdueOnly = false }) {
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [salesPeople, setSalesPeople] = useState([])
   const [searchFilters, setSearchFilters] = useState({
@@ -82,15 +84,15 @@ function TransactionsPage({ overdueOnly = false }) {
         return
       }
     }
-    loadTransactions(searchFilters, page)
+    loadTransactions(searchFilters, page, pageSize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchFilters, page])
+  }, [searchFilters, page, pageSize])
 
-  async function loadTransactions(filters = searchFilters, targetPage = page) {
+  async function loadTransactions(filters = searchFilters, targetPage = page, selectedPageSize = pageSize) {
     setLoading(true)
     setError('')
     try {
-      const params = buildTransactionParams(filters, targetPage, PAGE_SIZE, { overdueOnly })
+      const params = buildTransactionParams(filters, targetPage, selectedPageSize, { overdueOnly })
       const response = await authFetch(`/transactions?${params.toString()}`)
       const payload = await response.json()
       if (!response.ok) {
@@ -98,7 +100,7 @@ function TransactionsPage({ overdueOnly = false }) {
         return
       }
       setTransactions(payload?.data ?? [])
-      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+      setPagination(payload?.pagination ?? { current_page: 1, last_page: 1, per_page: selectedPageSize, total: 0 })
       setPage(targetPage)
     } catch {
       setError('Unable to load transactions.')
@@ -130,6 +132,11 @@ function TransactionsPage({ overdueOnly = false }) {
       fromDate: '',
       toDate: '',
     })
+    setPage(1)
+  }
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
     setPage(1)
   }
 
@@ -195,13 +202,13 @@ function TransactionsPage({ overdueOnly = false }) {
       }
       const duplicated = payload?.data
       if (!duplicated) {
-        await loadTransactions(searchFilters, page)
+        await loadTransactions(searchFilters, page, pageSize)
         return { ok: true }
       }
 
       setTransactions((previous) => {
         const next = [duplicated, ...previous]
-        return next.slice(0, PAGE_SIZE)
+        return next.slice(0, pageSize)
       })
       setSelectedTransaction(duplicated)
       setPagination((previous) => ({ ...previous, total: previous.total + 1 }))
@@ -227,7 +234,7 @@ function TransactionsPage({ overdueOnly = false }) {
       const updated = body?.data
       if (updated) {
         setSelectedTransaction(updated)
-        await loadTransactions(searchFilters, 1)
+        await loadTransactions(searchFilters, 1, pageSize)
       }
       return { ok: true, data: updated }
     } catch {
@@ -240,7 +247,7 @@ function TransactionsPage({ overdueOnly = false }) {
   function syncTransactionRecord(updatedTransaction) {
     if (!updatedTransaction?.id) return
     setSelectedTransaction(updatedTransaction)
-    loadTransactions(searchFilters, 1)
+    loadTransactions(searchFilters, 1, pageSize)
   }
 
   async function onLogout() {
@@ -374,6 +381,8 @@ function TransactionsPage({ overdueOnly = false }) {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
         />
 
@@ -453,6 +462,8 @@ function TransactionsPage({ overdueOnly = false }) {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
           className="compact-pagination-bottom"
         />
@@ -497,18 +508,6 @@ function hasCustomerItemCommission(transaction) {
 function toNumber(value) {
   const number = Number(String(value ?? '').replace(/,/g, ''))
   return Number.isFinite(number) ? number : 0
-}
-
-function itemSellingTotal(transaction) {
-  const items = Array.isArray(transaction.items) ? transaction.items : []
-  if (items.length === 0) return null
-
-  const total = items.reduce((sum, item) => {
-    const value = Number(item?.selling_total ?? 0)
-    return Number.isFinite(value) ? sum + value : sum
-  }, 0)
-
-  return total === 0 ? null : total.toFixed(2)
 }
 
 function buildTransactionParams(filters, targetPage, perPage, options = {}) {

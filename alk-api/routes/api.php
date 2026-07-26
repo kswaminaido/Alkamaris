@@ -27,7 +27,7 @@ Route::prefix('auth')->group(function (): void {
     });
 });
 
-Route::middleware('auth:sanctum')->group(function (): void {
+Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): void {
     Route::apiResource('users', UserController::class)->only(['index', 'show']);
 });
 
@@ -48,11 +48,15 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::apiResource('configs', ConfigController::class)->only(['store', 'update', 'destroy']);
     Route::get('users/bulk/sample-template', [UserController::class, 'bulkSampleTemplate']);
     Route::post('users/bulk', [UserController::class, 'bulkStore']);
-    Route::apiResource('users', UserController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('users', UserController::class)->only(['store', 'destroy']);
     Route::get('dashboard/commission-summary', [TransactionController::class, 'commissionSummary']);
     Route::get('mail/options', [MailController::class, 'options']);
     Route::get('mail/recipients', [MailController::class, 'recipients']);
     Route::post('mail/send', [MailController::class, 'send']);
+});
+
+Route::middleware(['auth:sanctum', 'role:admin,logistics'])->group(function (): void {
+    Route::apiResource('users', UserController::class)->only(['update']);
 });
 
 Route::middleware('auth:sanctum')->group(function (): void {

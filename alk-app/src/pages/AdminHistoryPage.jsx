@@ -5,13 +5,14 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const PAGE_SIZE = 20
+const PAGE_SIZE = 50
 
 function AdminHistoryPage() {
   const navigate = useNavigate()
   const { currentUser, logout, authFetch } = useAuth()
   const [events, setEvents] = useState([])
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -22,21 +23,21 @@ function AdminHistoryPage() {
   const totalRecords = pagination.total ?? 0
 
   useEffect(() => {
-    loadHistory(page)
-  }, [page])
+    loadHistory(page, pageSize)
+  }, [page, pageSize])
 
   async function handleLogout() {
     await logout()
     navigate('/', { replace: true })
   }
 
-  async function loadHistory(targetPage = page) {
+  async function loadHistory(targetPage = page, selectedPageSize = pageSize) {
     setLoading(true)
     setError('')
     try {
       const params = new URLSearchParams({
         page: String(targetPage),
-        per_page: String(PAGE_SIZE),
+        per_page: String(selectedPageSize),
       })
       const response = await authFetch(`/admin/history?${params.toString()}`, { loadingLabel: 'Loading history...' })
       const payload = await response.json()
@@ -45,7 +46,7 @@ function AdminHistoryPage() {
         return
       }
       setEvents(Array.isArray(payload?.data) ? payload.data : [])
-      setPagination(payload?.pagination ?? { current_page: targetPage, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+      setPagination(payload?.pagination ?? { current_page: targetPage, last_page: 1, per_page: selectedPageSize, total: 0 })
     } catch {
       setError('Unable to load history.')
     } finally {
@@ -55,9 +56,14 @@ function AdminHistoryPage() {
 
   function refreshHistory() {
     if (page === 1) {
-      loadHistory(1)
+      loadHistory(1, pageSize)
       return
     }
+    setPage(1)
+  }
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
     setPage(1)
   }
 
@@ -83,6 +89,8 @@ function AdminHistoryPage() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
         />
 
@@ -124,6 +132,8 @@ function AdminHistoryPage() {
           lastPage={lastPage}
           totalRecords={totalRecords}
           onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
           disabled={loading}
           className="compact-pagination-bottom"
         />

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import PaginationBar from '../common/PaginationBar'
 import { getVisibleUserTypeOptions } from '../../utils/userType'
 
+const PAGE_SIZE = 50
+
 function EditIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
@@ -47,11 +49,23 @@ function AdminUsersPanel({
   onConfirmDelete,
 }) {
   const [activeSection, setActiveSection] = useState('users')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const menuItems = useMemo(() => [{ id: 'users', label: 'Users' }], [])
   const visibleUserTypeOptions = getVisibleUserTypeOptions(userTypeOptions, form.user_type)
   const hideAccountCredentials = ['packer', 'customer'].includes(form.user_type)
   const isAdmin = currentUser?.role === 'admin'
-  const tableColumnCount = isAdmin ? 5 : 4
+  const canManageUsers = ['admin', 'logistics'].includes(currentUser?.role)
+  const tableColumnCount = canManageUsers ? 5 : 4
+  const totalRecords = users.length
+  const lastPage = Math.max(1, Math.ceil(totalRecords / pageSize))
+  const currentPage = Math.min(page, lastPage)
+  const visibleUsers = users.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
 
   return (
     <section className="admin-shell">
@@ -104,7 +118,14 @@ function AdminUsersPanel({
               {loading && <p>Loading users...</p>}
               {!loading && (
                 <>
-                  <PaginationBar totalRecords={users.length} />
+                  <PaginationBar
+                    currentPage={currentPage}
+                    lastPage={lastPage}
+                    totalRecords={totalRecords}
+                    onPageChange={setPage}
+                    pageSize={pageSize}
+                    onPageSizeChange={handlePageSizeChange}
+                  />
                   <table className="users-table">
                     <thead>
                       <tr>
@@ -112,17 +133,17 @@ function AdminUsersPanel({
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Role</th>
-                        {isAdmin ? <th>Actions</th> : null}
+                        {canManageUsers ? <th>Actions</th> : null}
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((user) => (
+                      {visibleUsers.map((user) => (
                         <tr key={user.id}>
                           <td>{user.name}</td>
                           <td>{user.email}</td>
                           <td>{user.phone_number}</td>
                           <td>{user.role}</td>
-                          {isAdmin ? (
+                          {canManageUsers ? (
                             <td>
                               <div className="users-actions">
                                 <button
@@ -133,14 +154,16 @@ function AdminUsersPanel({
                                 >
                                   <EditIcon />
                                 </button>
-                                <button
-                                  type="button"
-                                  className="icon-btn delete"
-                                  title="Delete user"
-                                  onClick={() => onRequestDelete(user)}
-                                >
-                                  <DeleteIcon />
-                                </button>
+                                {isAdmin ? (
+                                  <button
+                                    type="button"
+                                    className="icon-btn delete"
+                                    title="Delete user"
+                                    onClick={() => onRequestDelete(user)}
+                                  >
+                                    <DeleteIcon />
+                                  </button>
+                                ) : null}
                               </div>
                             </td>
                           ) : null}
@@ -153,7 +176,15 @@ function AdminUsersPanel({
                       )}
                     </tbody>
                   </table>
-                  <PaginationBar totalRecords={users.length} className="compact-pagination-bottom" />
+                  <PaginationBar
+                    currentPage={currentPage}
+                    lastPage={lastPage}
+                    totalRecords={totalRecords}
+                    onPageChange={setPage}
+                    pageSize={pageSize}
+                    onPageSizeChange={handlePageSizeChange}
+                    className="compact-pagination-bottom"
+                  />
                 </>
               )}
             </div>
@@ -161,7 +192,7 @@ function AdminUsersPanel({
         )}
       </main>
 
-      {isAdmin && isFormModalOpen && (
+      {canManageUsers && isFormModalOpen && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal-card">
             <div className="modal-header">

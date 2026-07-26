@@ -19,9 +19,10 @@ class EnsureUserRole
             return $this->unauthorized('Unauthenticated.');
         }
 
-        $userRole = is_string($user->role) ? $user->role : $user->role?->value;
+        $userRole = $this->normalizeRole(is_string($user->role) ? $user->role : $user->role?->value);
+        $allowedRoles = array_map(fn (string $role): string => $this->normalizeRole($role), $roles);
 
-        if (! in_array($userRole, $roles, true)) {
+        if (! in_array($userRole, $allowedRoles, true)) {
             return response()->json(
                 ['message' => 'Forbidden: role not allowed for this action.'],
                 Response::HTTP_FORBIDDEN,
@@ -37,5 +38,12 @@ class EnsureUserRole
             ['message' => $message],
             Response::HTTP_UNAUTHORIZED,
         );
+    }
+
+    private function normalizeRole(?string $role): string
+    {
+        $normalized = strtolower(trim((string) $role));
+
+        return $normalized === 'logistic' ? 'logistics' : $normalized;
     }
 }

@@ -5,6 +5,7 @@ const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
 const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
 const RATE_HINTS = ['Std', 'Adj']
+const PAGE_SIZE = 50
 const DEFAULT_BRAND_OPTIONS = [
   'PLAIN+STICKER',
   'PORTICO',
@@ -20,7 +21,7 @@ const DEFAULT_BRAND_OPTIONS = [
 const EMPTY_ITEM_OPTIONS = { product: [], style: [], packing: [], brand: DEFAULT_BRAND_OPTIONS, size: [] }
 
 const STATUS_OPTIONS = [
-  { value: 'I', label: 'Invoice' },
+  { value: 'I', label: 'Invoiced' },
   { value: 'P', label: 'Unpaid' },
   { value: 'D', label: 'Paid' },
   { value: 'S', label: 'Shipped' },
@@ -38,8 +39,13 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
   const [feedback, setFeedback] = useState({ message: '', error: '' })
   const [busyKey, setBusyKey] = useState('')
   const [savingStatus, setSavingStatus] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
 
-  const items = transaction.items ?? []
+  const items = useMemo(() => transaction.items ?? [], [transaction.items])
+  const lastPage = Math.max(1, Math.ceil(items.length / pageSize))
+  const currentPage = Math.min(page, lastPage)
+  const visibleItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize)
   const totals = useMemo(() => ({
     selling: items.reduce((sum, item) => sum + toNumber(item.selling_total), 0),
     buying: items.reduce((sum, item) => sum + toNumber(item.buying_total), 0),
@@ -51,7 +57,13 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
     setFeedback({ message: '', error: '' })
     setBusyKey('')
     setSavingStatus(false)
+    setPage(1)
   }, [transaction.id])
+
+  function handlePageSizeChange(nextPageSize) {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }
 
   async function handleAction(key, requestFactory, successMessage) {
     setBusyKey(key)
@@ -146,7 +158,14 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
 
           <section className="txe-items-table-card">
             <div className="txe-items-section-title">Items Detail</div>
-            <PaginationBar totalRecords={items.length} />
+            <PaginationBar
+              currentPage={currentPage}
+              lastPage={lastPage}
+              totalRecords={items.length}
+              onPageChange={setPage}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+            />
             <div className="txe-items-table-wrap">
               <table className="txe-items-table">
                 <thead>
@@ -172,9 +191,9 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                 <tbody>
                   {items.length === 0 ? (
                     <tr><td colSpan={16} className="txe-items-empty">No items yet. Click Add to create the first item.</td></tr>
-                  ) : items.map((item, index) => (
+                  ) : visibleItems.map((item, index) => (
                     <tr key={item.id} className="txe-items-clickable-row" onClick={() => setEditingItem(item)}>
-                      <td>{index + 1}</td>
+                      <td>{((currentPage - 1) * pageSize) + index + 1}</td>
                       <td>{item.product || '-'}</td>
                       <td>{item.style || '-'}</td>
                       <td>{item.media || item.item_code || '-'}</td>
@@ -195,7 +214,15 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                 </tbody>
               </table>
             </div>
-            <PaginationBar totalRecords={items.length} className="compact-pagination-bottom" />
+            <PaginationBar
+              currentPage={currentPage}
+              lastPage={lastPage}
+              totalRecords={items.length}
+              onPageChange={setPage}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              className="compact-pagination-bottom"
+            />
           </section>
 
           <div className="txe-items-footer">

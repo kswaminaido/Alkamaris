@@ -2334,6 +2334,34 @@ select:focus {
   font-weight: 600;
 }
 
+.compact-pagination-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.compact-pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  color: #475467;
+  font-weight: 600;
+}
+
+.compact-pagination-size select {
+  height: 28px;
+  min-width: 62px;
+  border: 1px solid #d0d5dd;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .compact-pagination-bottom {
   justify-content: center;
   margin-top: 0.45rem;
@@ -3368,6 +3396,7 @@ select:focus {
   padding: 1.25rem 1.5rem;
   background: linear-gradient(179deg, #4b4848 0%, #454141 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: black;
 }
 h5 {
   font-size: 14px;
@@ -3375,6 +3404,7 @@ h5 {
 .txn-edit-header-copy {
   display: grid;
   gap: 0.3rem;
+  color: black;
 }
 
 .txn-edit-eyebrow {
@@ -4871,6 +4901,497 @@ h5 {
   }
 }
 
+/* Fresh compact rebrand layer */
+:root {
+  --page-bg: #f4fbf8;
+  --brand-purple: #1588c8;
+  --brand-purple-soft: #d8eefb;
+  --field-border: #a9c9d8;
+  --text-main: #17333f;
+  --danger: #b42318;
+  --fresh-sky: #d9f0ff;
+  --fresh-sky-strong: #1588c8;
+  --fresh-yellow: #fff3b0;
+  --fresh-green: #dff6df;
+  --fresh-green-strong: #24985a;
+  --fresh-border: #b9d6c9;
+  --fresh-panel: rgba(255, 255, 255, 0.94);
+}
+
+*,
+*::before,
+*::after,
+.rounded,
+.rounded-0,
+.rounded-1,
+.rounded-2,
+.rounded-3,
+.rounded-4,
+.rounded-5,
+.rounded-circle,
+.rounded-pill,
+.card,
+.btn,
+.form-control,
+.form-select,
+.list-group,
+.list-group-item,
+.modal,
+.modal-content,
+.dropdown-menu {
+  border-radius: 0 !important;
+}
+
+body,
+.app-shell,
+.dashboard-shell {
+  color: var(--text-main);
+  background: linear-gradient(180deg, #eefaff 0%, #f9fbef 45%, #f2fbf2 100%);
+}
+
+.dashboard-page-content {
+  background:
+    linear-gradient(rgba(247, 253, 250, 0.88), rgba(247, 253, 250, 0.88)),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.dashboard-sidebar,
+.dashboard-topbar,
+.admin-side-nav,
+.admin-mail-compose-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  background: linear-gradient(
+    90deg,
+    #d9f0ff 0%,
+    #fff3b0 52%,
+    #dff6df 100%
+  ) !important;
+  color: #17333f !important;
+  border-color: var(--fresh-border) !important;
+}
+
+.dashboard-sidebar {
+  border-right: 1px solid var(--fresh-border);
+}
+
+.dashboard-sidebar-brand,
+.dashboard-sidebar-footer,
+.sidebar-submenu-panel,
+.dashboard-topbar-profile,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.dashboard-menu-btn {
+  background: rgba(255, 255, 255, 0.42) !important;
+  color: #17333f !important;
+  border-color: rgba(21, 136, 200, 0.24) !important;
+}
+
+.sidebar-link,
+.sidebar-sublink,
+.dashboard-topbar-nav-item,
+.admin-side-item {
+  color: #244858 !important;
+  min-height: 34px;
+  padding-top: 0.48rem !important;
+  padding-bottom: 0.48rem !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active,
+.sidebar-submenu-panel .list-group-item:hover,
+.sidebar-submenu-panel .list-group-item.active,
+.dashboard-topbar-nav-item:hover,
+.dashboard-topbar-nav-item.active,
+.admin-side-item:hover,
+.admin-side-item.active {
+  background: rgba(21, 136, 200, 0.14) !important;
+  color: #0f5f8f !important;
+}
+
+.login-page {
+  background: #f2fbf8;
+}
+
+.login-page::after {
+  background: rgba(217, 240, 255, 0.34);
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.dash-card,
+.module-card,
+.dashboard-commission-card,
+.dashboard-status-card,
+.data-group-card,
+.data-hero-strip,
+.transactions-toolbar,
+.transactions-table-wrap,
+.admin-mail-filter-card,
+.admin-mail-results,
+.admin-history-header,
+.admin-history-tree,
+.profile-summary-panel,
+.profile-form-panel,
+.txn-panel,
+.txe-card,
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose {
+  background: var(--fresh-panel) !important;
+  border: 1px solid var(--fresh-border) !important;
+  box-shadow: 0 10px 24px rgba(36, 72, 88, 0.08) !important;
+}
+
+.login-title,
+.signup-title,
+.dashboard-panel h2,
+.admin-main-header h2,
+.transactions-toolbar h5,
+.module-card-head h3,
+.module-card-head h5,
+.data-page-header h2,
+.profile-title,
+.txn-section-title h5,
+.txe-card-head h4,
+.modal-header h3,
+.modal-header h5 {
+  color: #0f5f8f !important;
+}
+
+.module-card-head,
+.transactions-table th,
+.users-table th,
+.txe-items-table th,
+.admin-mail-results .users-table th,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.modal-header,
+.admin-history-header,
+.admin-mail-card-head,
+.admin-mail-results-head {
+  background: linear-gradient(
+    90deg,
+    #d9f0ff 0%,
+    #fff3b0 55%,
+    #dff6df 100%
+  ) !important;
+  color: #17333f !important;
+  border-color: var(--fresh-border) !important;
+}
+
+label,
+.txn-label,
+.filter-group label,
+.register-section-title,
+.admin-mail-field span,
+.row-text {
+  color: #244858 !important;
+  font-size: 0.72rem !important;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea,
+.txn-panel input,
+.txn-panel select,
+.txn-panel textarea,
+.txe-card input,
+.txe-card select,
+.txe-card textarea,
+.transactions-toolbar input,
+.transactions-toolbar select,
+.admin-mail-field input,
+.admin-mail-field select,
+.admin-mail-field textarea,
+.date-filter-trigger,
+.mail-multi-summary {
+  min-height: 28px !important;
+  padding: 0.28rem 0.45rem !important;
+  border: 1px solid var(--field-border) !important;
+  background: #ffffff !important;
+  color: #17333f !important;
+  font-size: 0.78rem !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+}
+
+textarea,
+.txn-panel textarea,
+.txe-card textarea {
+  min-height: 48px !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.date-filter-trigger:focus,
+.mail-multi-summary:focus {
+  outline: 2px solid rgba(21, 136, 200, 0.18) !important;
+  outline-offset: 0 !important;
+  border-color: var(--fresh-sky-strong) !important;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.admin-logout-btn,
+.create-user-btn,
+.status-toggle-btn,
+.edit-btn,
+.modal-actions button,
+.admin-mail-send-btn,
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn,
+.date-filter-calendar-header button,
+.date-filter-days button,
+.date-filter-picker-grid button,
+.page-btn,
+.page-chip,
+.icon-btn {
+  min-height: 28px !important;
+  padding: 0.32rem 0.62rem !important;
+  font-size: 0.78rem !important;
+  line-height: 1.15 !important;
+  border-radius: 0 !important;
+}
+
+.primary-btn,
+.modal-actions button[type="submit"],
+.admin-mail-send-btn {
+  background: #1588c8 !important;
+  border: 1px solid #0f74ad !important;
+  color: #ffffff !important;
+}
+
+.secondary-btn,
+.admin-logout-btn,
+.modal-actions button {
+  background: #fffdf0 !important;
+  border: 1px solid #dacd78 !important;
+  color: #344054 !important;
+}
+
+.danger-btn {
+  background: #e04f45 !important;
+  border: 1px solid #c33b32 !important;
+}
+
+.icon-btn,
+.dashboard-menu-btn,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+}
+
+.form-grid,
+.register-grid,
+.register-password-section,
+.profile-form,
+.authorization-grid,
+.data-field-grid,
+.txn-grid,
+.txn-double-grid,
+.txe-grid-4,
+.txe-two,
+.txe-item-editor-grid,
+.txe-item-commission-grid,
+.txe-items-summary-grid,
+.txe-items-totals,
+.admin-mail-row {
+  gap: 0.42rem !important;
+  row-gap: 0.42rem !important;
+  column-gap: 0.55rem !important;
+}
+
+.register-field,
+.admin-mail-field,
+.filter-group {
+  gap: 0.22rem !important;
+}
+
+.login-wrap,
+.signup-wrap,
+.dashboard-wrap,
+.transaction-page,
+.transactions-page,
+.data-page,
+.admin-mail-page,
+.admin-history-page,
+.modern-dashboard-main {
+  padding: 0.7rem !important;
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.modal-card,
+.modal-content,
+.confirm-card,
+.txn-panel,
+.txe-card-body,
+.transactions-toolbar,
+.data-group-card,
+.admin-mail-filter-card,
+.admin-mail-results {
+  padding: 0.65rem !important;
+}
+
+.txn-row,
+.txe-row,
+.txe-label-field,
+.txe-item-field-row,
+.txe-item-commission-row {
+  gap: 0.35rem !important;
+  min-height: 0 !important;
+}
+
+.txn-controls,
+.txn-controls.cols-2,
+.txn-controls.cols-3,
+.txn-controls.cols-4,
+.txe-inline,
+.txe-inline-3,
+.txe-item-inline,
+.txe-item-inline-wide {
+  gap: 0.35rem !important;
+}
+
+.transactions-table,
+.users-table,
+.txe-items-table,
+.admin-mail-results .users-table {
+  font-size: 0.76rem !important;
+}
+
+.transactions-table th,
+.transactions-table td,
+.users-table th,
+.users-table td,
+.txe-items-table th,
+.txe-items-table td,
+.admin-mail-results .users-table th,
+.admin-mail-results .users-table td {
+  padding: 0.38rem 0.45rem !important;
+}
+
+.modal-overlay,
+.packer-sales-modal-overlay,
+.txn-edit-overlay,
+.txe-items-overlay,
+.txe-item-editor-overlay,
+.txe-print-overlay {
+  background: rgba(23, 51, 63, 0.22) !important;
+  backdrop-filter: blur(1px);
+  padding: 0.75rem !important;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card {
+  max-height: calc(100dvh - 1.5rem) !important;
+  overflow: auto !important;
+}
+
+.modal-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  min-height: 34px !important;
+  margin-bottom: 0.42rem !important;
+  padding: 0.42rem 0.55rem !important;
+}
+
+.modal-close-btn,
+.admin-mail-compose-close {
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  border: 1px solid var(--field-border) !important;
+  background: #ffffff !important;
+  color: #17333f !important;
+}
+
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal {
+  width: min(1180px, calc(100vw - 1.5rem)) !important;
+  max-height: calc(100dvh - 1.5rem) !important;
+  overflow: auto !important;
+}
+
+.txn-edit-body,
+.txe-items-body,
+.txe-item-editor-body,
+.txe-print-content {
+  padding: 0.55rem !important;
+  gap: 0.55rem !important;
+}
+
+.txe-bottom-actions,
+.txe-item-editor-actions,
+.txe-items-summary-actions,
+.txe-items-nav,
+.admin-mail-actions,
+.admin-mail-modal-actions,
+.admin-form-actions,
+.modal-actions,
+.confirm-actions,
+.filter-actions,
+.action-buttons,
+.users-actions {
+  gap: 0.35rem !important;
+}
+
+.status-badge,
+.dashboard-placeholder-note,
+.mail-check,
+.mail-select-all,
+.admin-mail-attachment-chip {
+  border-radius: 0 !important;
+  padding: 0.22rem 0.45rem !important;
+}
+
+.status-badge.active,
+.status-toggle-btn.activate {
+  background: var(--fresh-green) !important;
+  color: #176a40 !important;
+  border-color: #8fd6aa !important;
+}
+
+.status-badge.inactive,
+.status-toggle-btn.deactivate {
+  background: #fff1ed !important;
+  color: #b42318 !important;
+  border-color: #f4b5ac !important;
+}
+
+.dashboard-global-loader,
+.modal-backdrop,
+.dashboard-sidebar-backdrop {
+  background: rgba(23, 51, 63, 0.18) !important;
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -6273,4 +6794,3532 @@ textarea {
   .history-action-item time {
     white-space: normal;
   }
+}
+
+/* Enterprise rebrand override: visual-only, square, compact, single-accent UI */
+:root {
+  --page-bg: #f5f9fc;
+  --brand-purple: #1e78a8;
+  --brand-purple-soft: #e7f4fb;
+  --field-border: #bfd0da;
+  --text-main: #172b36;
+  --danger: #b42318;
+  --enterprise-accent: #1e78a8;
+  --enterprise-accent-strong: #155f86;
+  --enterprise-accent-soft: #e7f4fb;
+  --enterprise-accent-mid: #cfe9f6;
+  --enterprise-border: #d7e1e7;
+  --enterprise-border-strong: #b8c8d2;
+  --enterprise-panel: #ffffff;
+  --enterprise-panel-soft: #f8fbfd;
+  --enterprise-text: #172b36;
+  --enterprise-muted: #5f7480;
+}
+
+*,
+*::before,
+*::after,
+.rounded,
+.rounded-0,
+.rounded-1,
+.rounded-2,
+.rounded-3,
+.rounded-4,
+.rounded-5,
+.rounded-circle,
+.rounded-pill,
+.card,
+.btn,
+.form-control,
+.form-select,
+.dropdown-menu,
+.list-group,
+.list-group-item,
+.modal,
+.modal-dialog,
+.modal-content,
+.modal-header,
+.modal-footer,
+button,
+input,
+select,
+textarea {
+  border-radius: 0 !important;
+}
+
+html,
+body,
+#root {
+  background: var(--page-bg) !important;
+  color: var(--enterprise-text) !important;
+  font-size: 14px;
+}
+
+body {
+  font-family: "Inter", "Manrope", "Segoe UI", Arial, sans-serif !important;
+  letter-spacing: 0;
+}
+
+.app-shell,
+.dashboard-shell,
+.dashboard-page-content,
+.login-page {
+  background: var(--page-bg) !important;
+}
+
+.dashboard-page-content {
+  background:
+    linear-gradient(rgba(245, 249, 252, 0.94), rgba(245, 249, 252, 0.94)),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
+.login-page::before {
+  opacity: 0.18 !important;
+}
+
+.login-page::after {
+  background: rgba(245, 249, 252, 0.7) !important;
+}
+
+.dashboard-sidebar,
+.dashboard-topbar,
+.admin-side-nav,
+.admin-mail-compose-header,
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.modal-header,
+.admin-history-header,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  background: var(--enterprise-accent-soft) !important;
+  color: var(--enterprise-text) !important;
+  border-color: var(--enterprise-border) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-sidebar {
+  border-right: 1px solid var(--enterprise-border) !important;
+}
+
+.dashboard-topbar {
+  border-bottom: 1px solid var(--enterprise-border) !important;
+  min-height: 52px;
+  padding: 0.45rem 0.65rem !important;
+}
+
+.dashboard-sidebar-brand,
+.dashboard-sidebar-footer,
+.sidebar-submenu-panel,
+.dashboard-topbar-profile,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.dashboard-menu-btn,
+.dashboard-topbar-profile-menu {
+  background: var(--enterprise-panel) !important;
+  color: var(--enterprise-text) !important;
+  border: 1px solid var(--enterprise-border) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-sidebar-brand {
+  min-height: 58px;
+  padding: 0.45rem 0.65rem !important;
+}
+
+.dashboard-sidebar-logo {
+  height: 42px !important;
+}
+
+.sidebar-link,
+.sidebar-sublink,
+.dashboard-topbar-nav-item,
+.dashboard-topbar-profile-menu-item,
+.admin-side-item {
+  color: var(--enterprise-muted) !important;
+  min-height: 34px !important;
+  padding: 0.45rem 0.65rem !important;
+  font-size: 0.84rem !important;
+  font-weight: 650 !important;
+  background: transparent !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active,
+.sidebar-submenu-panel .list-group-item:hover,
+.sidebar-submenu-panel .list-group-item.active,
+.dashboard-topbar-nav-item:hover,
+.dashboard-topbar-nav-item.active,
+.dashboard-topbar-profile-menu-item:hover,
+.admin-side-item:hover,
+.admin-side-item.active {
+  background: var(--enterprise-accent-soft) !important;
+  color: var(--enterprise-accent-strong) !important;
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.dash-card,
+.module-card,
+.dashboard-commission-card,
+.dashboard-status-card,
+.data-stat-card,
+.data-group-card,
+.data-field-card,
+.data-hero-strip,
+.transactions-toolbar,
+.transactions-table-wrap,
+.admin-mail-filter-card,
+.admin-mail-results,
+.admin-history-header,
+.admin-history-tree,
+.profile-summary-panel,
+.profile-form-panel,
+.txn-panel,
+.txe-card,
+.txe-card-body,
+.txe-items-table-card,
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose,
+.bulk-user-modal,
+.user-detail-modal {
+  background: var(--enterprise-panel) !important;
+  border: 1px solid var(--enterprise-border) !important;
+  box-shadow: 0 12px 28px rgba(23, 43, 54, 0.07) !important;
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.dash-card,
+.module-card,
+.dashboard-commission-card,
+.dashboard-status-card,
+.data-stat-card,
+.data-group-card,
+.data-field-card,
+.transactions-toolbar,
+.admin-mail-filter-card,
+.admin-mail-results,
+.admin-history-header,
+.admin-history-tree,
+.profile-summary-panel,
+.profile-form-panel,
+.txn-panel,
+.txe-card-body,
+.modal-card,
+.modal-content,
+.confirm-card {
+  padding: 0.7rem !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.login-title,
+.signup-title,
+.dashboard-panel h2,
+.admin-main-header h2,
+.transactions-toolbar h5,
+.module-card-head h3,
+.module-card-head h5,
+.data-page-header h2,
+.profile-title,
+.txn-section-title h5,
+.txe-card-head h4,
+.modal-header h3,
+.modal-header h5 {
+  color: var(--enterprise-text) !important;
+  letter-spacing: 0 !important;
+}
+
+.login-title {
+  margin-bottom: 1rem !important;
+  font-size: clamp(1.65rem, 4vw, 2.25rem) !important;
+}
+
+label,
+.txn-label,
+.filter-group label,
+.register-section-title,
+.admin-mail-field span,
+.row-text {
+  color: var(--enterprise-muted) !important;
+  font-size: 0.71rem !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select,
+.txn-panel input,
+.txn-panel select,
+.txn-panel textarea,
+.txe-card input,
+.txe-card select,
+.txe-card textarea,
+.transactions-toolbar input,
+.transactions-toolbar select,
+.admin-mail-field input,
+.admin-mail-field select,
+.admin-mail-field textarea,
+.date-filter-trigger,
+.mail-multi-summary {
+  min-height: 28px !important;
+  padding: 0.28rem 0.45rem !important;
+  border: 1px solid var(--field-border) !important;
+  background: var(--enterprise-panel) !important;
+  color: var(--enterprise-text) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+}
+
+textarea,
+.txn-panel textarea,
+.txe-card textarea {
+  min-height: 48px !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus,
+.date-filter-trigger:focus,
+.mail-multi-summary:focus {
+  outline: 2px solid rgba(30, 120, 168, 0.16) !important;
+  outline-offset: 0 !important;
+  border-color: var(--enterprise-accent) !important;
+  box-shadow: none !important;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.admin-logout-btn,
+.create-user-btn,
+.status-toggle-btn,
+.edit-btn,
+.modal-actions button,
+.admin-mail-send-btn,
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn,
+.date-filter-calendar-header button,
+.date-filter-days button,
+.date-filter-picker-grid button,
+.page-btn,
+.page-chip,
+.icon-btn,
+.txe-items-primary-btn,
+.txe-items-secondary-btn,
+.txe-items-icon-btn,
+.txe-side-btn,
+.txe-bottom-actions button,
+.filter-actions button {
+  min-height: 28px !important;
+  padding: 0.32rem 0.62rem !important;
+  border-radius: 0 !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  box-shadow: none !important;
+}
+
+.primary-btn,
+.modal-actions button[type="submit"],
+.admin-mail-send-btn,
+.txe-items-primary-btn {
+  background: var(--enterprise-accent) !important;
+  border: 1px solid var(--enterprise-accent-strong) !important;
+  color: #ffffff !important;
+}
+
+.primary-btn:hover:not(:disabled),
+.modal-actions button[type="submit"]:hover:not(:disabled),
+.admin-mail-send-btn:hover:not(:disabled),
+.txe-items-primary-btn:hover:not(:disabled) {
+  background: var(--enterprise-accent-strong) !important;
+  border-color: var(--enterprise-accent-strong) !important;
+}
+
+.secondary-btn,
+.admin-logout-btn,
+.modal-actions button,
+.txe-items-secondary-btn,
+.page-btn,
+.page-chip {
+  background: var(--enterprise-panel-soft) !important;
+  border: 1px solid var(--enterprise-border-strong) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.danger-btn {
+  background: #c24136 !important;
+  border: 1px solid #a8322a !important;
+  color: #ffffff !important;
+}
+
+.icon-btn,
+.dashboard-menu-btn,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn,
+.modal-close-btn,
+.close-btn,
+.admin-mail-compose-close,
+.txe-items-close-btn,
+.txe-items-icon-btn {
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 1px solid var(--enterprise-border-strong) !important;
+  background: var(--enterprise-panel) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.form-grid,
+.register-grid,
+.register-password-section,
+.profile-form,
+.authorization-grid,
+.data-field-grid,
+.txn-grid,
+.txn-double-grid,
+.txe-grid-4,
+.txe-two,
+.txe-item-editor-grid,
+.txe-item-commission-grid,
+.txe-items-summary-grid,
+.txe-items-totals,
+.admin-mail-row {
+  gap: 0.42rem !important;
+  row-gap: 0.42rem !important;
+  column-gap: 0.55rem !important;
+}
+
+.register-field,
+.admin-mail-field,
+.filter-group {
+  gap: 0.22rem !important;
+}
+
+.login-wrap,
+.signup-wrap,
+.dashboard-wrap,
+.transaction-page,
+.transactions-page,
+.data-page,
+.admin-mail-page,
+.admin-history-page,
+.modern-dashboard-main {
+  padding: 0.7rem !important;
+}
+
+.txn-row,
+.txe-row,
+.txe-label-field,
+.txe-item-field-row,
+.txe-item-commission-row,
+.txn-controls,
+.txn-controls.cols-2,
+.txn-controls.cols-3,
+.txn-controls.cols-4,
+.txe-inline,
+.txe-inline-3,
+.txe-item-inline,
+.txe-item-inline-wide {
+  gap: 0.35rem !important;
+  min-height: 0 !important;
+}
+
+.transactions-table,
+.users-table,
+.txe-items-table,
+.admin-mail-results .users-table {
+  border-collapse: collapse !important;
+  font-size: 0.76rem !important;
+}
+
+.transactions-table th,
+.users-table th,
+.txe-items-table th,
+.admin-mail-results .users-table th {
+  background: linear-gradient(180deg, #d9edf7 0%, #c6e3f2 100%) !important;
+  color: #12384c !important;
+  border-bottom: 1px solid #9fc5d8 !important;
+  font-weight: 800 !important;
+}
+
+.transactions-table td,
+.users-table td,
+.txe-items-table td,
+.admin-mail-results .users-table td {
+  background: #ffffff !important;
+  border-bottom: 1px solid var(--enterprise-border) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.transactions-table th,
+.transactions-table td,
+.users-table th,
+.users-table td,
+.txe-items-table th,
+.txe-items-table td,
+.admin-mail-results .users-table th,
+.admin-mail-results .users-table td {
+  padding: 0.38rem 0.45rem !important;
+}
+
+.transactions-table tbody tr:nth-child(even) td,
+.users-table tbody tr:nth-child(even) td,
+.txe-items-table tbody tr:nth-child(even) td,
+.admin-mail-results .users-table tbody tr:nth-child(even) td {
+  background: var(--enterprise-panel-soft) !important;
+}
+
+table th,
+.table th,
+.packer-sales-detail-table th,
+.report-table th,
+.summary-table th,
+.payment-status-table th,
+.packer-sales-table th,
+.data-table th,
+.bulk-failures th {
+  background: linear-gradient(180deg, #d9edf7 0%, #c6e3f2 100%) !important;
+  color: #12384c !important;
+  border-color: #9fc5d8 !important;
+  font-weight: 800 !important;
+}
+
+.modal-overlay,
+.packer-sales-modal-overlay,
+.txn-edit-overlay,
+.txe-items-overlay,
+.txe-item-editor-overlay,
+.txe-print-overlay,
+.dashboard-global-loader,
+.modal-backdrop,
+.dashboard-sidebar-backdrop {
+  background: rgba(23, 43, 54, 0.18) !important;
+  backdrop-filter: blur(1px) !important;
+}
+
+.modal-overlay,
+.packer-sales-modal-overlay,
+.txn-edit-overlay,
+.txe-items-overlay,
+.txe-item-editor-overlay,
+.txe-print-overlay {
+  padding: 0.75rem !important;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.packer-sales-detail-modal {
+  max-height: calc(100dvh - 1.5rem) !important;
+  overflow: auto !important;
+}
+
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal {
+  width: min(1180px, calc(100vw - 1.5rem)) !important;
+}
+
+.modal-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  min-height: 34px !important;
+  margin-bottom: 0.42rem !important;
+  padding: 0.42rem 0.55rem !important;
+  border-bottom: 1px solid var(--enterprise-border) !important;
+}
+
+.txn-edit-body,
+.txe-items-body,
+.txe-item-editor-body,
+.txe-print-content,
+.modal-content form {
+  padding: 0.55rem !important;
+  gap: 0.55rem !important;
+}
+
+.txe-bottom-actions,
+.txe-item-editor-actions,
+.txe-items-summary-actions,
+.txe-items-nav,
+.admin-mail-actions,
+.admin-mail-modal-actions,
+.admin-form-actions,
+.modal-actions,
+.modal-footer,
+.confirm-actions,
+.filter-actions,
+.action-buttons,
+.users-actions {
+  gap: 0.35rem !important;
+}
+
+.status-badge,
+.dashboard-placeholder-note,
+.mail-check,
+.mail-select-all,
+.admin-mail-attachment-chip {
+  border-radius: 0 !important;
+  padding: 0.22rem 0.45rem !important;
+}
+
+.status-badge.active,
+.status-toggle-btn.activate {
+  background: #e7f7ef !important;
+  color: #176a40 !important;
+  border-color: #9bd8b5 !important;
+}
+
+.status-badge.inactive,
+.status-toggle-btn.deactivate {
+  background: #fff1ed !important;
+  color: var(--danger) !important;
+  border-color: #f4b5ac !important;
+}
+
+.dashboard-commission-card.revenue,
+.dashboard-commission-card.collected,
+.dashboard-commission-card.pending,
+.module-card-head.transaction,
+.module-card-head.reports {
+  background: var(--enterprise-accent-soft) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.login-form .login-btn {
+  background: #5c44d0 !important;
+  border-color: #5c44d0 !important;
+}
+
+.login-form .login-btn:hover:not(:disabled) {
+  background: #4d38b8 !important;
+  border-color: #4d38b8 !important;
+}
+
+/* Alkamaris rebrand: purple, white, and orange */
+:root {
+  --page-bg: #f5f6ff;
+  --brand-purple: #4952cc;
+  --brand-purple-dark: #30399f;
+  --brand-purple-soft: #eef0ff;
+  --brand-orange: #f97316;
+  --brand-orange-dark: #c85b0d;
+  --brand-orange-soft: #fff3e8;
+  --field-border: #cfd3ff;
+  --text-main: #111827;
+  --enterprise-accent: #4952cc;
+  --enterprise-accent-strong: #30399f;
+  --enterprise-accent-soft: #eef0ff;
+  --enterprise-accent-mid: #dfe2ff;
+  --enterprise-border: #dfe2ff;
+  --enterprise-border-strong: #b9bfff;
+  --enterprise-panel: #ffffff;
+  --enterprise-panel-soft: #f7f8ff;
+  --enterprise-text: #111827;
+  --enterprise-muted: #5f667a;
+  --modern-ink: #4952cc;
+  --modern-ink-soft: #30399f;
+  --modern-green: #4952cc;
+  --modern-coral: #f97316;
+  --modern-gold: #f97316;
+  --modern-shadow: 0 14px 34px rgba(73, 82, 204, 0.1);
+  --header-green: #4952cc;
+  --header-green-dark: #30399f;
+  --header-sage: #eef0ff;
+  --header-peach: #fff3e8;
+  --header-cream: #ffffff;
+  --header-gold: #f97316;
+  --header-text: #111827;
+  --card-head-blue: #eef0ff;
+  --card-head-blue-border: #b9bfff;
+  --card-head-blue-text: #30399f;
+  --card-head-green: #f7f8ff;
+  --card-head-green-border: #cfd3ff;
+  --card-head-green-text: #30399f;
+  --card-head-yellow: #fff3e8;
+  --card-head-yellow-border: #fdba74;
+  --card-head-yellow-text: #9a3412;
+  --dash-bg-start: #f5f6ff;
+  --dash-bg-end: #ffffff;
+  --dash-panel: #ffffff;
+  --dash-stroke: #dfe2ff;
+  --dash-text: #111827;
+  --dash-muted: #5f667a;
+  --dash-accent: #4952cc;
+  --dash-accent-soft: #eef0ff;
+  --dash-ink: #30399f;
+}
+
+html,
+body,
+#root,
+.app-shell,
+.dashboard-shell,
+.dashboard-page-content,
+.login-page {
+  background: var(--page-bg) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.dashboard-shell {
+  background:
+    radial-gradient(
+      900px 420px at 8% -8%,
+      rgba(73, 82, 204, 0.13),
+      transparent 58%
+    ),
+    radial-gradient(
+      760px 360px at 100% 0%,
+      rgba(249, 115, 22, 0.1),
+      transparent 56%
+    ),
+    linear-gradient(180deg, #f5f6ff 0%, #ffffff 100%) !important;
+}
+
+.dashboard-page-content {
+  background:
+    linear-gradient(rgba(245, 246, 255, 0.9), rgba(255, 255, 255, 0.94)),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
+.login-page {
+  background:
+    linear-gradient(135deg, rgba(73, 82, 204, 0.11), rgba(249, 115, 22, 0.1)),
+    #ffffff !important;
+}
+
+.login-page::after {
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+.dashboard-sidebar,
+.dashboard-topbar,
+.admin-side-nav {
+  background: linear-gradient(180deg, #4952cc 0%, #30399f 100%) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.dashboard-sidebar-brand {
+  background: #ffffff !important;
+  border-bottom-color: var(--enterprise-border) !important;
+}
+
+.sidebar-link,
+.sidebar-sublink,
+.dashboard-topbar-nav-item,
+.admin-side-item {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active,
+.dashboard-topbar-nav-item:hover,
+.dashboard-topbar-nav-item.active,
+.admin-side-item:hover,
+.admin-side-item.active {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--brand-orange) !important;
+}
+
+.dashboard-sidebar-footer,
+.dashboard-menu-btn,
+.dashboard-topbar-profile,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.dash-card,
+.module-card,
+.dashboard-commission-card,
+.dashboard-status-card,
+.data-stat-card,
+.data-group-card,
+.data-field-card,
+.data-hero-strip,
+.transactions-toolbar,
+.transactions-table-wrap,
+.admin-mail-filter-card,
+.admin-mail-results,
+.admin-history-header,
+.admin-history-tree,
+.profile-summary-panel,
+.profile-form-panel,
+.txn-panel,
+.txe-card,
+.txe-card-body,
+.txe-items-table-card,
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose,
+.bulk-user-modal,
+.user-detail-modal {
+  background: #ffffff !important;
+  border-color: var(--enterprise-border) !important;
+  box-shadow: var(--modern-shadow) !important;
+}
+
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.modal-header,
+.admin-history-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header,
+.transactions-table th,
+.users-table th,
+.txe-items-table th,
+.admin-mail-results .users-table th,
+table th,
+.table th,
+.packer-sales-detail-table th,
+.report-table th,
+.summary-table th,
+.payment-status-table th,
+.packer-sales-table th,
+.data-table th,
+.bulk-failures th {
+  background: var(--brand-purple) !important;
+  border-color: var(--brand-purple-dark) !important;
+  color: #ffffff !important;
+}
+
+.module-card-head *,
+.data-group-title *,
+.dashboard-status-summary-head *,
+.txe-card-head *,
+.txn-section-title *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.modal-header *,
+.admin-history-header *,
+.txe-items-topbar *,
+.txn-edit-header *,
+.txe-print-header *,
+.transactions-table th *,
+.users-table th *,
+.txe-items-table th *,
+table th * {
+  color: #ffffff !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.login-title,
+.signup-title,
+.dashboard-panel h2,
+.admin-main-header h2,
+.transactions-toolbar h5,
+.data-page-header h2,
+.profile-title {
+  color: var(--brand-purple-dark) !important;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select,
+.date-filter-trigger,
+.mail-multi-summary {
+  background: #ffffff !important;
+  border-color: var(--field-border) !important;
+  color: var(--enterprise-text) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus,
+.date-filter-trigger:focus,
+.mail-multi-summary:focus {
+  border-color: var(--brand-purple) !important;
+  outline: 3px solid rgba(73, 82, 204, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.primary-btn,
+.create-user-btn,
+.danger-btn,
+.edit-btn,
+.modal-actions button[type="submit"],
+.admin-mail-send-btn,
+.txe-items-primary-btn,
+.data-section-btn.active,
+.status-toggle-btn,
+.transactions-table .icon-btn.duplicate {
+  background: var(--brand-orange) !important;
+  border-color: var(--brand-orange-dark) !important;
+  color: #ffffff !important;
+}
+
+.primary-btn:hover:not(:disabled),
+.create-user-btn:hover:not(:disabled),
+.danger-btn:hover:not(:disabled),
+.edit-btn:hover:not(:disabled),
+.modal-actions button[type="submit"]:hover:not(:disabled),
+.admin-mail-send-btn:hover:not(:disabled),
+.txe-items-primary-btn:hover:not(:disabled),
+.status-toggle-btn:hover:not(:disabled) {
+  background: var(--brand-orange-dark) !important;
+  border-color: var(--brand-orange-dark) !important;
+  color: #ffffff !important;
+}
+
+.secondary-btn,
+.admin-logout-btn,
+.modal-actions button:not([type="submit"]),
+.txe-items-secondary-btn,
+.page-btn,
+.page-chip,
+.icon-btn,
+.modal-close-btn,
+.close-btn,
+.txe-side-btn,
+.txe-items-close-btn,
+.txe-items-icon-btn {
+  background: #ffffff !important;
+  border-color: var(--enterprise-border-strong) !important;
+  color: var(--brand-purple-dark) !important;
+}
+
+.secondary-btn:hover:not(:disabled),
+.admin-logout-btn:hover:not(:disabled),
+.modal-actions button:not([type="submit"]):hover:not(:disabled),
+.txe-items-secondary-btn:hover:not(:disabled),
+.page-btn:hover:not(:disabled),
+.page-chip:hover,
+.icon-btn:hover:not(:disabled),
+.modal-close-btn:hover,
+.close-btn:hover,
+.txe-side-btn:hover:not(:disabled),
+.txe-items-close-btn:hover,
+.txe-items-icon-btn:hover:not(:disabled) {
+  background: var(--brand-purple-soft) !important;
+  border-color: var(--brand-purple) !important;
+  color: var(--brand-purple-dark) !important;
+}
+
+.status-pill,
+.status-badge,
+.page-chip.active,
+.compact-pagination button.active,
+.date-filter-days button.is-selected,
+.date-filter-picker-grid button.is-selected,
+.data-combobox-item-row.selected,
+.data-combobox-item.selected,
+.txn-combobox-option.is-selected,
+.txe-side-btn.active {
+  background: var(--brand-purple) !important;
+  border-color: var(--brand-purple-dark) !important;
+  color: #ffffff !important;
+}
+
+.status-pill *,
+.status-badge *,
+.page-chip.active *,
+.compact-pagination button.active *,
+.date-filter-days button.is-selected *,
+.date-filter-picker-grid button.is-selected *,
+.txe-side-btn.active * {
+  color: #ffffff !important;
+}
+
+.transactions-table tbody tr:nth-child(even) td,
+.users-table tbody tr:nth-child(even) td,
+.txe-items-table tbody tr:nth-child(even) td,
+.admin-mail-results .users-table tbody tr:nth-child(even) td {
+  background: var(--enterprise-panel-soft) !important;
+}
+
+.transactions-table .transactions-row-clickable:hover td {
+  background: var(--brand-orange-soft) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.app-global-loader-spinner,
+.dashboard-global-loader-spinner,
+.data-loading-spinner {
+  border-color: rgba(73, 82, 204, 0.18) !important;
+  border-top-color: var(--brand-purple) !important;
+}
+
+/* Keep New Booking transaction detail dropdowns above the sections below. */
+.transaction-page .txn-top {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 80 !important;
+}
+
+.transaction-page .txn-top:focus-within {
+  z-index: 140 !important;
+}
+
+.transaction-page .txn-combobox {
+  position: relative !important;
+}
+
+.transaction-page .txn-combobox:focus-within {
+  z-index: 150 !important;
+}
+
+.transaction-page .txn-combobox-menu {
+  z-index: 160 !important;
+}
+
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.modal-header,
+.admin-history-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header,
+.module-card-head *,
+.data-group-title *,
+.dashboard-status-summary-head *,
+.txe-card-head *,
+.txn-section-title *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.modal-header *,
+.admin-history-header *,
+.txe-items-topbar *,
+.txn-edit-header *,
+.txe-print-header * {
+  color: #000000 !important;
+}
+
+/* Final dashboard and popup visibility pass */
+.modal-close-btn,
+.close-btn,
+.txn-edit-close,
+.admin-mail-compose-close,
+.txe-items-close-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  border: 1px solid rgba(17, 24, 39, 0.18) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+}
+
+.modal-close-btn:hover,
+.close-btn:hover,
+.txn-edit-close:hover,
+.admin-mail-compose-close:hover,
+.txe-items-close-btn:hover {
+  border-color: rgba(17, 24, 39, 0.34) !important;
+  background: #f3f4f6 !important;
+  color: #000000 !important;
+}
+
+.modal-close-btn svg,
+.close-btn svg,
+.txn-edit-close svg,
+.admin-mail-compose-close svg,
+.txe-items-close-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+.txn-edit-header .txn-edit-header-copy,
+.txn-edit-header .txn-edit-eyebrow,
+.txn-edit-header h2 {
+  color: #000000 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.dashboard-page-content:has(.modern-dashboard-main) {
+  overflow-y: auto !important;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(248, 250, 252, 0.96),
+      rgba(241, 245, 249, 0.92)
+    ),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
+.modern-dashboard-main {
+  width: min(100%, 1480px) !important;
+  min-height: auto !important;
+  max-height: none !important;
+  padding: 1.1rem !important;
+  gap: 0.9rem !important;
+  overflow: visible !important;
+}
+
+.admin-dashboard-hero,
+.dashboard-hero-panel {
+  min-height: 132px !important;
+  padding: 1.15rem 1.25rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.96),
+    rgba(47, 93, 80, 0.94) 58%,
+    rgba(198, 95, 63, 0.88)
+  ) !important;
+  box-shadow: 0 20px 46px rgba(15, 23, 42, 0.14) !important;
+}
+
+.dashboard-hero-panel h1 {
+  font-size: clamp(1.65rem, 3vw, 2.45rem) !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-hero-panel p {
+  max-width: 780px !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 0.94rem !important;
+}
+
+.dashboard-kicker {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-hero-meta {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.dashboard-commission-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.85rem !important;
+}
+
+.dashboard-commission-card {
+  min-height: 116px !important;
+  padding: 1rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+.dashboard-commission-card::before,
+.dashboard-status-card::before {
+  height: 5px !important;
+}
+
+.dashboard-commission-card span {
+  font-size: 0.82rem !important;
+}
+
+.dashboard-commission-card strong {
+  margin-top: 0.55rem !important;
+  font-size: clamp(1.45rem, 2vw, 2rem) !important;
+}
+
+.dashboard-card-icon,
+.module-link-icon,
+.dash-card-icon {
+  border-radius: 8px !important;
+  background: #eef6f3 !important;
+  color: #24483f !important;
+}
+
+.dashboard-status-summary {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+.dashboard-status-summary-head {
+  padding: 0.8rem 1rem !important;
+  background: #f8fafc !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+.dashboard-status-summary-head h3 {
+  font-size: 1rem !important;
+}
+
+.dashboard-status-grid {
+  gap: 0.75rem !important;
+  padding: 0.85rem !important;
+}
+
+.dashboard-status-card {
+  min-height: 112px !important;
+  padding: 0.9rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-status-card strong {
+  font-size: 1.65rem !important;
+}
+
+.dashboard-status-card small {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+.modern-report-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.9rem !important;
+}
+
+.module-card {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+.module-card-head {
+  padding: 0.9rem 1rem !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+.module-card-head.transaction,
+.module-card-head.reports {
+  background: #ffffff !important;
+}
+
+.module-card-head h3 {
+  font-size: 1.05rem !important;
+}
+
+.module-card-head span {
+  color: #64748b !important;
+}
+
+.module-card ul {
+  padding: 0.65rem !important;
+}
+
+.module-link {
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  min-height: 64px !important;
+  padding: 0.65rem !important;
+  border-radius: 10px !important;
+}
+
+.module-link:hover {
+  border-color: rgba(47, 93, 80, 0.18) !important;
+  background: #f8fafc !important;
+}
+
+.module-link-icon {
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.module-link strong {
+  font-size: 0.9rem !important;
+}
+
+.module-link small {
+  display: block !important;
+  margin-top: 0.2rem !important;
+  color: #64748b !important;
+  font-size: 0.78rem !important;
+}
+
+.dashboard-placeholder-note,
+.dashboard-footnote {
+  margin: 0 !important;
+  padding: 0.65rem 0.8rem !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: #475569 !important;
+}
+
+.user-dashboard-panel {
+  border-radius: 12px !important;
+}
+
+.dashboard-cards {
+  gap: 0.9rem !important;
+}
+
+.dash-card {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+}
+
+@media (max-width: 980px) {
+  .modern-dashboard-main {
+    padding: 0.85rem !important;
+  }
+
+  .dashboard-hero-panel,
+  .modern-report-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-commission-grid,
+  .dashboard-status-grid,
+  .dashboard-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-commission-grid,
+  .dashboard-status-grid,
+  .dashboard-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-hero-panel {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-hero-meta {
+    width: 100% !important;
+  }
+}
+
+/* Packer sales needs explicit columns so the Code cell is not collapsed by global fixed-table rules. */
+.packer-sales-page .packer-sales-table {
+  table-layout: fixed !important;
+}
+
+.packer-sales-page .packer-sales-table-wrap {
+  overflow-x: hidden !important;
+}
+
+.packer-sales-table .packer-sales-col-qc {
+  width: 7%;
+}
+
+.packer-sales-table .packer-sales-col-code {
+  width: 9%;
+}
+
+.packer-sales-table .packer-sales-col-date {
+  width: 6%;
+}
+
+.packer-sales-table .packer-sales-col-packer,
+.packer-sales-table .packer-sales-col-customer {
+  width: 10%;
+}
+
+.packer-sales-table .packer-sales-col-weight,
+.packer-sales-table .packer-sales-col-money {
+  width: 7.5%;
+}
+
+.packer-sales-table .packer-sales-col-status {
+  width: 6%;
+}
+
+.packer-sales-page .packer-sales-table th,
+.packer-sales-page .packer-sales-table td {
+  max-width: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.packer-sales-page .packer-sales-table .sticky-col {
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+.packer-sales-page .report-code-button {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: #0f4c81 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.packer-sales-page .packer-sales-table .numeric {
+  overflow-wrap: normal !important;
+  white-space: nowrap !important;
+}
+
+.packer-sales-page .packer-sales-table th,
+.packer-sales-page .packer-sales-table td {
+  padding-left: 0.18rem !important;
+  padding-right: 0.18rem !important;
+}
+
+/* Dashboard modernization */
+.dashboard-page-content:has(.modern-dashboard-main) {
+  height: calc(100dvh - 58px) !important;
+  overflow: hidden !important;
+}
+
+.modern-dashboard-main {
+  width: min(100%, 1440px) !important;
+  margin: 0 auto !important;
+  min-height: calc(100dvh - 58px) !important;
+  max-height: calc(100dvh - 58px) !important;
+  padding: 0.75rem 0.9rem !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 0.65rem !important;
+  overflow: hidden !important;
+}
+
+.dashboard-hero-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 98px;
+  padding: 0.85rem 1rem;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(36, 33, 29, 0.96) 0%,
+    rgba(47, 93, 80, 0.95) 54%,
+    rgba(198, 95, 63, 0.92) 100%
+  );
+  border: 1px solid rgba(255, 253, 250, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgba(36, 33, 29, 0.16);
+}
+
+.dashboard-kicker {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 0.55rem;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid rgba(255, 253, 250, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.1);
+  color: #fff3c4 !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.dashboard-hero-panel h1 {
+  margin: 0;
+  max-width: 760px;
+  color: #ffffff !important;
+  font-size: 1.72rem;
+  line-height: 1.08;
+  font-weight: 850;
+}
+
+.dashboard-hero-panel p {
+  max-width: 720px;
+  margin: 0.35rem 0 0;
+  color: rgba(255, 253, 250, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dashboard-hero-meta {
+  min-width: 126px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid rgba(255, 253, 250, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 253, 250, 0.1);
+}
+
+.dashboard-hero-meta span {
+  display: block;
+  color: rgba(255, 253, 250, 0.68);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dashboard-hero-meta strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: #ffffff;
+  font-size: 0.92rem;
+  text-transform: capitalize;
+}
+
+.dashboard-commission-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.65rem !important;
+}
+
+.dashboard-commission-card {
+  position: relative;
+  min-height: 86px !important;
+  align-content: center !important;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  padding: 0.72rem 0.82rem !important;
+  border: 1px solid var(--enterprise-border) !important;
+  border-left: 0 !important;
+  border-radius: 12px !important;
+  background: #fffdfa !important;
+  box-shadow: 0 12px 30px rgba(36, 33, 29, 0.08) !important;
+}
+
+.dashboard-commission-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--modern-green);
+}
+
+.dashboard-commission-card.revenue::before {
+  background: #2f5d50;
+}
+
+.dashboard-commission-card.collected::before {
+  background: #217a55;
+}
+
+.dashboard-commission-card.pending::before {
+  background: #b6873f;
+}
+
+.dashboard-card-icon,
+.dash-card-icon,
+.module-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.dashboard-card-icon {
+  position: static;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--enterprise-accent-soft);
+  color: var(--enterprise-accent-strong);
+}
+
+.dashboard-card-icon svg,
+.module-link-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-commission-card span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--enterprise-muted) !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+}
+
+.dashboard-commission-card strong {
+  color: var(--enterprise-text) !important;
+  margin-top: 0.36rem;
+  font-size: 1.42rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-status-summary {
+  overflow: hidden;
+  border: 1px solid rgba(47, 93, 80, 0.14) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 253, 250, 0.98),
+    rgba(248, 246, 241, 0.98)
+  ) !important;
+  box-shadow: 0 16px 38px rgba(36, 33, 29, 0.1) !important;
+}
+
+.dashboard-status-summary-head {
+  padding: 0.58rem 0.75rem !important;
+  background: linear-gradient(
+    135deg,
+    rgba(47, 93, 80, 0.1),
+    rgba(198, 95, 63, 0.08)
+  ) !important;
+  border-bottom: 1px solid rgba(47, 93, 80, 0.12) !important;
+}
+
+.dashboard-status-summary-head h3 {
+  color: var(--enterprise-text) !important;
+  font-size: 0.9rem !important;
+}
+
+.dashboard-status-summary-head span {
+  color: var(--enterprise-muted) !important;
+}
+
+.dashboard-status-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 0.52rem !important;
+  padding: 0.58rem !important;
+  background: transparent !important;
+}
+
+.dashboard-status-card {
+  position: relative;
+  min-height: 88px;
+  padding: 0.68rem !important;
+  overflow: hidden;
+  border: 1px solid rgba(47, 93, 80, 0.12) !important;
+  border-radius: 14px !important;
+  background: #fffdfa !important;
+  box-shadow: 0 10px 24px rgba(36, 33, 29, 0.07) !important;
+}
+
+.dashboard-status-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: #2f5d50;
+}
+
+.dashboard-status-card:nth-child(2)::before {
+  background: #217a55;
+}
+
+.dashboard-status-card:nth-child(3)::before {
+  background: #b6873f;
+}
+
+.dashboard-status-card:nth-child(4)::before {
+  background: #c65f3f;
+}
+
+.dashboard-status-card:nth-child(5)::before {
+  background: #51657a;
+}
+
+.dashboard-status-card:last-child {
+  border-right: 1px solid rgba(47, 93, 80, 0.12) !important;
+}
+
+.dashboard-status-card span {
+  color: var(--enterprise-muted) !important;
+  font-size: 0.68rem !important;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dashboard-status-card strong {
+  color: var(--enterprise-text) !important;
+  font-size: 1.42rem !important;
+  line-height: 1;
+  margin-top: 0.3rem;
+}
+
+.dashboard-status-card small {
+  width: fit-content;
+  margin-top: auto;
+  padding: 0.22rem 0.45rem;
+  border-radius: 999px;
+  background: #e7f1ed;
+  color: var(--enterprise-accent-strong) !important;
+  font-size: 0.68rem !important;
+  font-weight: 850 !important;
+}
+
+.modern-report-grid {
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr) !important;
+  gap: 0.65rem !important;
+  min-height: 0;
+}
+
+.module-card {
+  overflow: hidden !important;
+  border: 1px solid var(--enterprise-border) !important;
+  border-radius: 12px !important;
+  background: #fffdfa !important;
+  box-shadow: 0 12px 30px rgba(36, 33, 29, 0.08) !important;
+  min-height: 0;
+}
+
+.module-card-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  min-height: 0 !important;
+  padding: 0.55rem 0.7rem !important;
+  border-bottom: 1px solid var(--enterprise-border) !important;
+  background: #f8f6f1 !important;
+}
+
+.module-card-head h3 {
+  margin: 0 !important;
+  color: var(--enterprise-text) !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  text-shadow: none !important;
+}
+
+.module-card-head span {
+  color: var(--enterprise-muted) !important;
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  white-space: nowrap;
+}
+
+.module-card ul {
+  padding: 0.4rem !important;
+  gap: 0.22rem !important;
+}
+
+.module-link {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.52rem;
+  min-height: 42px;
+  padding: 0.42rem 0.5rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: var(--enterprise-text) !important;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.module-link:hover {
+  transform: translateY(-1px);
+  border-color: var(--enterprise-border-strong) !important;
+  background: #f8f6f1 !important;
+}
+
+.module-link-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #e7f1ed;
+  color: var(--enterprise-accent-strong);
+}
+
+.module-link strong {
+  display: block;
+  color: var(--enterprise-text) !important;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.module-link small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--enterprise-muted) !important;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.user-dashboard-panel {
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.dashboard-cards {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.85rem !important;
+  padding: 0.85rem !important;
+}
+
+.dash-card {
+  min-height: 150px;
+  padding: 1rem !important;
+  border: 1px solid var(--enterprise-border) !important;
+  border-radius: 12px !important;
+  background: #fffdfa !important;
+  box-shadow: none !important;
+}
+
+.dash-card-icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 0.85rem;
+  border-radius: 10px;
+  background: #e7f1ed;
+  color: var(--enterprise-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.dash-card h3 {
+  margin: 0 0 0.35rem;
+  color: var(--enterprise-text) !important;
+  font-size: 1rem;
+}
+
+.dash-card p {
+  margin: 0;
+  color: var(--enterprise-muted) !important;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .modern-dashboard-main {
+    padding: 0.85rem !important;
+  }
+
+  .dashboard-hero-panel,
+  .modern-report-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-hero-panel h1 {
+    font-size: 1.9rem;
+  }
+
+  .dashboard-commission-card strong {
+    font-size: 1.7rem !important;
+  }
+
+  .dashboard-commission-grid,
+  .dashboard-status-grid,
+  .dashboard-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-status-card:nth-child(2n) {
+    border-right: 1px solid rgba(47, 93, 80, 0.12) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-hero-panel {
+    padding: 1rem;
+  }
+
+  .dashboard-commission-grid,
+  .dashboard-status-grid,
+  .dashboard-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-status-card {
+    border-right: 1px solid rgba(47, 93, 80, 0.12) !important;
+    border-bottom: 1px solid rgba(47, 93, 80, 0.12) !important;
+  }
+
+  .dashboard-status-card:last-child {
+    border-bottom: 1px solid rgba(47, 93, 80, 0.12) !important;
+  }
+
+  .module-card-head {
+    display: grid !important;
+  }
+
+  .module-card-head span {
+    white-space: normal;
+  }
+}
+
+/* Final shared card color system */
+:root {
+  --shared-head-blue: #dceafe;
+  --shared-head-blue-border: #9cbff5;
+  --shared-head-blue-text: #173b66;
+  --shared-head-green: #dff4e8;
+  --shared-head-green-border: #9fd1b3;
+  --shared-head-green-text: #1f5436;
+  --shared-head-amber: #fff0c2;
+  --shared-head-amber-border: #ddb95a;
+  --shared-head-amber-text: #62480e;
+  --shared-head-plum: #eadff8;
+  --shared-head-plum-border: #bea7df;
+  --shared-head-plum-text: #44315f;
+}
+
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.modal-header,
+.admin-history-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  background: var(--shared-head-blue) !important;
+  border-color: var(--shared-head-blue-border) !important;
+  color: var(--shared-head-blue-text) !important;
+}
+
+.module-card:nth-of-type(4n + 1) .module-card-head,
+.data-group-card:nth-of-type(4n + 1) .data-group-title,
+.dashboard-status-card:nth-of-type(4n + 1) .dashboard-status-summary-head,
+.txe-card:nth-of-type(4n + 1) .txe-card-head {
+  background: var(--shared-head-blue) !important;
+  border-color: var(--shared-head-blue-border) !important;
+  color: var(--shared-head-blue-text) !important;
+}
+
+.module-card:nth-of-type(4n + 2) .module-card-head,
+.data-group-card:nth-of-type(4n + 2) .data-group-title,
+.dashboard-status-card:nth-of-type(4n + 2) .dashboard-status-summary-head,
+.txe-card:nth-of-type(4n + 2) .txe-card-head {
+  background: var(--shared-head-green) !important;
+  border-color: var(--shared-head-green-border) !important;
+  color: var(--shared-head-green-text) !important;
+}
+
+.module-card:nth-of-type(4n + 3) .module-card-head,
+.data-group-card:nth-of-type(4n + 3) .data-group-title,
+.dashboard-status-card:nth-of-type(4n + 3) .dashboard-status-summary-head,
+.txe-card:nth-of-type(4n + 3) .txe-card-head {
+  background: var(--shared-head-amber) !important;
+  border-color: var(--shared-head-amber-border) !important;
+  color: var(--shared-head-amber-text) !important;
+}
+
+.module-card:nth-of-type(4n) .module-card-head,
+.data-group-card:nth-of-type(4n) .data-group-title,
+.dashboard-status-card:nth-of-type(4n) .dashboard-status-summary-head,
+.txe-card:nth-of-type(4n) .txe-card-head {
+  background: var(--shared-head-plum) !important;
+  border-color: var(--shared-head-plum-border) !important;
+  color: var(--shared-head-plum-text) !important;
+}
+
+.module-card-head *,
+.data-group-title *,
+.dashboard-status-summary-head *,
+.txe-card-head *,
+.txn-section-title *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.modal-header *,
+.admin-history-header *,
+.txe-items-topbar *,
+.txn-edit-header *,
+.txe-print-header * {
+  color: inherit !important;
+}
+
+/* Final compact New Booking layout */
+.transaction-page {
+  --booking-border: #d9e2ea;
+  --booking-ink: #172033;
+  --booking-muted: #667085;
+  --booking-accent: #2f6f7e;
+  padding: 0.45rem !important;
+  gap: 0.45rem !important;
+  color: var(--booking-ink) !important;
+}
+
+.transaction-page .txn-double-grid {
+  gap: 0.45rem !important;
+}
+
+.transaction-page .txn-top,
+.transaction-page .txn-col {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid var(--booking-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 24px rgba(23, 32, 51, 0.07) !important;
+}
+
+.transaction-page .txn-col {
+  gap: 0 !important;
+}
+
+.transaction-page .txn-top,
+.transaction-page .txn-panel {
+  padding: 0 !important;
+}
+
+.transaction-page .txn-panel {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  gap: 0.18rem !important;
+}
+
+.transaction-page .txn-top > h5 {
+  margin: 0 !important;
+  padding: 0.48rem 0.7rem !important;
+  background: linear-gradient(90deg, #2f6f7e, #537c6b 54%, #ae783a) !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.07em !important;
+}
+
+.transaction-page .txn-top .txn-grid {
+  padding: 0.45rem !important;
+}
+
+.transaction-page .txn-grid,
+.transaction-page .txn-controls,
+.transaction-page .txn-controls.cols-2,
+.transaction-page .txn-controls.cols-3,
+.transaction-page .txn-container-split {
+  gap: 0.22rem !important;
+}
+
+.transaction-page .txn-grid.cols-4 {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.transaction-page .txn-row {
+  grid-template-columns: 96px minmax(0, 1fr) !important;
+  gap: 0.22rem !important;
+  min-height: 26px !important;
+}
+
+.transaction-page .txn-double-grid .txn-panel {
+  padding: 0.42rem !important;
+}
+
+.transaction-page .txn-section-title {
+  min-height: 31px !important;
+  padding: 0.42rem 0.62rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid currentColor !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.transaction-page .txn-section-title h5 {
+  font-size: 0.69rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.transaction-page .txn-section-title span {
+  font-size: 0.58rem !important;
+  letter-spacing: 0.09em !important;
+  opacity: 0.78 !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(1) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(2) .txn-section-title {
+  background: var(--shared-head-blue) !important;
+  border-color: var(--shared-head-blue-border) !important;
+  color: var(--shared-head-blue-text) !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(3) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(4) .txn-section-title {
+  background: var(--shared-head-green) !important;
+  border-color: var(--shared-head-green-border) !important;
+  color: var(--shared-head-green-text) !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(5) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(6) .txn-section-title {
+  background: var(--shared-head-amber) !important;
+  border-color: var(--shared-head-amber-border) !important;
+  color: var(--shared-head-amber-text) !important;
+}
+
+.transaction-page > .txn-col .txn-section-title {
+  background: var(--shared-head-plum) !important;
+  border-color: var(--shared-head-plum-border) !important;
+  color: var(--shared-head-plum-text) !important;
+}
+
+.transaction-page .txn-grid label,
+.transaction-page .txn-label,
+.transaction-page .row-text {
+  color: var(--booking-muted) !important;
+  font-size: 0.64rem !important;
+  font-weight: 750 !important;
+  line-height: 1.05 !important;
+}
+
+.transaction-page input,
+.transaction-page select,
+.transaction-page textarea {
+  min-height: 24px !important;
+  padding: 0.16rem 0.32rem !important;
+  background: #ffffff !important;
+  border: 1px solid #cfd8e3 !important;
+  border-radius: 6px !important;
+  color: var(--booking-ink) !important;
+  font-size: 0.68rem !important;
+  line-height: 1.1 !important;
+  box-shadow: inset 0 1px 2px rgba(23, 32, 51, 0.035) !important;
+}
+
+.transaction-page textarea {
+  min-height: 38px !important;
+}
+
+.transaction-page input:focus,
+.transaction-page select:focus,
+.transaction-page textarea:focus {
+  border-color: var(--booking-accent) !important;
+  outline: 2px solid rgba(47, 111, 126, 0.13) !important;
+  box-shadow: none !important;
+}
+
+.transaction-page .txn-combobox input {
+  padding-right: 1.55rem !important;
+}
+
+.transaction-page .txn-combobox-toggle {
+  width: 1.45rem !important;
+  border-left-color: #cfd8e3 !important;
+  border-radius: 0 6px 6px 0 !important;
+}
+
+.transaction-page .radio-inline {
+  min-height: 24px !important;
+  padding: 0 0.32rem !important;
+  background: #ffffff !important;
+  border-color: #cfd8e3 !important;
+  border-radius: 6px !important;
+  gap: 0.35rem !important;
+}
+
+.transaction-page .radio-inline input,
+.transaction-page .inline-checkbox input {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.transaction-page .txn-price-controls {
+  grid-template-columns: minmax(0, 1fr) minmax(62px, 0.28fr) !important;
+}
+
+.transaction-page .txn-actions {
+  margin-top: 0 !important;
+  padding: 0 !important;
+}
+
+.transaction-page .primary-btn,
+.transaction-page .icon-btn {
+  min-height: 28px !important;
+}
+
+.transaction-page table th {
+  background: linear-gradient(180deg, #2f6f7e 0%, #255b67 100%) !important;
+  border-color: #214d57 !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 1280px) {
+  .transaction-page .txn-grid.cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* New Booking modern refresh */
+.transaction-page {
+  --booking-surface: rgba(255, 255, 255, 0.94);
+  --booking-surface-soft: #f8fafc;
+  --booking-border: #d9e2ea;
+  --booking-ink: #172033;
+  --booking-muted: #667085;
+  --booking-blue: #dceafe;
+  --booking-blue-border: #9cbff5;
+  --booking-blue-text: #173b66;
+  --booking-green: #dff4e8;
+  --booking-green-border: #9fd1b3;
+  --booking-green-text: #1f5436;
+  --booking-amber: #fff0c2;
+  --booking-amber-border: #ddb95a;
+  --booking-amber-text: #62480e;
+  --booking-plum: #eadff8;
+  --booking-plum-border: #bea7df;
+  --booking-plum-text: #44315f;
+  --booking-accent: #2f6f7e;
+  gap: 1rem !important;
+  color: var(--booking-ink) !important;
+}
+
+.transaction-page .txn-top,
+.transaction-page .txn-col {
+  overflow: hidden;
+  background: var(--booking-surface) !important;
+  border: 1px solid var(--booking-border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 42px rgba(23, 32, 51, 0.08) !important;
+}
+
+.transaction-page .txn-col {
+  gap: 0 !important;
+}
+
+.transaction-page .txn-panel {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.85rem !important;
+}
+
+.transaction-page .txn-top {
+  padding: 0 !important;
+}
+
+.transaction-page .txn-top > h5 {
+  margin: 0 !important;
+  padding: 0.85rem 1rem !important;
+  background: linear-gradient(
+    90deg,
+    rgba(47, 111, 126, 0.96),
+    rgba(83, 124, 107, 0.94) 54%,
+    rgba(174, 120, 58, 0.92)
+  ) !important;
+  border: 0 !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.transaction-page .txn-top .txn-grid {
+  padding: 0.9rem !important;
+}
+
+.transaction-page .txn-section-title {
+  min-height: 46px !important;
+  margin: 0 !important;
+  padding: 0.75rem 0.95rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid currentColor !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.transaction-page .txn-section-title h5 {
+  color: inherit !important;
+  font-size: 0.8rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.transaction-page .txn-section-title span {
+  color: inherit !important;
+  opacity: 0.78 !important;
+  font-size: 0.66rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(1) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(2) .txn-section-title {
+  background: var(--booking-blue) !important;
+  border-color: var(--booking-blue-border) !important;
+  color: var(--booking-blue-text) !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(3) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(4) .txn-section-title {
+  background: var(--booking-green) !important;
+  border-color: var(--booking-green-border) !important;
+  color: var(--booking-green-text) !important;
+}
+
+.transaction-page .txn-double-grid > .txn-col:nth-child(5) .txn-section-title,
+.transaction-page .txn-double-grid > .txn-col:nth-child(6) .txn-section-title {
+  background: var(--booking-amber) !important;
+  border-color: var(--booking-amber-border) !important;
+  color: var(--booking-amber-text) !important;
+}
+
+.transaction-page > .txn-col .txn-section-title {
+  background: var(--booking-plum) !important;
+  border-color: var(--booking-plum-border) !important;
+  color: var(--booking-plum-text) !important;
+}
+
+.transaction-page .txn-grid label,
+.transaction-page .txn-label,
+.transaction-page .row-text {
+  color: var(--booking-muted) !important;
+  font-size: 0.72rem !important;
+  font-weight: 750 !important;
+}
+
+.transaction-page input,
+.transaction-page select,
+.transaction-page textarea {
+  min-height: 34px !important;
+  background: #ffffff !important;
+  border: 1px solid #cfd8e3 !important;
+  border-radius: 8px !important;
+  color: var(--booking-ink) !important;
+  box-shadow: inset 0 1px 2px rgba(23, 32, 51, 0.04) !important;
+}
+
+.transaction-page textarea {
+  min-height: 72px !important;
+}
+
+.transaction-page input:focus,
+.transaction-page select:focus,
+.transaction-page textarea:focus {
+  border-color: var(--booking-accent) !important;
+  outline: 3px solid rgba(47, 111, 126, 0.14) !important;
+  box-shadow: none !important;
+}
+
+.transaction-page .txn-combobox-toggle {
+  border-left-color: #cfd8e3 !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+.transaction-page .radio-inline {
+  min-height: 34px !important;
+  background: #ffffff !important;
+  border-color: #cfd8e3 !important;
+  border-radius: 8px !important;
+}
+
+.transaction-page table th {
+  background: linear-gradient(180deg, #2f6f7e 0%, #255b67 100%) !important;
+  border-color: #214d57 !important;
+  color: #ffffff !important;
+}
+
+.transaction-page .txn-actions {
+  padding: 0.2rem 0.1rem 0 !important;
+}
+
+/* Fit data tables to the viewport instead of requiring horizontal page scroll */
+.transactions-table-wrap,
+.users-table-wrap,
+.packer-sales-table-wrap,
+.packer-sales-detail-table-wrap,
+.txe-items-table-wrap,
+.admin-mail-results {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.transactions-table,
+.users-table,
+.txe-items-table,
+.packer-sales-table,
+.packer-sales-detail-table,
+.report-table,
+.summary-table,
+.payment-status-table,
+.data-table,
+.admin-mail-results .users-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+  font-size: 0.68rem !important;
+}
+
+.transactions-table th,
+.transactions-table td,
+.users-table th,
+.users-table td,
+.txe-items-table th,
+.txe-items-table td,
+.packer-sales-table th,
+.packer-sales-table td,
+.packer-sales-detail-table th,
+.packer-sales-detail-table td,
+.report-table th,
+.report-table td,
+.summary-table th,
+.summary-table td,
+.payment-status-table th,
+.payment-status-table td,
+.data-table th,
+.data-table td,
+.admin-mail-results .users-table th,
+.admin-mail-results .users-table td {
+  max-width: 1px !important;
+  padding: 0.28rem 0.25rem !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-height: 1.15 !important;
+}
+
+.transactions-table .icon-btn,
+.users-table .icon-btn,
+.txe-items-table .icon-btn,
+.admin-mail-results .users-table .icon-btn {
+  width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+}
+
+.transactions-table .action-buttons,
+.users-table .action-buttons,
+.txe-items-table .action-buttons,
+.users-actions {
+  gap: 0.18rem !important;
+  flex-wrap: wrap !important;
+}
+
+.packer-sales-table .sticky-col,
+.packer-sales-table th.sticky-col,
+.packer-sales-table td.sticky-col {
+  position: static !important;
+  left: auto !important;
+  min-width: 0 !important;
+  box-shadow: none !important;
+}
+
+.packer-sales-table .numeric,
+.packer-sales-detail-table .numeric,
+.transactions-table .numeric,
+.report-table .numeric,
+.summary-table .numeric,
+.payment-status-table .numeric {
+  text-align: right !important;
+  white-space: normal !important;
+}
+
+.status-pill,
+.status-badge {
+  max-width: 100% !important;
+  white-space: normal !important;
+}
+
+@media (max-width: 980px) {
+  .transactions-table,
+  .users-table,
+  .txe-items-table,
+  .packer-sales-table,
+  .packer-sales-detail-table,
+  .report-table,
+  .summary-table,
+  .payment-status-table,
+  .data-table,
+  .admin-mail-results .users-table {
+    font-size: 0.6rem !important;
+  }
+
+  .transactions-table th,
+  .transactions-table td,
+  .users-table th,
+  .users-table td,
+  .txe-items-table th,
+  .txe-items-table td,
+  .packer-sales-table th,
+  .packer-sales-table td,
+  .packer-sales-detail-table th,
+  .packer-sales-detail-table td,
+  .report-table th,
+  .report-table td,
+  .summary-table th,
+  .summary-table td,
+  .payment-status-table th,
+  .payment-status-table td,
+  .data-table th,
+  .data-table td,
+  .admin-mail-results .users-table th,
+  .admin-mail-results .users-table td {
+    padding: 0.22rem 0.16rem !important;
+  }
+
+  .transactions-table .icon-btn,
+  .users-table .icon-btn,
+  .txe-items-table .icon-btn,
+  .admin-mail-results .users-table .icon-btn {
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+  }
+}
+
+/* Readability pass for modals, edit side actions, and section headers */
+:root {
+  --header-green: #2f5d50;
+  --header-green-dark: #24483f;
+  --header-sage: #dcebe5;
+  --header-peach: #f6ded2;
+  --header-cream: #fff8ef;
+  --header-gold: #c49745;
+  --header-text: #1f2d28;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.packer-sales-detail-modal,
+.bulk-user-modal,
+.user-detail-modal {
+  color: var(--enterprise-text) !important;
+}
+
+.modal-card *,
+.modal-content *,
+.confirm-card *,
+.txn-edit-modal *,
+.txe-items-modal *,
+.txe-item-editor-modal *,
+.txe-print-modal *,
+.packer-sales-detail-modal *,
+.bulk-user-modal *,
+.user-detail-modal * {
+  border-color: var(--enterprise-border) !important;
+}
+
+.txn-edit-header,
+.txe-items-topbar,
+.txe-print-header,
+.modal-header,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.admin-history-header {
+  background: linear-gradient(
+    90deg,
+    var(--header-green) 0%,
+    #3c7565 58%,
+    #b7834a 100%
+  ) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.txn-edit-header h1,
+.txn-edit-header h2,
+.txn-edit-header h3,
+.txn-edit-header h4,
+.txn-edit-header h5,
+.txn-edit-header p,
+.txn-edit-eyebrow,
+.txe-items-topbar h1,
+.txe-items-topbar h2,
+.txe-items-topbar h3,
+.txe-items-topbar h4,
+.txe-items-topbar h5,
+.txe-items-topbar p,
+.txe-print-header h1,
+.txe-print-header h2,
+.txe-print-header h3,
+.txe-print-header h4,
+.txe-print-header h5,
+.txe-print-header p,
+.modal-header h1,
+.modal-header h2,
+.modal-header h3,
+.modal-header h4,
+.modal-header h5,
+.modal-header p,
+.admin-mail-card-head h1,
+.admin-mail-card-head h2,
+.admin-mail-card-head h3,
+.admin-mail-card-head h4,
+.admin-mail-card-head h5,
+.admin-mail-results-head h1,
+.admin-mail-results-head h2,
+.admin-mail-results-head h3,
+.admin-mail-results-head h4,
+.admin-mail-results-head h5,
+.admin-history-header h1,
+.admin-history-header h2,
+.admin-history-header h3,
+.admin-history-header h4,
+.admin-history-header h5 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* .modal-close-btn,
+.close-btn,
+.txn-edit-close,
+.admin-mail-compose-close,
+.txe-items-close-btn {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+} */
+
+.modal-close-btn:hover,
+.close-btn:hover,
+.txn-edit-close:hover,
+.admin-mail-compose-close:hover,
+.txe-items-close-btn:hover {
+  background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.txe-card-head,
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txn-section-title {
+  background: linear-gradient(
+    90deg,
+    var(--header-sage) 0%,
+    var(--header-cream) 58%,
+    var(--header-peach) 100%
+  ) !important;
+  color: var(--header-text) !important;
+  border-color: #d6c8b4 !important;
+}
+
+.txe-card-head h1,
+.txe-card-head h2,
+.txe-card-head h3,
+.txe-card-head h4,
+.txe-card-head h5,
+.txe-card-head span,
+.module-card-head h1,
+.module-card-head h2,
+.module-card-head h3,
+.module-card-head h4,
+.module-card-head h5,
+.data-group-title h1,
+.data-group-title h2,
+.data-group-title h3,
+.data-group-title h4,
+.data-group-title h5,
+.dashboard-status-summary-head h1,
+.dashboard-status-summary-head h2,
+.dashboard-status-summary-head h3,
+.dashboard-status-summary-head h4,
+.dashboard-status-summary-head h5,
+.txn-section-title h1,
+.txn-section-title h2,
+.txn-section-title h3,
+.txn-section-title h4,
+.txn-section-title h5 {
+  color: var(--header-text) !important;
+  opacity: 1 !important;
+}
+
+.transactions-table th,
+.users-table th,
+.txe-items-table th,
+.packer-sales-table th,
+.packer-sales-detail-table th,
+.report-table th,
+.summary-table th,
+.payment-status-table th,
+.data-table th,
+.admin-mail-results .users-table th,
+table th,
+.table th,
+.bulk-failures th {
+  background: linear-gradient(180deg, #375f53 0%, #2b4f45 100%) !important;
+  color: #ffffff !important;
+  border-color: #25443b !important;
+  text-shadow: none !important;
+}
+
+.transactions-table th *,
+.users-table th *,
+.txe-items-table th *,
+.packer-sales-table th *,
+.packer-sales-detail-table th *,
+.report-table th *,
+.summary-table th *,
+.payment-status-table th *,
+.data-table th *,
+.admin-mail-results .users-table th *,
+table th *,
+.table th * {
+  color: #ffffff !important;
+}
+
+.txn-edit-side-icons {
+  background: #fffdfa !important;
+  border-color: var(--enterprise-border) !important;
+  box-shadow: var(--modern-shadow) !important;
+}
+
+.txe-side-btn {
+  background: #f8f6f1 !important;
+  border-color: var(--enterprise-border-strong) !important;
+  color: var(--header-green-dark) !important;
+  border-radius: 8px !important;
+}
+
+.txe-side-btn svg,
+.txe-side-btn span {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.txe-side-btn:hover:not(:disabled) {
+  background: var(--header-sage) !important;
+  border-color: #a9c9bd !important;
+  color: var(--header-green-dark) !important;
+}
+
+.txe-side-btn.active {
+  background: linear-gradient(
+    180deg,
+    var(--header-green) 0%,
+    var(--header-green-dark) 100%
+  ) !important;
+  border-color: var(--header-green-dark) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 22px rgba(47, 93, 80, 0.22) !important;
+}
+
+.txe-side-btn.active svg,
+.txe-side-btn.active span {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.txe-side-btn:disabled {
+  background: #eee9df !important;
+  color: #8b8378 !important;
+  opacity: 0.85 !important;
+}
+
+.status-pill,
+.status-badge,
+.page-chip.active,
+.compact-pagination button.active,
+.date-filter-days button.is-selected,
+.date-filter-picker-grid button.is-selected,
+.data-section-btn.active,
+.data-combobox-item-row.selected,
+.data-combobox-item.selected,
+.txn-combobox-option.is-selected {
+  background: var(--header-green) !important;
+  border-color: var(--header-green-dark) !important;
+  color: #ffffff !important;
+}
+
+.modal-actions button:not([type="submit"]),
+.admin-mail-modal-actions .secondary-btn,
+.txe-items-secondary-btn {
+  background: #fffdfa !important;
+  color: var(--enterprise-text) !important;
+}
+
+/* Light multi-color card header rotation */
+:root {
+  --card-head-blue: #dceeff;
+  --card-head-blue-border: #9ec8f2;
+  --card-head-blue-text: #173f63;
+  --card-head-green: #def3e6;
+  --card-head-green-border: #9fd4b3;
+  --card-head-green-text: #1f5134;
+  --card-head-yellow: #fff3c4;
+  --card-head-yellow-border: #e4c35c;
+  --card-head-yellow-text: #624a12;
+}
+
+.txe-card-head,
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txn-section-title,
+.admin-mail-card-head,
+.admin-mail-results-head {
+  background: var(--card-head-blue) !important;
+  color: var(--card-head-blue-text) !important;
+  border-color: var(--card-head-blue-border) !important;
+}
+
+.txe-card:nth-of-type(3n + 1) .txe-card-head,
+.module-card:nth-of-type(3n + 1) .module-card-head,
+.data-group-card:nth-of-type(3n + 1) .data-group-title,
+.dashboard-status-card:nth-of-type(3n + 1) .dashboard-status-summary-head {
+  background: var(--card-head-blue) !important;
+  color: var(--card-head-blue-text) !important;
+  border-color: var(--card-head-blue-border) !important;
+}
+
+.txe-card:nth-of-type(3n + 2) .txe-card-head,
+.module-card:nth-of-type(3n + 2) .module-card-head,
+.data-group-card:nth-of-type(3n + 2) .data-group-title,
+.dashboard-status-card:nth-of-type(3n + 2) .dashboard-status-summary-head {
+  background: var(--card-head-green) !important;
+  color: var(--card-head-green-text) !important;
+  border-color: var(--card-head-green-border) !important;
+}
+
+.txe-card:nth-of-type(3n) .txe-card-head,
+.module-card:nth-of-type(3n) .module-card-head,
+.data-group-card:nth-of-type(3n) .data-group-title,
+.dashboard-status-card:nth-of-type(3n) .dashboard-status-summary-head {
+  background: var(--card-head-yellow) !important;
+  color: var(--card-head-yellow-text) !important;
+  border-color: var(--card-head-yellow-border) !important;
+}
+
+.txe-two > .txe-card:nth-child(1) .txe-card-head,
+.txe-grid-4 > .txe-card:nth-child(1) .txe-card-head,
+.dashboard-cards > .dash-card:nth-child(1) .module-card-head,
+.dashboard-commission-card:nth-child(3n + 1),
+.data-stat-card:nth-child(3n + 1) {
+  background: var(--card-head-blue) !important;
+  color: var(--card-head-blue-text) !important;
+  border-color: var(--card-head-blue-border) !important;
+}
+
+.txe-two > .txe-card:nth-child(2) .txe-card-head,
+.txe-grid-4 > .txe-card:nth-child(2) .txe-card-head,
+.dashboard-cards > .dash-card:nth-child(2) .module-card-head,
+.dashboard-commission-card:nth-child(3n + 2),
+.data-stat-card:nth-child(3n + 2) {
+  background: var(--card-head-green) !important;
+  color: var(--card-head-green-text) !important;
+  border-color: var(--card-head-green-border) !important;
+}
+
+.txe-grid-4 > .txe-card:nth-child(3) .txe-card-head,
+.txe-grid-4 > .txe-card:nth-child(4) .txe-card-head,
+.dashboard-commission-card:nth-child(3n),
+.data-stat-card:nth-child(3n) {
+  background: var(--card-head-yellow) !important;
+  color: var(--card-head-yellow-text) !important;
+  border-color: var(--card-head-yellow-border) !important;
+}
+
+.txe-card-head *,
+.module-card-head *,
+.data-group-title *,
+.dashboard-status-summary-head *,
+.txn-section-title *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.dashboard-commission-card *,
+.data-stat-card * {
+  color: inherit !important;
+}
+
+.admin-mail-compose {
+  height: min(560px, calc(100vh - 72px)) !important;
+  border-radius: 0 !important;
+}
+
+.admin-mail-send-btn {
+  min-width: 70px !important;
+}
+
+@media (max-width: 980px) {
+  .modal-card,
+  .modal-content,
+  .confirm-card,
+  .txn-edit-modal,
+  .txe-items-modal,
+  .txe-item-editor-modal,
+  .txe-print-modal {
+    max-height: calc(100dvh - 20px) !important;
+  }
+}
+
+/* Dialog, submenu, and icon visibility fixes */
+.modal-overlay,
+.packer-sales-modal-overlay,
+.txn-edit-overlay,
+.txe-items-overlay,
+.txe-item-editor-overlay,
+.txe-print-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.75rem !important;
+  overflow: auto !important;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal {
+  margin: auto !important;
+}
+
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal {
+  height: auto !important;
+  max-height: calc(100dvh - 1.5rem) !important;
+}
+
+.dashboard-sidebar,
+.dashboard-sidebar-nav,
+.dashboard-shell.sidebar-collapsed .dashboard-sidebar,
+.dashboard-shell.sidebar-collapsed .dashboard-sidebar-nav {
+  overflow: visible !important;
+}
+
+.sidebar-submenu-panel {
+  overflow: visible !important;
+  z-index: 120 !important;
+}
+
+.sidebar-submenu-panel .list-group {
+  overflow: visible !important;
+}
+
+.sidebar-submenu-panel .list-group-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  min-height: 34px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  color: var(--enterprise-text) !important;
+}
+
+.dashboard-sidebar.collapsed .sidebar-submenu-panel,
+.dashboard-shell.sidebar-collapsed .sidebar-submenu-panel {
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: calc(100% + 0.5rem) !important;
+  width: max-content !important;
+  min-width: 230px !important;
+  max-width: min(320px, calc(100vw - 120px)) !important;
+  margin: 0 !important;
+}
+
+.dashboard-sidebar.mobile-open,
+.dashboard-sidebar.mobile-open .dashboard-sidebar-nav {
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+}
+
+.dashboard-sidebar.mobile-open .sidebar-submenu-panel {
+  position: static !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0.25rem 0.5rem 0.55rem !important;
+}
+
+.sidebar-link svg,
+.sidebar-submenu-icon,
+.dashboard-menu-btn svg,
+.dashboard-topbar-profile-icon svg,
+.dashboard-topbar-logout-btn svg,
+.icon-btn svg,
+.edit-btn svg,
+.primary-btn svg,
+.secondary-btn svg,
+.danger-btn svg,
+.admin-logout-btn svg,
+.modal-close-btn svg,
+.close-btn svg,
+.txe-side-btn svg,
+.txe-items-close-btn svg,
+.txe-items-icon-btn svg,
+.txe-items-primary-btn svg,
+.txe-items-secondary-btn svg,
+.admin-mail-compose-toolbar svg,
+.admin-mail-discard-btn svg,
+.admin-mail-send-btn svg,
+.data-combobox-trigger svg,
+.date-filter-trigger svg {
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: currentColor !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  overflow: visible !important;
+}
+
+.sidebar-link > svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.sidebar-submenu-icon {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+.icon-btn,
+.dashboard-menu-btn,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.modal-close-btn,
+.close-btn,
+.txe-side-btn,
+.txe-items-close-btn,
+.txe-items-icon-btn,
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--enterprise-text) !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 980px) {
+  .modal-overlay,
+  .packer-sales-modal-overlay,
+  .txn-edit-overlay,
+  .txe-items-overlay,
+  .txe-item-editor-overlay,
+  .txe-print-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* Modern neutral refresh: removes the blue-heavy theme while keeping compact density */
+:root {
+  --page-bg: #f4f2ee;
+  --brand-purple: #2f5d50;
+  --brand-purple-soft: #e7f1ed;
+  --field-border: #d5d1c8;
+  --text-main: #23211f;
+  --danger: #b42318;
+  --enterprise-accent: #2f5d50;
+  --enterprise-accent-strong: #24483f;
+  --enterprise-accent-soft: #e7f1ed;
+  --enterprise-accent-mid: #c8ddd5;
+  --enterprise-border: #ded9cf;
+  --enterprise-border-strong: #c9c2b7;
+  --enterprise-panel: #fffdfa;
+  --enterprise-panel-soft: #f8f6f1;
+  --enterprise-text: #23211f;
+  --enterprise-muted: #6e675d;
+  --modern-ink: #24211d;
+  --modern-ink-soft: #3b3630;
+  --modern-green: #2f5d50;
+  --modern-coral: #c65f3f;
+  --modern-gold: #b6873f;
+  --modern-shadow: 0 14px 36px rgba(36, 33, 29, 0.08);
+}
+
+html,
+body,
+#root,
+.app-shell,
+.dashboard-shell,
+.dashboard-page-content,
+.login-page {
+  background: var(--page-bg) !important;
+  color: var(--enterprise-text) !important;
+}
+
+body {
+  color: var(--enterprise-text) !important;
+}
+
+.dashboard-shell {
+  background:
+    radial-gradient(
+      820px 420px at 12% -10%,
+      rgba(47, 93, 80, 0.11),
+      transparent 58%
+    ),
+    radial-gradient(
+      720px 360px at 100% 8%,
+      rgba(198, 95, 63, 0.09),
+      transparent 56%
+    ),
+    var(--page-bg) !important;
+}
+
+.dashboard-page-content {
+  background:
+    linear-gradient(rgba(244, 242, 238, 0.93), rgba(244, 242, 238, 0.93)),
+    url("./assets/Images/BGA.jpg") no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
+.login-page {
+  background:
+    linear-gradient(135deg, rgba(47, 93, 80, 0.08), rgba(198, 95, 63, 0.08)),
+    var(--page-bg) !important;
+}
+
+.login-page::before {
+  opacity: 0.12 !important;
+}
+
+.login-page::after {
+  background: rgba(244, 242, 238, 0.72) !important;
+}
+
+.dashboard-sidebar,
+.dashboard-topbar,
+.admin-side-nav {
+  background: var(--modern-ink) !important;
+  color: #f8f6f1 !important;
+  border-color: rgba(255, 253, 250, 0.1) !important;
+}
+
+.dashboard-sidebar {
+  box-shadow: 8px 0 26px rgba(36, 33, 29, 0.12) !important;
+}
+
+.dashboard-topbar {
+  min-height: 58px;
+  padding: 0.55rem 0.8rem !important;
+  border-bottom: 1px solid rgba(255, 253, 250, 0.1) !important;
+}
+
+.dashboard-sidebar-brand {
+  background: #fffdfa !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--enterprise-border) !important;
+}
+
+.dashboard-sidebar-footer,
+.dashboard-menu-btn,
+.dashboard-topbar-profile,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn {
+  background: rgba(255, 253, 250, 0.08) !important;
+  color: #fffdfa !important;
+  border: 1px solid rgba(255, 253, 250, 0.16) !important;
+}
+
+.sidebar-link,
+.sidebar-sublink,
+.dashboard-topbar-nav-item,
+.admin-side-item {
+  color: rgba(255, 253, 250, 0.72) !important;
+  border-radius: 8px !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active,
+.dashboard-topbar-nav-item:hover,
+.dashboard-topbar-nav-item.active,
+.admin-side-item:hover,
+.admin-side-item.active {
+  background: rgba(47, 93, 80, 0.32) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--modern-coral) !important;
+}
+
+.sidebar-submenu-panel,
+.dashboard-topbar-profile-menu {
+  background: #fffdfa !important;
+  color: var(--enterprise-text) !important;
+  border: 1px solid var(--enterprise-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--modern-shadow) !important;
+}
+
+.sidebar-submenu-panel .list-group-item,
+.dashboard-topbar-profile-menu-item {
+  color: var(--enterprise-muted) !important;
+  border-radius: 6px !important;
+}
+
+.sidebar-submenu-panel .list-group-item:hover,
+.sidebar-submenu-panel .list-group-item.active,
+.dashboard-topbar-profile-menu-item:hover {
+  background: var(--enterprise-accent-soft) !important;
+  color: var(--enterprise-accent-strong) !important;
+}
+
+.login-card,
+.signup-card,
+.dashboard-panel,
+.admin-main,
+.dash-card,
+.module-card,
+.dashboard-commission-card,
+.dashboard-status-card,
+.data-stat-card,
+.data-group-card,
+.data-field-card,
+.data-hero-strip,
+.transactions-toolbar,
+.transactions-table-wrap,
+.admin-mail-filter-card,
+.admin-mail-results,
+.admin-history-header,
+.admin-history-tree,
+.profile-summary-panel,
+.profile-form-panel,
+.txn-panel,
+.txe-card,
+.txe-card-body,
+.txe-items-table-card,
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose,
+.bulk-user-modal,
+.user-detail-modal {
+  background: var(--enterprise-panel) !important;
+  border: 1px solid var(--enterprise-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--modern-shadow) !important;
+}
+
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.modal-header,
+.admin-history-header,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header {
+  background: var(--enterprise-panel-soft) !important;
+  color: var(--enterprise-text) !important;
+  border-color: var(--enterprise-border) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.login-title,
+.signup-title,
+.dashboard-panel h2,
+.admin-main-header h2,
+.transactions-toolbar h5,
+.module-card-head h3,
+.module-card-head h5,
+.data-page-header h2,
+.profile-title,
+.txn-section-title h5,
+.txe-card-head h4,
+.modal-header h3,
+.modal-header h5 {
+  color: var(--enterprise-text) !important;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select,
+.date-filter-trigger,
+.mail-multi-summary {
+  background: #fffdfa !important;
+  border-color: var(--field-border) !important;
+  border-radius: 7px !important;
+  color: var(--enterprise-text) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus,
+.date-filter-trigger:focus,
+.mail-multi-summary:focus {
+  outline: 3px solid rgba(47, 93, 80, 0.14) !important;
+  border-color: var(--enterprise-accent) !important;
+}
+
+.primary-btn,
+.modal-actions button[type="submit"],
+.admin-mail-send-btn,
+.txe-items-primary-btn {
+  background: var(--modern-coral) !important;
+  border: 1px solid #a84e34 !important;
+  border-radius: 7px !important;
+  color: #ffffff !important;
+}
+
+.primary-btn:hover:not(:disabled),
+.modal-actions button[type="submit"]:hover:not(:disabled),
+.admin-mail-send-btn:hover:not(:disabled),
+.txe-items-primary-btn:hover:not(:disabled) {
+  background: #a84e34 !important;
+}
+
+.secondary-btn,
+.admin-logout-btn,
+.modal-actions button,
+.txe-items-secondary-btn,
+.page-btn,
+.page-chip,
+.icon-btn,
+.dashboard-menu-btn,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.modal-close-btn,
+.close-btn,
+.txe-side-btn,
+.txe-items-close-btn,
+.txe-items-icon-btn {
+  border-radius: 7px !important;
+}
+
+.secondary-btn,
+.admin-logout-btn,
+.modal-actions button,
+.txe-items-secondary-btn,
+.page-btn,
+.page-chip {
+  background: #fffdfa !important;
+  border-color: var(--enterprise-border-strong) !important;
+  color: var(--enterprise-text) !important;
+}
+
+.transactions-table th,
+.users-table th,
+.txe-items-table th,
+.admin-mail-results .users-table th,
+table th,
+.table th,
+.packer-sales-detail-table th,
+.report-table th,
+.summary-table th,
+.payment-status-table th,
+.packer-sales-table th,
+.data-table th,
+.bulk-failures th {
+  background: #ece7dd !important;
+  color: var(--enterprise-text) !important;
+  border-color: var(--enterprise-border-strong) !important;
+}
+
+.transactions-table tbody tr:nth-child(even) td,
+.users-table tbody tr:nth-child(even) td,
+.txe-items-table tbody tr:nth-child(even) td,
+.admin-mail-results .users-table tbody tr:nth-child(even) td {
+  background: var(--enterprise-panel-soft) !important;
+}
+
+.transactions-table .transactions-row-clickable:hover td {
+  background: #fff176 !important;
+  color: #111827 !important;
+}
+
+.transactions-table .transactions-row-clickable:hover td *,
+.transactions-table .transactions-row-clickable:hover .icon-btn {
+  color: #111827 !important;
+}
+
+/* Requested final UI overrides */
+.module-card-head,
+.data-group-title,
+.dashboard-status-summary-head,
+.txe-card-head,
+.txn-section-title,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.modal-header,
+.admin-history-header,
+.txe-items-topbar,
+.txn-edit-header,
+.txe-print-header,
+.module-card-head *,
+.data-group-title *,
+.dashboard-status-summary-head *,
+.txe-card-head *,
+.txn-section-title *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.modal-header *,
+.admin-history-header *,
+.txe-items-topbar *,
+.txn-edit-header *,
+.txe-print-header * {
+  color: #000000 !important;
+}
+
+.admin-mail-results .users-table th:first-child,
+.admin-mail-results .users-table td:first-child {
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  padding: 0.42rem 0.55rem !important;
+  text-align: center !important;
+}
+
+.admin-mail-results .users-table th:nth-child(2),
+.admin-mail-results .users-table td:nth-child(2) {
+  width: 22% !important;
+  min-width: 160px !important;
+  max-width: none !important;
+  padding-left: 0.85rem !important;
+}
+
+.admin-mail-results .users-table input[type="checkbox"] {
+  display: inline-block !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.icon-btn.show {
+  color: #7c3aed !important;
+  border-color: #c4b5fd !important;
+  background: #f5f3ff !important;
+}
+
+.icon-btn.edit {
+  color: #0369a1 !important;
+  border-color: #7dd3fc !important;
+  background: #f0f9ff !important;
+}
+
+.icon-btn.activate {
+  color: #047857 !important;
+  border-color: #86efac !important;
+  background: #f0fdf4 !important;
+}
+
+.icon-btn.deactivate {
+  color: #dc2626 !important;
+  border-color: #fca5a5 !important;
+  background: #fef2f2 !important;
+}
+
+.icon-btn.delete,
+.txe-items-icon-btn.delete {
+  color: #be123c !important;
+  border-color: #fda4af !important;
+  background: #fff1f2 !important;
+}
+
+.transactions-table .icon-btn.duplicate {
+  color: #b45309 !important;
+  border-color: #fcd34d !important;
+  background: #fffbeb !important;
+}
+
+.status-badge.active,
+.status-toggle-btn.activate {
+  background: #e7f1ed !important;
+  color: var(--enterprise-accent-strong) !important;
+  border-color: #a8c9bd !important;
+}
+
+.status-badge.inactive,
+.status-toggle-btn.deactivate {
+  background: #fff0ea !important;
+  color: #a84e34 !important;
+  border-color: #e2ad9a !important;
+}
+
+.dashboard-commission-card.revenue,
+.dashboard-commission-card.collected,
+.dashboard-commission-card.pending,
+.module-card-head.transaction,
+.module-card-head.reports {
+  background: var(--enterprise-accent-soft) !important;
+  color: var(--enterprise-text) !important;
 }

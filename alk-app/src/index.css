@@ -10,8 +10,8 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: "Manrope", "Segoe UI", sans-serif;
-  color: #15303f;
-  background: #eff7fa;
+  color: #111827;
+  background: #f5f6ff;
 }
 
 button,
@@ -48,14 +48,14 @@ textarea {
 }
 
 .list-group-item.active {
-  background-color: #2c5282;
-  border-color: #2c5282;
+  background-color: #4952cc;
+  border-color: #30399f;
   color: #ffffff;
 }
 
 .list-group-item:hover:not(.active) {
-  background-color: #f8f9fa;
-  color: #2c5282;
+  background-color: #eef0ff;
+  color: #30399f;
 }
 
 .sidebar-submenu-panel {

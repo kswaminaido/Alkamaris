@@ -38,8 +38,9 @@ class UserController extends Controller
         $roles = request('roles') ? array_filter(array_map('trim', explode(',', request('roles')))) : [];
         $role = request('role') ? trim((string) request('role')) : null;
         $requestUserRole = request()->user()?->role;
-        $isAdmin = ($requestUserRole instanceof UserRole ? $requestUserRole->value : $requestUserRole) === UserRole::Admin->value;
-        $includeInactive = $isAdmin && request()->boolean('include_inactive');
+        $requestUserRoleValue = $this->normalizeRole($requestUserRole instanceof UserRole ? $requestUserRole->value : $requestUserRole);
+        $canManageUsers = in_array($requestUserRoleValue, [UserRole::Admin->value, UserRole::Logistics->value], true);
+        $includeInactive = $canManageUsers && request()->boolean('include_inactive');
 
         if (! empty($roles)) {
             $query->whereIn('role', $roles);
@@ -155,6 +156,7 @@ class UserController extends Controller
     public function destroy(User $user): JsonResponse
     {
         $oldValues = $user->only(['id', 'name', 'email', 'role', 'is_active']);
+        $user->tokens()->delete();
         $user->delete();
 
         $this->userEventLogger->log(
@@ -170,5 +172,12 @@ class UserController extends Controller
             ['message' => 'User deleted successfully.'],
             Response::HTTP_OK,
         );
+    }
+
+    private function normalizeRole(mixed $role): string
+    {
+        $normalized = strtolower(trim((string) $role));
+
+        return $normalized === 'logistic' ? 'logistics' : $normalized;
     }
 }
