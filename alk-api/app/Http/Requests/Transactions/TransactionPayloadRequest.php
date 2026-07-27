@@ -42,6 +42,7 @@ abstract class TransactionPayloadRequest extends FormRequest
             'transaction.booking_mode' => ['required', 'string', Rule::in(['trade_commission', 'qc_services'])],
             'transaction.issue_date' => ['nullable', 'date'],
             'transaction.sales_person_id' => ['nullable', 'integer', 'exists:users,id'],
+            'transaction.by_qc' => ['nullable', 'string', 'max:255'],
             'transaction.product_origin' => ['nullable', 'string', 'max:255'],
             'transaction.destination' => ['nullable', 'string', 'max:255'],
             'transaction.category' => ['nullable', 'string', 'max:255'],

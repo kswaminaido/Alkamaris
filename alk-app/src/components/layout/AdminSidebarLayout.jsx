@@ -29,14 +29,10 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
     return savedValue === null ? true : savedValue === 'true'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [openSidebarMenu, setOpenSidebarMenu] = useState(null)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
-  const visibleSidebarMenu = openSidebarMenu ?? routeSidebarMenu
-  const transactionSubmenuOpen = visibleSidebarMenu === 'transactions'
-  const reportSubmenuOpen = visibleSidebarMenu === 'reports'
-  const transactionLinkActive = transactionSubmenuOpen || (isTransactionsRoute && openSidebarMenu === null)
-  const reportLinkActive = reportSubmenuOpen || (isReportsRoute && openSidebarMenu === null)
+  const transactionLinkActive = routeSidebarMenu === 'transactions'
+  const reportLinkActive = routeSidebarMenu === 'reports'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -60,12 +56,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
     setMobileMenuOpen(false)
   }
 
-  function closeSidebarSubmenus() {
-    setOpenSidebarMenu(null)
-  }
-
   function handleTopNavAction(action) {
-    closeSidebarSubmenus()
     if (action.key === 'new_booking_trade' || action.key === 'new_booking_qc') {
       navigate(`/transactions/new?mode=${action.mode}`)
       return
@@ -116,7 +107,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
             onClick={() => {
               closeMobileMenu()
-              closeSidebarSubmenus()
             }}
           >
             <SidebarIcon icon="dashboard" />
@@ -124,118 +114,90 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             <span className="sidebar-link-end" />
           </NavLink>
 
-          <div className="position-relative">
+          <div className="sidebar-menu-item position-relative">
             <button
               type="button"
               className={`sidebar-link w-100 ${transactionLinkActive ? 'active' : ''}`}
-              onClick={() => {
-                setOpenSidebarMenu((open) => (open === 'transactions' ? null : 'transactions'))
-              }}
-              aria-expanded={transactionSubmenuOpen}
+              aria-haspopup="true"
             >
               <SidebarIcon icon="transactions" />
               <span className="sidebar-link-text">Transactions</span>
               <span className="sidebar-link-end">
-                <ChevronIcon className={`sidebar-chevron transition-rotate ${transactionSubmenuOpen ? 'rotate-90' : ''}`} />
+                <ChevronIcon className="sidebar-chevron transition-rotate" />
               </span>
             </button>
 
-            {transactionSubmenuOpen && (
-              <div className="sidebar-submenu-panel shadow rounded">
-                <nav className="list-group list-group-flush">
-                  <NavLink
-                    to="/transactions"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive && location.pathname === '/transactions' ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    All Transactions
-                  </NavLink>
-                  <NavLink
-                    to="/transactions/qc-inspection"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    QC Inspection Date
-                  </NavLink>
-                  <NavLink
-                    to="/transactions/overdue-invoice"
-                    className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                    onClick={() => {
-                      closeMobileMenu()
-                      closeSidebarSubmenus()
-                    }}
-                  >
-                    <SubmenuIcon />
-                    Shipment Overdue
-                  </NavLink>
-                </nav>
-              </div>
-            )}
+            <div className="sidebar-submenu-panel shadow rounded">
+              <nav className="list-group list-group-flush">
+                <NavLink
+                  to="/transactions"
+                  className="list-group-item list-group-item-action py-2"
+                  onClick={closeMobileMenu}
+                >
+                  <SubmenuIcon />
+                  All Transactions
+                </NavLink>
+                <NavLink
+                  to="/transactions/qc-inspection"
+                  className="list-group-item list-group-item-action py-2"
+                  onClick={closeMobileMenu}
+                >
+                  <SubmenuIcon />
+                  QC Inspection Date
+                </NavLink>
+                <NavLink
+                  to="/transactions/overdue-invoice"
+                  className="list-group-item list-group-item-action py-2"
+                  onClick={closeMobileMenu}
+                >
+                  <SubmenuIcon />
+                  Shipment Overdue
+                </NavLink>
+              </nav>
+            </div>
           </div>
 
           {canViewReports && (
-            <div className="position-relative">
+            <div className="sidebar-menu-item position-relative">
               <button
                 type="button"
                 className={`sidebar-link w-100 ${reportLinkActive ? 'active' : ''}`}
-                onClick={() => {
-                  setOpenSidebarMenu((open) => (open === 'reports' ? null : 'reports'))
-                }}
-                aria-expanded={reportSubmenuOpen}
+                aria-haspopup="true"
               >
                 <SidebarIcon icon="reports" />
                 <span className="sidebar-link-text">Reports</span>
                 <span className="sidebar-link-end">
-                  <ChevronIcon className={`sidebar-chevron transition-rotate ${reportSubmenuOpen ? 'rotate-90' : ''}`} />
+                  <ChevronIcon className="sidebar-chevron transition-rotate" />
                 </span>
               </button>
-              {reportSubmenuOpen && (
-                <div className="sidebar-submenu-panel shadow rounded">
-                  <nav className="list-group list-group-flush">
-                    {/* <NavLink
+              <div className="sidebar-submenu-panel shadow rounded">
+                <nav className="list-group list-group-flush">
+                  {/* <NavLink
                       to="/reports/summary"
-                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                      onClick={() => {
-                        closeMobileMenu()
-                        closeSidebarSubmenus()
-                      }}
+                      className="list-group-item list-group-item-action py-2"
+                      onClick={closeMobileMenu}
                     >
                       <SubmenuIcon />
                       Summary Report
                     </NavLink> */}
-                    <NavLink
-                      to="/reports/packer-sales"
-                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                      onClick={() => {
-                        closeMobileMenu()
-                        closeSidebarSubmenus()
-                      }}
-                    >
-                      <SubmenuIcon />
-                      Sales Revenue
-                    </NavLink>
-                    <NavLink
-                      to="/reports/payment-status"
-                      className={({ isActive }) => `list-group-item list-group-item-action py-2${isActive ? ' active' : ''}`}
-                      onClick={() => {
-                        closeMobileMenu()
-                        closeSidebarSubmenus()
-                      }}
-                    >
-                      <SubmenuIcon />
-                      Payment Status
-                    </NavLink>
-                  </nav>
-                </div>
-              )}
+                  <NavLink
+                    to="/reports/packer-sales"
+                    className="list-group-item list-group-item-action py-2"
+                    onClick={closeMobileMenu}
+                  >
+                    <SubmenuIcon />
+                    Sales Revenue
+                  </NavLink>
+                  <NavLink
+                    to="/reports/payment-status"
+                    className="list-group-item list-group-item-action py-2"
+                    onClick={closeMobileMenu}
+                  >
+                    <SubmenuIcon />
+                    Payment Status
+                  </NavLink>
+                </nav>
+              </div>
             </div>
           )}
 
@@ -244,7 +206,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
             onClick={() => {
               closeMobileMenu()
-              closeSidebarSubmenus()
             }}
           >
             <SidebarIcon icon="transactions" />
@@ -257,7 +218,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
             onClick={() => {
               closeMobileMenu()
-              closeSidebarSubmenus()
             }}
           >
             <SidebarIcon icon="mail" />
@@ -271,7 +231,6 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
               className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
               onClick={() => {
                 closeMobileMenu()
-                closeSidebarSubmenus()
               }}
             >
               <SidebarIcon icon="history" />

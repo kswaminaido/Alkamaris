@@ -22,11 +22,30 @@ const statusOptions = [
   { value: 'C', label: 'Cancelled' },
 ]
 
+const transactionTableColumns = [
+  { label: 'Txn ID', width: '7%' },
+  { label: 'Date', width: '6%' },
+  { label: 'LSD', width: '6%' },
+  { label: 'Packer', width: '9%' },
+  { label: 'Customer', width: '8%' },
+  { label: 'By QC', width: '7%' },
+  { label: 'AME Inv. to Packer', width: '8%' },
+  { label: 'AME Inv. to Customer', width: '8%' },
+  { label: 'Packer Inv.', width: '7%' },
+  { label: 'PO/Contract', width: '7%' },
+  { label: 'ETD', width: '6%' },
+  { label: 'ETA', width: '6%' },
+  { label: 'Status', width: '5%' },
+  { label: 'Destination', width: '9%' },
+  { label: 'Duplicate', width: '7%' },
+]
+
 const csvColumns = [
   { label: 'Code', value: (transaction) => transaction.booking_no },
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
+  { label: 'By QC', value: (transaction) => transaction.by_qc },
   { label: 'AME Inv. to Packer', value: (transaction) => ameInvoiceToPacker(transaction) },
   { label: 'AME Inv. to Customer', value: (transaction) => ameInvoiceToCustomer(transaction) },
   { label: 'Packer Inv.', value: (transaction) => transaction.logistics?.packer_inv },
@@ -388,35 +407,30 @@ function TransactionsPage({ overdueOnly = false }) {
 
         <div className="transactions-table-wrap">
           <table className="transactions-table">
+            <colgroup>
+              {transactionTableColumns.map((column) => (
+                <col key={column.label} style={{ width: column.width }} />
+              ))}
+            </colgroup>
             <thead>
               <tr>
-                <th>Txn ID</th>
-                <th>Date</th>
-                <th>LSD</th>
-                <th>Packer</th>
-                <th>Customer</th>
-                <th>AME Inv. to Packer</th>
-                <th>AME Inv. to Customer</th>
-                <th>Packer Inv.</th>
-                <th>PO/Contract</th>
-                <th>ETD</th>
-                <th>ETA</th>
-                <th>Status</th>
-                <th>Destination</th>
-                {/* <th>Created At</th> */}
-                <th>Duplicate</th>
+                {transactionTableColumns.map((column) => (
+                  <th key={column.label} style={{ color: '#000000' }}>
+                    <span className="transactions-table-head-label">{column.label}</span>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr>
-                  <td colSpan={16} style={{ textAlign: 'center' }}>
+                <tr className="transactions-loading-row">
+                  <td colSpan={transactionTableColumns.length}>
                     Loading transactions, please wait...
                   </td>
                 </tr>
               )}
               {!loading && visibleRows.length === 0 && (
-                <tr><td colSpan={16}>No transactions found.</td></tr>
+                <tr><td colSpan={transactionTableColumns.length}>No transactions found.</td></tr>
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
@@ -425,6 +439,7 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
+                  <td>{transaction.by_qc ?? '-'}</td>
                   <td>{ameInvoiceToPacker(transaction)}</td>
                   <td>{ameInvoiceToCustomer(transaction)}</td>
                   <td>{transaction.logistics?.packer_inv ?? '-'}</td>

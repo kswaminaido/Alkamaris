@@ -29,6 +29,7 @@ function buildCsvColumns(showQcInspectionColumn = false, qcInspectionColumnLabel
     { label: 'Date', value: (row) => displayDate(row.issueDate) },
     { label: 'Packer', value: (row) => row.packer },
     { label: 'Customer', value: (row) => row.customer },
+    { label: 'By QC', value: (row) => row.byQc },
     { label: 'Product', value: (row) => row.product },
     { label: 'Style', value: (row) => row.style },
     { label: 'Packing', value: (row) => row.packing },
@@ -364,6 +365,7 @@ function PackerSalesReportPage({
               <col className="packer-sales-col-date" />
               <col className="packer-sales-col-packer" />
               <col className="packer-sales-col-customer" />
+              <col className="packer-sales-col-customer" />
               <col className="packer-sales-col-weight" />
               <col className="packer-sales-col-money" />
               <col className="packer-sales-col-money" />
@@ -380,6 +382,7 @@ function PackerSalesReportPage({
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
+                <th>By QC</th>
                 <th className="numeric">Total Weight</th>
                 <th className="numeric">Buying Total</th>
                 <th className="numeric">Packer Commission</th>
@@ -393,13 +396,13 @@ function PackerSalesReportPage({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={12 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">
+                  <td colSpan={13 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">
                     {loadingText}
                   </td>
                 </tr>
               ) : null}
               {!loading && rows.length === 0 ? (
-                <tr><td colSpan={12 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">{emptyText}</td></tr>
+                <tr><td colSpan={13 + (showQcInspectionColumn ? 1 : 0)} className="table-message-cell">{emptyText}</td></tr>
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
@@ -412,6 +415,7 @@ function PackerSalesReportPage({
                   <td>{displayDate(row.issueDate)}</td>
                   <td>{row.packer || '-'}</td>
                   <td>{row.customer || '-'}</td>
+                  <td>{row.byQc || '-'}</td>
                   <td className="numeric">{formatNumber(row.totalWeight)}</td>
                   <td className="numeric">{formatMoney(row.buyingTotal)}</td>
                   <td className="numeric">{formatMoney(row.packerCommission)}</td>
@@ -568,6 +572,7 @@ function buildPackerSalesSummaryRows(transactions) {
       issueDate: transaction.issue_date,
       packer: transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? '',
       customer: transaction.general_info_customer?.customer ?? '',
+      byQc: transaction.by_qc ?? '',
       totalWeight: sumNullableRows(items, 'totalWeight'),
       buyingTotal: sumNullableRows(items, 'buyingTotal'),
       packerCommission: sumNullableRows(items, 'packerCommission'),
@@ -595,6 +600,7 @@ function flattenPackerSalesRows(transactions) {
       issueDate: transaction.issue_date,
       packer: transaction.general_info_packer?.vendor ?? transaction.general_info_packer?.packer_name ?? '',
       customer: transaction.general_info_customer?.customer ?? '',
+      byQc: transaction.by_qc ?? '',
       product: item?.product ?? '',
       style: item?.style ?? '',
       packing: item?.packing ?? '',

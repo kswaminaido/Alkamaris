@@ -36,6 +36,7 @@ final class TransactionService
         'booking_mode',
         'issue_date',
         'sales_person_id',
+        'by_qc',
         'product_origin',
         'destination',
         'category',

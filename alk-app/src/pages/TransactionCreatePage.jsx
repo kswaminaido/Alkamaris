@@ -39,6 +39,7 @@ function buildInitialForm() {
       booking_no: generateBookingNo(issueDate),
       issue_date: issueDate,
       sales_person_id: '',
+      by_qc: '',
       product_origin: 'India',
       destination: '',
       category: '',
@@ -125,6 +126,7 @@ function TransactionCreatePage() {
           booking_no: previous.transaction.booking_no || generateBookingNo(issueDate),
           issue_date: issueDate,
           sales_person_id: previous.transaction.sales_person_id || (currentUser.role === 'sales' ? currentUser.id : '') || '',
+          by_qc: previous.transaction.by_qc || '',
           product_origin: previous.transaction.product_origin || 'India',
         },
       }
@@ -337,9 +339,10 @@ function TxHeader({ form, setValue, onIssueDateChange, salesPeople, optionsFor, 
     <div className="txn-grid cols-4">
       <Field label="Booking No."><input value={form.transaction.booking_no} onChange={(e) => setValue('transaction', 'booking_no', e.target.value)} required /></Field>
       <Field label="Issue Date"><input type="date" value={form.transaction.issue_date} onChange={(e) => onIssueDateChange(e.target.value)} /></Field>
-      <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} onAdd={(value) => addOption('transaction.category', value)} /></Field>
       {/* <Field label="Country"><Select value={form.transaction.country} list={optionsFor('transaction.country')} onChange={(value) => setValue('transaction', 'country', value)} onAdd={(value) => addOption('transaction.country', value)} /></Field> */}
       <Field label="Sales Person"><SalesPersonSelect value={form.transaction.sales_person_id} list={salesPeople} onChange={(value) => setValue('transaction', 'sales_person_id', value)} /></Field>
+      <Field label="By QC"><Select value={form.transaction.by_qc} list={optionsFor('transaction.by_qc')} onChange={(value) => setValue('transaction', 'by_qc', value)} onAdd={(value) => addOption('transaction.by_qc', value)} /></Field>
+      <Field label="Category"><Select value={form.transaction.category} list={optionsFor('transaction.category')} onChange={(value) => setValue('transaction', 'category', value)} onAdd={(value) => addOption('transaction.category', value)} /></Field>
       <Field label="Product Origin"><Select value={form.transaction.product_origin} list={productOriginOptions} onChange={(value) => setValue('transaction', 'product_origin', value)} onAdd={(value) => addOption('transaction.product_origin', value)} /></Field>
       <Field label="Type"><Select value={form.transaction.type} list={optionsFor('transaction.type')} onChange={(value) => setValue('transaction', 'type', value)} onAdd={(value) => addOption('transaction.type', value)} /></Field>
       <Field label="Container">

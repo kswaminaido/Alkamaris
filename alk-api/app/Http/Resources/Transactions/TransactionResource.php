@@ -22,6 +22,7 @@ final class TransactionResource extends JsonResource
             'booking_mode' => $this->booking_mode,
             'issue_date' => optional($this->issue_date)->toDateString(),
             'sales_person_id' => $this->sales_person_id,
+            'by_qc' => $this->by_qc,
             'product_origin' => $this->product_origin,
             'destination' => $this->destination,
             'category' => $this->category,

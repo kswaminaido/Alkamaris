@@ -1789,12 +1789,16 @@ select:focus {
 
 .txn-combobox-caret {
   display: inline-block;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid #344054;
+  width: 1rem;
+  height: 1rem;
+  color: #344054;
+  font-size: 0.9rem;
+  line-height: 1;
   transition: transform 0.15s ease;
+}
+
+.txn-combobox-caret::before {
+  content: "\25BE";
 }
 
 .txn-combobox-caret.is-open {
@@ -10322,4 +10326,186 @@ table th,
 .module-card-head.reports {
   background: var(--enterprise-accent-soft) !important;
   color: var(--enterprise-text) !important;
+}
+
+/* Definitive final override for requested navigation and table behavior */
+:root {
+  --aqua-nav: #047c96;
+  --aqua-nav-dark: #03566d;
+  --aqua-nav-soft: rgba(125, 229, 244, 0.18);
+  --aqua-nav-border: rgba(178, 245, 251, 0.28);
+  --aqua-nav-active: #7de5f4;
+}
+
+.dashboard-sidebar,
+.dashboard-topbar,
+.admin-side-nav,
+.modern-top-nav {
+  background: linear-gradient(
+    180deg,
+    var(--aqua-nav) 0%,
+    var(--aqua-nav-dark) 100%
+  ) !important;
+  color: #f7fdff !important;
+  border-color: var(--aqua-nav-border) !important;
+}
+
+.dashboard-sidebar {
+  box-shadow: 8px 0 26px rgba(3, 86, 109, 0.18) !important;
+}
+
+.dashboard-menu-btn,
+.dashboard-topbar-profile,
+.dashboard-topbar-profile-icon,
+.dashboard-topbar-logout-btn,
+.modern-logout-btn,
+.dashboard-sidebar-footer {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--aqua-nav-border) !important;
+  color: #f7fdff !important;
+}
+
+.sidebar-link,
+.sidebar-sublink,
+.dashboard-topbar-nav-item,
+.modern-nav-item,
+.admin-side-item {
+  color: rgba(247, 253, 255, 0.82) !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active,
+.dashboard-topbar-nav-item:hover,
+.dashboard-topbar-nav-item.active,
+.modern-nav-item:hover,
+.modern-nav-item.active,
+.admin-side-item:hover,
+.admin-side-item.active {
+  background: var(--aqua-nav-soft) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--aqua-nav-active) !important;
+}
+
+.sidebar-menu-item .sidebar-submenu-panel {
+  display: none !important;
+}
+
+.sidebar-menu-item:hover .sidebar-submenu-panel {
+  display: block !important;
+}
+
+.sidebar-menu-item:hover .sidebar-chevron {
+  transform: rotate(90deg);
+}
+
+.sidebar-submenu-panel .list-group-item.active {
+  background: transparent !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: var(--enterprise-muted) !important;
+  font-weight: 500 !important;
+}
+
+.sidebar-submenu-panel .list-group-item:hover {
+  background: #e8fbff !important;
+  color: var(--aqua-nav-dark) !important;
+}
+
+.transactions-table-wrap {
+  position: relative !important;
+  overflow: auto !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+.transactions-page {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.transactions-page .transactions-toolbar,
+.transactions-page .compact-pagination,
+.transactions-page .compact-pagination-bottom {
+  flex: 0 0 auto !important;
+}
+
+.transactions-page .transactions-table {
+  width: 100% !important;
+  min-width: 1180px !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.transactions-page .transactions-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 8 !important;
+}
+
+.transactions-page .transactions-table th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 9 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0.36rem 0.35rem !important;
+  background: #d7f8fd !important;
+  color: #000000 !important;
+  border-color: #9bdce7 !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+.transactions-page .transactions-table thead th,
+.transactions-page .transactions-table thead th *,
+.transactions-page .transactions-table thead .transactions-table-head-label {
+  color: #000000 !important;
+}
+
+.transactions-table-head-label {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+  line-height: 1.1 !important;
+  max-height: 2.2em !important;
+  text-align: center !important;
+  color: #000000 !important;
+}
+
+.transactions-page .transactions-table td {
+  height: 34px !important;
+  vertical-align: middle !important;
+}
+
+.transactions-loading-row td {
+  height: 52px !important;
+  padding: 0.75rem !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+select:not([multiple]) {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  padding-right: max(1.75rem, 24px) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='8' y='12' text-anchor='middle' font-family='Arial, sans-serif' font-size='12' fill='%23344054'%3E%E2%96%BE%3C/text%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.55rem center !important;
+  background-size: 0.8rem 0.8rem !important;
+}
+
+select::-ms-expand {
+  display: none;
 }

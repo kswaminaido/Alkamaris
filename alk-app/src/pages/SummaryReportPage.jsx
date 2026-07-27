@@ -19,6 +19,7 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
+  { label: 'By QC', value: (transaction) => transaction.by_qc },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
 ]
 
@@ -326,6 +327,7 @@ function SummaryReportPage() {
                 <th>Date</th>
                 <th>Packer</th>
                 <th>Customer</th>
+                <th>By QC</th>
                 <th>Status</th>
                 <th>Created At</th>
                 <th>Duplicate</th>
@@ -334,13 +336,13 @@ function SummaryReportPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center' }}>
+                  <td colSpan={8} style={{ textAlign: 'center' }}>
                     Loading summary report, please wait...
                   </td>
                 </tr>
               )}
               {!loading && visibleRows.length === 0 && (
-                <tr><td colSpan={7}>No transactions found.</td></tr>
+                <tr><td colSpan={8}>No transactions found.</td></tr>
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
@@ -348,6 +350,7 @@ function SummaryReportPage() {
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
+                  <td>{transaction.by_qc ?? '-'}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   <td>{displayDate(transaction.created_at)}</td>
                   <td>

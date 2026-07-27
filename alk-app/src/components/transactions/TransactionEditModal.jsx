@@ -508,6 +508,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
   const salesPerson = transaction.sales_person ?? transaction.salesPerson ?? {}
   const salesPersonName = salesPerson.name ?? ''
   const salesPersonId = transaction.sales_person_id ?? salesPerson.id ?? ''
+  const byQc = transaction.by_qc ?? ''
   const lastModifiedBy = transactionLastModifiedBy(transaction)
   const issueDate = toInputDate(transaction.issue_date)
   const updatedAt = formatDate(transaction.updated_at)
@@ -531,6 +532,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
         <LabelField label="Last Modified By"><input readOnly value={lastModifiedBy} /></LabelField>
 
         <LabelField label="Sales Person"><SalesPersonSelect value={salesPersonId} list={salesPeople} currentName={salesPersonName} /></LabelField>
+        <LabelField label="By QC"><NamedSearchableSelect name="transaction.by_qc" value={byQc} list={withCurrent(optionsFor('transaction.by_qc'), byQc)} onAdd={(value) => addOption('transaction.by_qc', value)} /></LabelField>
         <LabelField label="Product Origin"><NamedSearchableSelect name="transaction.product_origin" value={origin} list={originOptions} onAdd={(value) => addOption('transaction.product_origin', value)} /></LabelField>
         <LabelField label="Type"><NamedSearchableSelect name="transaction.type" value={type} list={withCurrent(optionsFor('transaction.type'), type)} onAdd={(value) => addOption('transaction.type', value)} /></LabelField>
         <LabelField label="Container"><div className="txe-inline"><NamedSearchableSelect name="transaction.container_primary" value={container} list={withCurrent(optionsFor('transaction.container_primary'), container)} onAdd={(value) => addOption('transaction.container_primary', value)} hideToggle /><NamedSearchableSelect name="transaction.container_secondary" value={containerSecondary} list={withCurrent(optionsFor('transaction.container_secondary'), containerSecondary)} onAdd={(value) => addOption('transaction.container_secondary', value)} hideToggle /></div></LabelField>
@@ -1871,6 +1873,7 @@ function buildPayload(formElement, transaction) {
       booking_mode: transaction.booking_mode ?? 'trade_commission',
       issue_date: toApiDate(getField(formData, 'transaction.issue_date') ?? transaction.issue_date),
       sales_person_id: getField(formData, 'transaction.sales_person_id') ?? transaction.sales_person_id ?? null,
+      by_qc: getField(formData, 'transaction.by_qc') ?? transaction.by_qc ?? null,
       product_origin: getField(formData, 'transaction.product_origin') ?? transaction.product_origin ?? null,
       destination: getField(formData, 'transaction.destination') ?? transaction.destination ?? null,
       category: getField(formData, 'transaction.category') ?? transaction.category ?? null,

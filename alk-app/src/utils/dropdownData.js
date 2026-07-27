@@ -10,6 +10,7 @@ export const DROPDOWN_FIELD_GROUPS = [
     title: 'Transaction Details',
     fields: [
       { key: 'transaction.category', label: 'Category', source: 'config', type: 'transaction_category', fallback: ['Food Grade', 'Feed Grade', 'Industrial'], pages: ['New Booking'] },
+      { key: 'transaction.by_qc', label: 'By QC', source: 'config', type: 'transaction_by_qc', fallback: [], pages: ['New Booking', 'Edit Transaction'] },
       { key: 'transaction.type', label: 'Type', source: 'config', type: 'transaction_type', fallback: ['Trade', 'Service', 'Commission'], pages: ['New Booking'] },
       { key: 'transaction.country', label: 'Country', source: 'countries', type: 'transaction_country', fallback: [] },
       { key: 'transaction.product_origin', label: 'Product Origin', source: 'countries', type: 'transaction_product_origin', fallback: [] },
