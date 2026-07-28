@@ -30,6 +30,7 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [sidebarFlyoutTop, setSidebarFlyoutTop] = useState({})
   const isCompactViewport = typeof window !== 'undefined' && window.innerWidth <= 980
   const transactionLinkActive = routeSidebarMenu === 'transactions'
   const reportLinkActive = routeSidebarMenu === 'reports'
@@ -54,6 +55,20 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
 
   function closeMobileMenu() {
     setMobileMenuOpen(false)
+  }
+
+  function updateSidebarFlyoutPosition(event, menuKey, optionCount) {
+    if (sidebarOpen || typeof window === 'undefined' || window.innerWidth <= 980) return
+
+    const rect = event.currentTarget.getBoundingClientRect()
+    const estimatedPanelHeight = optionCount * 46 + 12
+    const maxTop = Math.max(8, window.innerHeight - estimatedPanelHeight - 8)
+    const nextTop = Math.min(Math.max(8, rect.top), maxTop)
+
+    setSidebarFlyoutTop((positions) => ({
+      ...positions,
+      [menuKey]: `${nextTop}px`,
+    }))
   }
 
   function handleTopNavAction(action) {
@@ -114,7 +129,11 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
             <span className="sidebar-link-end" />
           </NavLink>
 
-          <div className="sidebar-menu-item position-relative">
+          <div
+            className="sidebar-menu-item position-relative"
+            onMouseEnter={(event) => updateSidebarFlyoutPosition(event, 'transactions', 3)}
+            onFocusCapture={(event) => updateSidebarFlyoutPosition(event, 'transactions', 3)}
+          >
             <button
               type="button"
               className={`sidebar-link w-100 ${transactionLinkActive ? 'active' : ''}`}
@@ -127,7 +146,10 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
               </span>
             </button>
 
-            <div className="sidebar-submenu-panel shadow rounded">
+            <div
+              className="sidebar-submenu-panel shadow rounded"
+              style={{ '--sidebar-flyout-top': sidebarFlyoutTop.transactions }}
+            >
               <nav className="list-group list-group-flush">
                 <NavLink
                   to="/transactions"
@@ -158,7 +180,11 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
           </div>
 
           {canViewReports && (
-            <div className="sidebar-menu-item position-relative">
+            <div
+              className="sidebar-menu-item position-relative"
+              onMouseEnter={(event) => updateSidebarFlyoutPosition(event, 'reports', 2)}
+              onFocusCapture={(event) => updateSidebarFlyoutPosition(event, 'reports', 2)}
+            >
               <button
                 type="button"
                 className={`sidebar-link w-100 ${reportLinkActive ? 'active' : ''}`}
@@ -170,7 +196,10 @@ function AdminSidebarLayout({ currentUser, activeKey = '', children, onLogout })
                   <ChevronIcon className="sidebar-chevron transition-rotate" />
                 </span>
               </button>
-              <div className="sidebar-submenu-panel shadow rounded">
+              <div
+                className="sidebar-submenu-panel shadow rounded"
+                style={{ '--sidebar-flyout-top': sidebarFlyoutTop.reports }}
+              >
                 <nav className="list-group list-group-flush">
                   {/* <NavLink
                       to="/reports/summary"
