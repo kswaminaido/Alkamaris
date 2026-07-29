@@ -14,6 +14,7 @@ function QcInspectionReportPage() {
       filterByQcInspectionDate
       showQcInspectionColumn
       qcInspectionColumnLabel="QC Data"
+      allowedRoles={['admin', 'accounts', 'logistics']}
     />
   )
 }

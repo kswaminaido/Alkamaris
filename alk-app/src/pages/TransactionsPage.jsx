@@ -5,6 +5,7 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
+import { buildConfigMap, getFieldOptions } from '../utils/dropdownData'
 import { fetchSalesPersonOptions } from '../utils/userOptions'
 
 const PAGE_SIZE = 50
@@ -21,6 +22,8 @@ const statusOptions = [
   { value: 'T', label: 'Tally' },
   { value: 'C', label: 'Cancelled' },
 ]
+const hiddenStatusDropdownValues = new Set(['SP', 'T'])
+const statusDropdownOptions = statusOptions.filter((option) => !hiddenStatusDropdownValues.has(option.value))
 
 const transactionTableColumns = [
   { label: 'Txn ID', width: '7%' },
@@ -28,12 +31,12 @@ const transactionTableColumns = [
   { label: 'LSD', width: '6%' },
   { label: 'Packer', width: '9%' },
   { label: 'Customer', width: '8%' },
-  { label: 'By QC', width: '7%' },
   { label: 'AME Inv. to Packer', width: '8%' },
   { label: 'AME Inv. to Customer', width: '8%' },
   { label: 'Packer Inv.', width: '7%' },
   { label: 'PO/Contract', width: '7%' },
   { label: 'ETD', width: '6%' },
+  { label: 'By QC', width: '7%' },
   { label: 'ETA', width: '6%' },
   { label: 'Status', width: '5%' },
   { label: 'Destination', width: '9%' },
@@ -45,14 +48,14 @@ const csvColumns = [
   { label: 'Date', value: (transaction) => displayDate(transaction.issue_date) },
   { label: 'Packer', value: (transaction) => transaction.general_info_packer?.vendor },
   { label: 'Customer', value: (transaction) => transaction.general_info_customer?.customer },
-  { label: 'By QC', value: (transaction) => transaction.by_qc },
   { label: 'AME Inv. to Packer', value: (transaction) => ameInvoiceToPacker(transaction) },
   { label: 'AME Inv. to Customer', value: (transaction) => ameInvoiceToCustomer(transaction) },
   { label: 'Packer Inv.', value: (transaction) => transaction.logistics?.packer_inv },
   { label: 'PO/Contract', value: (transaction) => transaction.general_info_customer?.buyer_number },
   { label: 'ETD', value: (transaction) => displayDate(transaction.logistics?.etd_date) },
+  { label: 'By QC', value: (transaction) => transaction.by_qc },
   { label: 'ETA', value: (transaction) => displayDate(transaction.logistics?.eta_date) },
-  { label: 'LSD', value: (transaction) => displayDate(transaction.shipping_details_packer?.lsd_max) },
+  { label: 'LSD', value: (transaction) => displayDate(getTransactionLsdDate(transaction)) },
   { label: 'Status', value: (transaction) => getStatusLabel(transaction.status ?? 'U') },
   // { label: 'SH Date', value: (transaction) => displayDate(transaction.shipping_details_customer?.req_eta) },
   { label: 'Destination', value: (transaction) => transaction.destination },
@@ -67,7 +70,7 @@ function getStatusLabel(value) {
 function TransactionsPage({ overdueOnly = false }) {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
-  const defaultStatus = overdueOnly ? 'U' : ''
+  const defaultStatus = ''
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -76,11 +79,13 @@ function TransactionsPage({ overdueOnly = false }) {
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [salesPeople, setSalesPeople] = useState([])
+  const [byQcOptions, setByQcOptions] = useState([])
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
     vendor: '',
     customer: '',
     salesPersonId: '',
+    byQc: '',
     status: defaultStatus,
     fromDate: '',
     toDate: '',
@@ -90,6 +95,7 @@ function TransactionsPage({ overdueOnly = false }) {
   useEffect(() => {
     if (!currentUser) return
     loadSalesPeople()
+    loadByQcOptions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser])
 
@@ -136,6 +142,17 @@ function TransactionsPage({ overdueOnly = false }) {
     }
   }
 
+  async function loadByQcOptions() {
+    try {
+      const response = await authFetch('/configs')
+      const payload = await response.json()
+      const configMap = response.ok ? buildConfigMap(payload?.data) : {}
+      setByQcOptions(getFieldOptions(byQcDropdownField, { configMap }))
+    } catch {
+      setByQcOptions([])
+    }
+  }
+
   function handleFilterChange(key, value) {
     setSearchFilters((previous) => ({ ...previous, [key]: value }))
     setPage(1)
@@ -147,6 +164,7 @@ function TransactionsPage({ overdueOnly = false }) {
       vendor: '',
       customer: '',
       salesPersonId: '',
+      byQc: '',
       status: defaultStatus,
       fromDate: '',
       toDate: '',
@@ -342,6 +360,23 @@ function TransactionsPage({ overdueOnly = false }) {
               </div>
 
               <div className="filter-group">
+                <label htmlFor="by-qc-filter">By QC</label>
+                <select
+                  id="by-qc-filter"
+                  value={searchFilters.byQc}
+                  onChange={(e) => handleFilterChange('byQc', e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">All QC</option>
+                  {byQcOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
                 <select
                   id="status-filter"
@@ -350,7 +385,7 @@ function TransactionsPage({ overdueOnly = false }) {
                   disabled={loading || overdueOnly}
                 >
                   <option value="">All Status</option>
-                  {statusOptions.map((option) => (
+                  {statusDropdownOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -378,7 +413,7 @@ function TransactionsPage({ overdueOnly = false }) {
                 />
               </div>
 
-              <div className="filter-group" style={{ marginLeft: 'auto' }}>
+              <div className="filter-group transaction-filter-actions-group">
                 <label>&nbsp;</label>
                 <div className="filter-actions">
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
@@ -436,15 +471,15 @@ function TransactionsPage({ overdueOnly = false }) {
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
                   <td>{transaction.booking_no}</td>
                   <td>{displayDate(transaction.issue_date)}</td>
-                  <td>{displayDate(transaction.shipping_details_packer?.lsd_max)}</td>
+                  <td>{displayDate(getTransactionLsdDate(transaction))}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
-                  <td>{transaction.by_qc ?? '-'}</td>
                   <td>{ameInvoiceToPacker(transaction)}</td>
                   <td>{ameInvoiceToCustomer(transaction)}</td>
                   <td>{transaction.logistics?.packer_inv ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
                   <td>{displayDate(transaction.logistics?.etd_date)}</td>
+                  <td>{transaction.by_qc ?? '-'}</td>
                   <td>{displayDate(transaction.logistics?.eta_date)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
@@ -505,12 +540,21 @@ function displayDate(value) {
   return date.toLocaleDateString('en-GB')
 }
 
+function getTransactionLsdDate(transaction) {
+  return transaction.shipping_details_packer?.lsd_max
+    ?? transaction.shipping_details_customer?.lsd_max
+    ?? ''
+}
+
 function ameInvoiceToPacker(transaction) {
   const invoiceNumber = String(transaction.cash_flow_packer?.invoice_number ?? '').trim()
   return invoiceNumber || '-'
 }
 
 function ameInvoiceToCustomer(transaction) {
+  const invoiceNumber = String(transaction.cash_flow_customer?.invoice_number ?? '').trim()
+  if (invoiceNumber) return invoiceNumber
+
   return hasCustomerItemCommission(transaction) ? 'Comm' : 'No Comm'
 }
 
@@ -534,6 +578,7 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
   if (filters.salesPersonId) params.append('sales_person_id', filters.salesPersonId)
+  if (filters.byQc) params.append('by_qc', filters.byQc)
   if (filters.status) params.append('status', filters.status)
   if (!options.overdueOnly && filters.status === 'U') params.append('sort_direction', 'asc')
   if (filters.fromDate) params.append('from_date', filters.fromDate)
@@ -544,6 +589,12 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+const byQcDropdownField = {
+  source: 'config',
+  type: 'transaction_by_qc',
+  fallback: [],
 }
 
 export default TransactionsPage

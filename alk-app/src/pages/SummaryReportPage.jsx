@@ -5,6 +5,7 @@ import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
+import { buildConfigMap, getFieldOptions } from '../utils/dropdownData'
 
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
@@ -38,15 +39,23 @@ function SummaryReportPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
+  const [byQcOptions, setByQcOptions] = useState([])
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
     vendor: '',
     customer: '',
+    byQc: '',
     status: 'I',
     fromDate: '',
     toDate: '',
   })
   const [selectedTransaction, setSelectedTransaction] = useState(null)
+
+  useEffect(() => {
+    if (!currentUser) return
+    loadByQcOptions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser])
 
   useEffect(() => {
     if (!currentUser) return
@@ -83,13 +92,24 @@ function SummaryReportPage() {
     }
   }
 
+  async function loadByQcOptions() {
+    try {
+      const response = await authFetch('/configs')
+      const payload = await response.json()
+      const configMap = response.ok ? buildConfigMap(payload?.data) : {}
+      setByQcOptions(getFieldOptions(byQcDropdownField, { configMap }))
+    } catch {
+      setByQcOptions([])
+    }
+  }
+
   function handleFilterChange(key, value) {
     setSearchFilters((previous) => ({ ...previous, [key]: value }))
     setPage(1)
   }
 
   function clearFilters() {
-    setSearchFilters({ bookingNo: '', vendor: '', customer: '', status: 'I', fromDate: '', toDate: '' })
+    setSearchFilters({ bookingNo: '', vendor: '', customer: '', byQc: '', status: 'I', fromDate: '', toDate: '' })
     setPage(1)
   }
 
@@ -266,6 +286,23 @@ function SummaryReportPage() {
               </div>
 
               <div className="filter-group">
+                <label htmlFor="summary-by-qc-filter">By QC</label>
+                <select
+                  id="summary-by-qc-filter"
+                  value={searchFilters.byQc}
+                  onChange={(e) => handleFilterChange('byQc', e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">All QC</option>
+                  {byQcOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
                 <label htmlFor="status-filter">Status</label>
                 <select id="status-filter" value={searchFilters.status} disabled>
                   <option value="I">Invoiced</option>
@@ -292,7 +329,7 @@ function SummaryReportPage() {
                 />
               </div>
 
-              <div className="filter-group" style={{ marginLeft: 'auto' }}>
+              <div className="filter-group transaction-filter-actions-group">
                 <label>&nbsp;</label>
                 <div className="filter-actions">
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
@@ -415,6 +452,7 @@ function buildTransactionParams(filters, targetPage, perPage) {
   if (filters.bookingNo) params.append('booking_no', filters.bookingNo)
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
+  if (filters.byQc) params.append('by_qc', filters.byQc)
   if (filters.status) params.append('status', filters.status)
   if (filters.fromDate) params.append('from_date', filters.fromDate)
   if (filters.toDate) params.append('to_date', filters.toDate)
@@ -424,6 +462,12 @@ function buildTransactionParams(filters, targetPage, perPage) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+const byQcDropdownField = {
+  source: 'config',
+  type: 'transaction_by_qc',
+  fallback: [],
 }
 
 export default SummaryReportPage

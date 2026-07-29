@@ -195,6 +195,7 @@ abstract class TransactionPayloadRequest extends FormRequest
             'cash_flow_customer.date_advance' => ['nullable', 'date'],
             'cash_flow_customer.amount_advance' => ['nullable', 'numeric'],
             'cash_flow_customer.invoice_date' => ['nullable', 'date'],
+            'cash_flow_customer.invoice_number' => ['nullable', 'string', 'max:255'],
             'cash_flow_customer.date_balance' => ['nullable', 'date'],
             'cash_flow_customer.amount_balance' => ['nullable', 'numeric'],
             'cash_flow_packer' => ['nullable', 'array'],

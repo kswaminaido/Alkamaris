@@ -2069,6 +2069,11 @@ select:focus {
   overflow: visible;
 }
 
+.transactions-page .date-search-filters {
+  flex-wrap: wrap;
+  row-gap: 0.55rem;
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
@@ -2080,6 +2085,10 @@ select:focus {
   gap: 0.45rem;
   align-items: center;
   flex-wrap: nowrap;
+}
+
+.transaction-filter-actions-group {
+  margin-left: auto;
 }
 
 .filter-group label {

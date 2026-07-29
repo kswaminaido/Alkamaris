@@ -4,6 +4,7 @@ import DateFilterInput from '../components/common/DateFilterInput'
 import PaginationBar from '../components/common/PaginationBar'
 import AdminSidebarLayout from '../components/layout/AdminSidebarLayout'
 import { useAuth } from '../context/AuthContext'
+import { buildConfigMap, getFieldOptions } from '../utils/dropdownData'
 import { fetchSalesPersonOptions } from '../utils/userOptions'
 
 const PAGE_SIZE = 50
@@ -21,6 +22,8 @@ const statusOptions = [
   { value: 'T', label: 'Tally' },
   { value: 'C', label: 'Cancelled' },
 ]
+const hiddenStatusDropdownValues = new Set(['SP', 'T'])
+const statusDropdownOptions = statusOptions.filter((option) => !hiddenStatusDropdownValues.has(option.value))
 
 function buildCsvColumns(showQcInspectionColumn = false, qcInspectionColumnLabel = 'QC Data') {
   return [
@@ -60,6 +63,7 @@ function PackerSalesReportPage({
   filterByQcInspectionDate = false,
   showQcInspectionColumn = false,
   qcInspectionColumnLabel = 'QC Data',
+  allowedRoles = ALLOWED_ROLES,
 } = {}) {
   const navigate = useNavigate()
   const { currentUser, authFetch, logout } = useAuth()
@@ -73,24 +77,27 @@ function PackerSalesReportPage({
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0 })
   const [summary, setSummary] = useState(null)
   const [salesPeople, setSalesPeople] = useState([])
+  const [byQcOptions, setByQcOptions] = useState([])
   const [searchFilters, setSearchFilters] = useState({
     bookingNo: '',
     vendor: '',
     customer: '',
     salesPersonId: '',
+    byQc: '',
     status: '',
     fromDate: '',
     toDate: '',
   })
 
   useEffect(() => {
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) return
+    if (!currentUser || !allowedRoles.includes(currentUser.role)) return
     loadSalesPeople()
+    loadByQcOptions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser])
 
   useEffect(() => {
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) return
+    if (!currentUser || !allowedRoles.includes(currentUser.role)) return
 
     for (const key of ['bookingNo', 'vendor', 'customer']) {
       const value = (searchFilters[key] ?? '').trim()
@@ -134,13 +141,24 @@ function PackerSalesReportPage({
     }
   }
 
+  async function loadByQcOptions() {
+    try {
+      const response = await authFetch('/configs')
+      const payload = await response.json()
+      const configMap = response.ok ? buildConfigMap(payload?.data) : {}
+      setByQcOptions(getFieldOptions(byQcDropdownField, { configMap }))
+    } catch {
+      setByQcOptions([])
+    }
+  }
+
   function handleFilterChange(key, value) {
     setSearchFilters((previous) => ({ ...previous, [key]: value }))
     setPage(1)
   }
 
   function clearFilters() {
-    setSearchFilters({ bookingNo: '', vendor: '', customer: '', salesPersonId: '', status: '', fromDate: '', toDate: '' })
+    setSearchFilters({ bookingNo: '', vendor: '', customer: '', salesPersonId: '', byQc: '', status: '', fromDate: '', toDate: '' })
     setPage(1)
   }
 
@@ -208,7 +226,7 @@ function PackerSalesReportPage({
     navigate('/', { replace: true })
   }
 
-  if (!currentUser || !ALLOWED_ROLES.includes(currentUser.role)) return null
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) return null
 
   const rows = buildPackerSalesSummaryRows(transactions)
   const totalRecords = pagination.total ?? 0
@@ -274,6 +292,21 @@ function PackerSalesReportPage({
                 </select>
               </div>
 
+              <div className="filter-group">
+                <label htmlFor="packer-sales-by-qc-filter">By QC</label>
+                <select
+                  id="packer-sales-by-qc-filter"
+                  value={searchFilters.byQc}
+                  onChange={(event) => handleFilterChange('byQc', event.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">All QC</option>
+                  {byQcOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+
               {showStatusFilter ? (
                 <div className="filter-group">
                   <label htmlFor="packer-sales-status-filter">Status</label>
@@ -284,7 +317,7 @@ function PackerSalesReportPage({
                     disabled={loading}
                   >
                     <option value="">All Status</option>
-                    {statusOptions.map((option) => (
+                    {statusDropdownOptions.map((option) => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
                   </select>
@@ -311,7 +344,7 @@ function PackerSalesReportPage({
                 />
               </div>
 
-              <div className="filter-group" style={{ marginLeft: 'auto' }}>
+              <div className="filter-group transaction-filter-actions-group">
                 <label>&nbsp;</label>
                 <div className="filter-actions">
                   <button type="button" className="primary-btn" onClick={clearFilters} disabled={loading}>
@@ -695,6 +728,7 @@ function buildTransactionParams(filters, targetPage, perPage, forcedStatus = '',
   if (filters.vendor) params.append('vendor', filters.vendor)
   if (filters.customer) params.append('customer', filters.customer)
   if (filters.salesPersonId) params.append('sales_person_id', filters.salesPersonId)
+  if (filters.byQc) params.append('by_qc', filters.byQc)
   if (forcedStatus) {
     params.append('status', forcedStatus)
   } else if (filters.status) {
@@ -803,6 +837,12 @@ function formatQty(value, unit) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+const byQcDropdownField = {
+  source: 'config',
+  type: 'transaction_by_qc',
+  fallback: [],
 }
 
 export default PackerSalesReportPage

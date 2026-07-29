@@ -30,6 +30,8 @@ const STATUS_OPTIONS = [
   { value: 'T', label: 'Tally' },
   { value: 'C', label: 'Cancelled' },
 ]
+const HIDDEN_STATUS_DROPDOWN_VALUES = new Set(['SP', 'T'])
+const STATUS_DROPDOWN_OPTIONS = STATUS_OPTIONS.filter((option) => !HIDDEN_STATUS_DROPDOWN_VALUES.has(option.value))
 
 let transactionItemOptionsCache = null
 let transactionItemOptionsPromise = null
@@ -507,11 +509,14 @@ function InfoField({ label, value }) {
 }
 
 function StatusField({ value, saving, onChange }) {
+  const selectedValue = STATUS_DROPDOWN_OPTIONS.some((option) => option.value === value) ? value : ''
+
   return (
     <label>
       <span>Status</span>
-      <select value={value} onChange={onChange} disabled={saving} aria-label="Transaction status">
-        {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      <select value={selectedValue} onChange={onChange} disabled={saving} aria-label="Transaction status">
+        <option value="" disabled>Select status</option>
+        {STATUS_DROPDOWN_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
     </label>
   )

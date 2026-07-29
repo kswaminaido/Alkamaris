@@ -41,6 +41,8 @@ const STATUS_OPTIONS = [
   { value: 'T', label: 'Tally' },
   { value: 'C', label: 'Cancelled' },
 ]
+const HIDDEN_STATUS_DROPDOWN_VALUES = new Set(['SP', 'T'])
+const STATUS_DROPDOWN_OPTIONS = STATUS_OPTIONS.filter((option) => !HIDDEN_STATUS_DROPDOWN_VALUES.has(option.value))
 
 function getStatusLabel(status) {
   const option = STATUS_OPTIONS.find(o => o.value === status)
@@ -519,6 +521,7 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
   const container = transaction.container_primary ?? ''
   const containerSecondary = transaction.container_secondary ?? ''
   const certified = transaction.certified ? 'Yes' : 'No'
+  const statusValue = transaction.status ?? 'P'
   const originOptions = mergeCountryOptions(optionsFor('transaction.product_origin'), origin)
   const destinationOptions = mergeCountryOptions(optionsFor('transaction.destination'), destination)
 
@@ -528,7 +531,12 @@ function HeaderCard({ transaction, optionsFor, addOption, salesPeople }) {
         <LabelField label="Booking No."><input name="transaction.booking_no" defaultValue={transaction.booking_no ?? ''} /></LabelField>
         <LabelField label="Issue Date"><DateInput name="transaction.issue_date" value={issueDate} /></LabelField>
         <LabelField label="Category"><NamedSearchableSelect name="transaction.category" value={category} list={withCurrent(optionsFor('transaction.category'), category)} onAdd={(value) => addOption('transaction.category', value)} /></LabelField>
-        <LabelField label="Status"><select name="transaction.status" defaultValue={transaction.status ?? 'P'}>{STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></LabelField>
+        <LabelField label="Status">
+          <select name="transaction.status" defaultValue={STATUS_DROPDOWN_OPTIONS.some(o => o.value === statusValue) ? statusValue : ''}>
+            <option value="" disabled>Select status</option>
+            {STATUS_DROPDOWN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </LabelField>
         <LabelField label="Last Modified By"><input readOnly value={lastModifiedBy} /></LabelField>
 
         <LabelField label="Sales Person"><SalesPersonSelect value={salesPersonId} list={salesPeople} currentName={salesPersonName} /></LabelField>
@@ -636,7 +644,7 @@ function HomeTab({ transaction, optionsFor, addOption, customers, customerContac
       <div className="txe-two">
         <SectionCard title="RECEIVE" side="CUSTOMER" tone="gold">
           <Row label="Date Advance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_advance" value={cashFlowCustomer.date_advance} /><input name="cash_flow_customer.amount_advance" defaultValue={cashFlowCustomer.amount_advance ?? ''} /></div></Row>
-          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_customer.invoice_date" value={cashFlowCustomer.invoice_date} /><input /></div></Row>
+          <Row label="Invoice Date"><div className="txe-inline"><DateInput name="cash_flow_customer.invoice_date" value={cashFlowCustomer.invoice_date} /><input name="cash_flow_customer.invoice_number" defaultValue={cashFlowCustomer.invoice_number ?? ''} placeholder="Inv Number" /></div></Row>
           <Row label="Date Balance"><div className="txe-inline"><DateInput name="cash_flow_customer.date_balance" value={cashFlowCustomer.date_balance} /><input name="cash_flow_customer.amount_balance" defaultValue={cashFlowCustomer.amount_balance ?? ''} /></div></Row>
         </SectionCard>
         <SectionCard title="PAYMENT" side="PACKER" tone="gold">
@@ -1944,6 +1952,7 @@ function buildPayload(formElement, transaction) {
       date_advance: getDateValue(formData, 'cash_flow_customer.date_advance', transaction.cash_flow_customer?.date_advance),
       amount_advance: getNumberValue(formData, 'cash_flow_customer.amount_advance', transaction.cash_flow_customer?.amount_advance),
       invoice_date: getDateValue(formData, 'cash_flow_customer.invoice_date', transaction.cash_flow_customer?.invoice_date),
+      invoice_number: getFieldValue(formData, 'cash_flow_customer.invoice_number', transaction.cash_flow_customer?.invoice_number),
       date_balance: getDateValue(formData, 'cash_flow_customer.date_balance', transaction.cash_flow_customer?.date_balance),
       amount_balance: getNumberValue(formData, 'cash_flow_customer.amount_balance', transaction.cash_flow_customer?.amount_balance),
     },

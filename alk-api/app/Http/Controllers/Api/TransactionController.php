@@ -79,20 +79,28 @@ class TransactionController extends Controller
             $query->where('sales_person_id', (int) request('sales_person_id'));
         }
 
+        if (request()->filled('by_qc')) {
+            $query->where('by_qc', request('by_qc'));
+        }
+
         if (request()->boolean('overdue_invoice')) {
             $today = CarbonImmutable::now()->toDateString();
 
-            $query
-                ->where('status', TransactionStatus::Unshipped->value)
-                ->where(function ($query) use ($today) {
-                    $query
-                        ->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
-                            $query->where('lsd_min', '<', $today);
-                        })
-                        ->orWhereHas('shippingDetailsPacker', function ($query) use ($today) {
-                            $query->where('lsd_min', '<', $today);
-                        });
-                });
+            $query->where(function ($query) use ($today) {
+                $query
+                    ->whereHas('shippingDetailsPacker', function ($query) use ($today) {
+                        $query->where('lsd_max', '<', $today);
+                    })
+                    ->orWhere(function ($query) use ($today) {
+                        $query
+                            ->whereDoesntHave('shippingDetailsPacker', function ($query) {
+                                $query->whereNotNull('lsd_max');
+                            })
+                            ->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
+                                $query->where('lsd_max', '<', $today);
+                            });
+                    });
+            });
         } elseif ($status = request('status')) {
             $this->applyStatusFilter($query, (string) $status);
         }
@@ -220,6 +228,10 @@ class TransactionController extends Controller
             $query->whereHas('generalInfoCustomer', function ($q) use ($customer) {
                 $q->where('customer', 'like', "%{$customer}%");
             });
+        }
+
+        if (request()->filled('by_qc')) {
+            $query->where('by_qc', request('by_qc'));
         }
 
         // Summary reports only include transactions with status "I"
