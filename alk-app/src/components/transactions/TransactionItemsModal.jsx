@@ -5,7 +5,8 @@ const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
 const WEIGHT_UNITS = ['LB(S)', 'KG(S)', 'G', 'OZ', 'MT']
 const RATE_HINTS = ['Std', 'Adj']
-const PAGE_SIZE = 50
+const PAGE_SIZE = 5
+const PAGE_SIZE_OPTIONS = [PAGE_SIZE]
 const DEFAULT_BRAND_OPTIONS = [
   'PLAIN+STICKER',
   'PORTICO',
@@ -167,6 +168,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
               onPageChange={setPage}
               pageSize={pageSize}
               onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
             />
             <div className="txe-items-table-wrap">
               <table className="txe-items-table">
@@ -223,6 +225,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
               onPageChange={setPage}
               pageSize={pageSize}
               onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
               className="compact-pagination-bottom"
             />
           </section>

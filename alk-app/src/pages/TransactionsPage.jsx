@@ -34,11 +34,11 @@ const transactionTableColumns = [
   { label: 'AME Inv. to Packer', width: '8%' },
   { label: 'AME Inv. to Customer', width: '8%' },
   { label: 'Packer Inv.', width: '7%' },
-  { label: 'PO/Contract', width: '7%' },
-  { label: 'ETD', width: '6%' },
+  { label: 'PO/Contract', width: '8%' },
   { label: 'By QC', width: '7%' },
+  { label: 'ETD', width: '6%' },
   { label: 'ETA', width: '6%' },
-  { label: 'Status', width: '5%' },
+  { label: 'Status', width: '6%' },
   { label: 'Destination', width: '9%' },
   { label: 'Duplicate', width: '7%' },
 ]
@@ -478,8 +478,8 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td>{ameInvoiceToCustomer(transaction)}</td>
                   <td>{transaction.logistics?.packer_inv ?? '-'}</td>
                   <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
-                  <td>{displayDate(transaction.logistics?.etd_date)}</td>
                   <td>{transaction.by_qc ?? '-'}</td>
+                  <td>{displayDate(transaction.logistics?.etd_date)}</td>
                   <td>{displayDate(transaction.logistics?.eta_date)}</td>
                   <td>{getStatusLabel(transaction.status ?? 'U')}</td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
