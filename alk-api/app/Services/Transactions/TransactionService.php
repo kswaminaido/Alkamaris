@@ -19,6 +19,7 @@ use App\Models\TransactionNote;
 use App\Models\TransactionNoteEntry;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 final class TransactionService
@@ -28,25 +29,6 @@ final class TransactionService
     private const BOOKING_SEQUENCE_PAD = 3;
 
     private const BOOKING_SEQUENCE_START = 301;
-
-    /**
-     * @var array<int, string>
-     */
-    private const DUPLICATE_FIELDS = [
-        'booking_mode',
-        'issue_date',
-        'sales_person_id',
-        'by_qc',
-        'product_origin',
-        'destination',
-        'category',
-        'type',
-        'country',
-        'container_primary',
-        'container_secondary',
-        'certified',
-        'net_margin',
-    ];
 
     /**
      * @var array<int, string>
@@ -111,7 +93,7 @@ final class TransactionService
 
         return DB::transaction(function () use ($transaction, $actor): Transaction {
             $newTransaction = Transaction::query()->create([
-                ...$transaction->only(self::DUPLICATE_FIELDS),
+                ...$this->duplicateAttributes($transaction),
                 'booking_no' => $this->generateDuplicateBookingNo((string) $transaction->booking_no),
                 'created_by_user_id' => $actor->id,
             ]);
@@ -453,8 +435,7 @@ final class TransactionService
             return;
         }
 
-        $payload = $sourceRecord->toArray();
-        unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
+        $payload = $this->duplicateAttributes($sourceRecord);
         $payload['transaction_id'] = $newTransactionId;
         $modelClass::query()->create($payload);
     }
@@ -462,11 +443,21 @@ final class TransactionService
     private function cloneMany(mixed $records, string $modelClass, int $newTransactionId): void
     {
         foreach ($records ?? [] as $record) {
-            $payload = $record->toArray();
-            unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
+            $payload = $this->duplicateAttributes($record);
             $payload['transaction_id'] = $newTransactionId;
             $modelClass::query()->create($payload);
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function duplicateAttributes(Model $record): array
+    {
+        $payload = $record->getAttributes();
+        unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
+
+        return $payload;
     }
 
     private function upsertOneToOne(int $transactionId, string $modelClass, array $payload): void
