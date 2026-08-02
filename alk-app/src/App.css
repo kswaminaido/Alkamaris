@@ -10552,3 +10552,1321 @@ select:not([multiple]) {
 select::-ms-expand {
   display: none;
 }
+
+/* Final responsive layer: layout-only rules for app-wide device support. */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.dashboard-shell,
+.dashboard-content-shell,
+.dashboard-page-content {
+  min-width: 0 !important;
+}
+
+.dashboard-shell {
+  height: 100dvh !important;
+}
+
+.dashboard-content-shell {
+  height: 100dvh !important;
+}
+
+.dashboard-topbar {
+  min-width: 0 !important;
+  gap: 0.75rem !important;
+}
+
+.dashboard-topbar-left {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.dashboard-topbar-nav {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.dashboard-topbar-profile-name,
+.sidebar-link-text,
+.dashboard-topbar-nav-item span,
+.modern-nav-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transaction-page,
+.data-page,
+.admin-mail-page,
+.admin-history-page,
+.profile-app-page,
+.transactions-page,
+.packer-sales-page,
+.payment-status-page,
+.summary-report-page,
+.qc-inspection-page,
+.master-page {
+  width: 100%;
+  max-width: 100%;
+}
+
+.transactions-toolbar,
+.users-toolbar,
+.admin-main-header,
+.data-page-header,
+.admin-history-header,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.packer-sales-detail-header,
+.modal-header,
+.txn-edit-header {
+  min-width: 0;
+}
+
+.transactions-toolbar *,
+.users-toolbar *,
+.admin-main-header *,
+.data-page-header *,
+.admin-history-header *,
+.admin-mail-card-head *,
+.admin-mail-results-head *,
+.packer-sales-detail-header *,
+.modal-header *,
+.txn-edit-header * {
+  min-width: 0;
+}
+
+.transactions-table-wrap,
+.packer-sales-table-wrap,
+.packer-sales-detail-table-wrap,
+.summary-table-wrap,
+.payment-status-table-wrap,
+.data-table-wrap,
+.admin-mail-results,
+.users-table-wrap,
+.table-responsive {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.transactions-table,
+.packer-sales-table,
+.packer-sales-detail-table,
+.summary-table,
+.payment-status-table,
+.data-table,
+.users-table,
+.admin-mail-results .users-table {
+  max-width: none;
+}
+
+.modal-overlay,
+.packer-sales-modal-overlay,
+.txn-edit-overlay,
+.txe-items-overlay,
+.txe-item-editor-overlay,
+.txe-print-overlay {
+  padding: clamp(0.5rem, 2vw, 1rem) !important;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose,
+.bulk-user-modal,
+.user-detail-modal {
+  max-width: calc(100vw - 1rem) !important;
+  max-height: calc(100dvh - 1rem) !important;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-topbar-nav {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    gap: 0.35rem !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin;
+  }
+
+  .dashboard-topbar-nav-item,
+  .modern-nav-item {
+    flex: 0 0 auto !important;
+    max-width: 190px;
+    white-space: nowrap;
+  }
+
+  .transaction-page .txn-grid.cols-4,
+  .txn-grid.cols-4,
+  .data-field-grid,
+  .profile-form-grid,
+  .profile-password-grid,
+  .profile-authorization-grid,
+  .admin-mail-row.cols-4,
+  .bulk-summary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-status-grid,
+  .dashboard-commission-grid,
+  .packer-sales-summary-grid,
+  .data-hero-strip {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .dashboard-shell,
+  .dashboard-shell.sidebar-collapsed {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-sidebar,
+  .dashboard-shell.sidebar-collapsed .dashboard-sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: min(300px, calc(100vw - 48px)) !important;
+    height: 100dvh !important;
+    transform: translateX(-105%) !important;
+    transition: transform 180ms ease !important;
+    z-index: 80 !important;
+  }
+
+  .dashboard-sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  .dashboard-sidebar-backdrop {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 70 !important;
+    border: 0 !important;
+    background: rgba(15, 23, 42, 0.48) !important;
+  }
+
+  .dashboard-content-shell {
+    grid-column: 1 !important;
+    width: 100% !important;
+  }
+
+  .dashboard-page-content {
+    overflow-x: hidden !important;
+    background-attachment: scroll !important;
+  }
+
+  .dashboard-topbar {
+    padding: 0.45rem 0.6rem !important;
+  }
+
+  .dashboard-topbar-left {
+    gap: 0.5rem !important;
+  }
+
+  .dashboard-menu-btn {
+    flex: 0 0 42px !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .dashboard-topbar-profile {
+    padding: 0.2rem !important;
+  }
+
+  .dashboard-topbar-profile-name {
+    max-width: 18vw;
+  }
+
+  .transaction-page,
+  .data-page,
+  .admin-mail-page,
+  .admin-history-page,
+  .profile-app-page,
+  .transactions-page,
+  .packer-sales-page,
+  .payment-status-page,
+  .summary-report-page,
+  .qc-inspection-page,
+  .master-page {
+    padding: 0.75rem !important;
+  }
+
+  .transactions-toolbar,
+  .users-toolbar,
+  .admin-main-header,
+  .data-page-header,
+  .admin-history-header,
+  .admin-mail-card-head,
+  .admin-mail-results-head,
+  .packer-sales-detail-header,
+  .txn-edit-header {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .search-filters,
+  .date-search-filters,
+  .register-grid,
+  .register-password-section,
+  .txn-double-grid,
+  .profile-content-grid,
+  .admin-mail-row.cols-3,
+  .admin-mail-row.cols-2,
+  .admin-mail-row.check-row,
+  .packer-sales-detail-summary,
+  .bulk-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filter-actions,
+  .admin-form-actions,
+  .profile-form-actions,
+  .txn-actions,
+  .admin-mail-actions,
+  .admin-mail-modal-actions,
+  .txe-items-summary-actions,
+  .confirm-actions {
+    flex-wrap: wrap !important;
+  }
+
+  .transactions-page {
+    height: auto !important;
+    min-height: 100% !important;
+  }
+
+  .transactions-table-wrap {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: calc(100dvh - 15rem) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .top-nav {
+    height: auto !important;
+    min-height: 60px !important;
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  .login-wrap,
+  .signup-wrap,
+  .dashboard-wrap {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .login-card,
+  .signup-card,
+  .dashboard-panel,
+  .admin-main,
+  .txn-panel,
+  .txn-col,
+  .data-group-card,
+  .data-field-card,
+  .profile-summary-panel,
+  .profile-form-panel,
+  .admin-mail-filter-card,
+  .admin-mail-results,
+  .admin-history-tree {
+    padding: 0.85rem !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    max-width: 150px;
+    min-height: 38px;
+    padding-inline: 0.55rem !important;
+  }
+
+  .dashboard-topbar-profile-name {
+    display: none !important;
+  }
+
+  .transaction-page .txn-grid.cols-4,
+  .txn-grid.cols-4,
+  .txn-grid,
+  .txn-controls,
+  .txn-controls.cols-2,
+  .txn-controls.cols-3,
+  .txn-controls.cols-4,
+  .txn-container-split,
+  .txn-price-controls,
+  .data-field-grid,
+  .profile-form-grid,
+  .profile-password-grid,
+  .profile-authorization-grid,
+  .admin-mail-row.cols-4,
+  .bulk-summary-stats,
+  .data-hero-strip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .txn-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.35rem !important;
+  }
+
+  .txn-label {
+    padding-top: 0 !important;
+  }
+
+  .txn-controls > *,
+  .filter-actions > *,
+  .admin-form-actions > *,
+  .profile-form-actions > *,
+  .admin-mail-actions > *,
+  .admin-mail-modal-actions > *,
+  .confirm-actions > * {
+    width: 100%;
+  }
+
+  .transactions-table,
+  .packer-sales-table,
+  .packer-sales-detail-table,
+  .summary-table,
+  .payment-status-table,
+  .data-table,
+  .users-table,
+  .admin-mail-results .users-table {
+    min-width: 760px !important;
+  }
+
+  .transactions-page .transactions-table {
+    min-width: 980px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-topbar {
+    gap: 0.45rem !important;
+  }
+
+  .dashboard-topbar-nav {
+    gap: 0.25rem !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    max-width: 128px;
+    font-size: 0.78rem !important;
+  }
+
+  .dashboard-topbar-profile-icon,
+  .dashboard-topbar-logout-btn {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .transaction-page,
+  .data-page,
+  .admin-mail-page,
+  .admin-history-page,
+  .profile-app-page,
+  .transactions-page,
+  .packer-sales-page,
+  .payment-status-page,
+  .summary-report-page,
+  .qc-inspection-page,
+  .master-page {
+    padding: 0.55rem !important;
+  }
+
+  .transactions-toolbar h5,
+  .data-page-header h5,
+  .admin-history-header h2,
+  .profile-title,
+  .txn-section-title h5 {
+    font-size: 1rem !important;
+  }
+
+  .modal-card,
+  .modal-content,
+  .confirm-card,
+  .packer-sales-detail-modal,
+  .txn-edit-modal,
+  .txe-items-modal,
+  .txe-item-editor-modal,
+  .txe-print-modal,
+  .admin-mail-compose,
+  .bulk-user-modal,
+  .user-detail-modal {
+    width: calc(100vw - 0.75rem) !important;
+    max-width: calc(100vw - 0.75rem) !important;
+    border-radius: 6px !important;
+  }
+
+  .modal-header,
+  .txn-edit-header,
+  .admin-mail-compose-header,
+  .packer-sales-detail-header {
+    gap: 0.5rem !important;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .danger-btn,
+  .admin-logout-btn {
+    min-height: 40px !important;
+  }
+}
+
+/* App-wide responsive hardening.
+   Keep this at the end so it wins over earlier compact/table overrides. */
+.dashboard-shell,
+.dashboard-content-shell,
+.dashboard-page-content,
+.modern-dashboard-main,
+.transaction-page,
+.transactions-page,
+.data-page,
+.admin-mail-page,
+.admin-history-page,
+.profile-app-page,
+.packer-sales-page,
+.payment-status-page,
+.summary-report-page,
+.qc-inspection-page,
+.master-page,
+.txn-panel,
+.txn-col,
+.module-card,
+.dashboard-status-summary,
+.dashboard-commission-card,
+.dashboard-status-card,
+.dash-card {
+  min-width: 0 !important;
+}
+
+.dashboard-page-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.modern-dashboard-main {
+  height: auto !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.dashboard-commission-card,
+.dashboard-status-card,
+.module-card,
+.dash-card {
+  overflow-wrap: anywhere;
+}
+
+.module-card-head,
+.dashboard-status-summary-head,
+.txn-section-title,
+.transactions-toolbar,
+.users-toolbar,
+.admin-main-header,
+.data-page-header,
+.admin-history-header,
+.admin-mail-card-head,
+.admin-mail-results-head,
+.packer-sales-detail-header,
+.txn-edit-header {
+  min-width: 0 !important;
+}
+
+.module-card-head > *,
+.dashboard-status-summary-head > *,
+.txn-section-title > *,
+.transactions-toolbar > *,
+.users-toolbar > *,
+.admin-main-header > *,
+.data-page-header > *,
+.admin-history-header > *,
+.admin-mail-card-head > *,
+.admin-mail-results-head > *,
+.packer-sales-detail-header > *,
+.txn-edit-header > * {
+  min-width: 0 !important;
+}
+
+.transactions-table-wrap,
+.users-table-wrap,
+.packer-sales-table-wrap,
+.packer-sales-detail-table-wrap,
+.summary-table-wrap,
+.payment-status-table-wrap,
+.data-table-wrap,
+.txe-items-table-wrap,
+.admin-mail-results,
+.table-responsive {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.transactions-table,
+.users-table,
+.txe-items-table,
+.packer-sales-table,
+.packer-sales-detail-table,
+.report-table,
+.summary-table,
+.payment-status-table,
+.data-table,
+.admin-mail-results .users-table {
+  max-width: none !important;
+  table-layout: auto !important;
+}
+
+.transactions-table th,
+.transactions-table td,
+.users-table th,
+.users-table td,
+.txe-items-table th,
+.txe-items-table td,
+.packer-sales-table th,
+.packer-sales-table td,
+.packer-sales-detail-table th,
+.packer-sales-detail-table td,
+.report-table th,
+.report-table td,
+.summary-table th,
+.summary-table td,
+.payment-status-table th,
+.payment-status-table td,
+.data-table th,
+.data-table td,
+.admin-mail-results .users-table th,
+.admin-mail-results .users-table td {
+  max-width: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.txn-grid,
+.txn-double-grid,
+.txn-row,
+.txn-controls,
+.txn-container-split,
+.txn-price-controls,
+.search-filters,
+.date-search-filters {
+  min-width: 0 !important;
+}
+
+.transaction-page .txn-grid label,
+.transaction-page .txn-row,
+.transaction-page .txn-controls,
+.transaction-page .txn-controls > *,
+.transaction-page .txn-container-split > *,
+.transaction-page .txn-price-controls > *,
+.transaction-page .txn-combobox,
+.transaction-page input,
+.transaction-page select,
+.transaction-page textarea {
+  min-width: 0 !important;
+}
+
+.transaction-page .txn-controls > .row-text {
+  overflow-wrap: anywhere;
+}
+
+.transaction-page .txn-combobox-menu {
+  max-width: min(100%, calc(100vw - 1.5rem)) !important;
+  overflow-x: hidden !important;
+}
+
+.modal-card,
+.modal-content,
+.confirm-card,
+.packer-sales-detail-modal,
+.txn-edit-modal,
+.txe-items-modal,
+.txe-item-editor-modal,
+.txe-print-modal,
+.admin-mail-compose,
+.bulk-user-modal,
+.user-detail-modal {
+  width: min(100%, calc(100vw - 1rem)) !important;
+  overflow: auto !important;
+}
+
+@media (max-width: 1280px) {
+  .modern-dashboard-main {
+    display: grid !important;
+    grid-template-rows: auto auto auto auto !important;
+  }
+
+  .dashboard-status-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+  }
+
+  .transaction-page .txn-grid.cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .dashboard-shell,
+  .dashboard-content-shell {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+
+  .dashboard-topbar {
+    min-height: 56px !important;
+    padding: 0.45rem 0.6rem !important;
+  }
+
+  .dashboard-topbar-left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .dashboard-topbar-profile-menu-wrap {
+    flex: 0 0 auto !important;
+  }
+
+  .modern-dashboard-main,
+  .transaction-page,
+  .transactions-page,
+  .data-page,
+  .admin-mail-page,
+  .admin-history-page,
+  .profile-app-page,
+  .packer-sales-page,
+  .payment-status-page,
+  .summary-report-page,
+  .qc-inspection-page,
+  .master-page {
+    padding: 0.75rem !important;
+  }
+
+  .dashboard-commission-grid,
+  .dashboard-status-grid,
+  .modern-report-grid,
+  .dashboard-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .transactions-toolbar,
+  .users-toolbar,
+  .admin-main-header,
+  .data-page-header,
+  .admin-history-header,
+  .admin-mail-card-head,
+  .admin-mail-results-head,
+  .packer-sales-detail-header,
+  .txn-edit-header {
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+  }
+
+  .transactions-toolbar > div,
+  .users-toolbar > div,
+  .filter-actions,
+  .transaction-filter-actions-group,
+  .master-toolbar-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .search-filters,
+  .date-search-filters {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+  }
+
+  .filter-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  .transaction-page .txn-grid.cols-4,
+  .transaction-page .txn-double-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .transaction-page .txn-row {
+    grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr) !important;
+  }
+
+  .transactions-table,
+  .users-table,
+  .txe-items-table,
+  .packer-sales-table,
+  .packer-sales-detail-table,
+  .report-table,
+  .summary-table,
+  .payment-status-table,
+  .data-table,
+  .admin-mail-results .users-table {
+    min-width: 760px !important;
+  }
+
+  .transactions-page .transactions-table {
+    min-width: 1080px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-topbar {
+    gap: 0.5rem !important;
+  }
+
+  .dashboard-topbar-nav {
+    flex: 1 1 auto !important;
+    overflow-x: auto !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    flex: 0 0 auto !important;
+    max-width: 140px !important;
+  }
+
+  .dashboard-topbar-profile {
+    padding: 0.15rem !important;
+  }
+
+  .search-filters,
+  .date-search-filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filter-actions > *,
+  .transaction-filter-actions-group > *,
+  .master-toolbar-actions > *,
+  .txn-actions > *,
+  .admin-form-actions > *,
+  .profile-form-actions > *,
+  .admin-mail-actions > *,
+  .admin-mail-modal-actions > *,
+  .confirm-actions > * {
+    width: 100% !important;
+  }
+
+  .transaction-page .txn-row,
+  .transaction-page .txn-controls,
+  .transaction-page .txn-controls.cols-2,
+  .transaction-page .txn-controls.cols-3,
+  .transaction-page .txn-controls.cols-4,
+  .transaction-page .txn-container-split,
+  .transaction-page .txn-price-controls {
+    grid-template-columns: 1fr !important;
+  }
+
+  .transaction-page .txn-controls > *,
+  .transaction-page .txn-controls > :only-child,
+  .transaction-page .txn-controls .radio-inline,
+  .transaction-page .txn-controls .inline-checkbox,
+  .transaction-page .txn-price-controls .txn-combobox {
+    grid-column: auto !important;
+    width: 100% !important;
+  }
+
+  .transaction-page .txn-section-title,
+  .module-card-head,
+  .dashboard-status-summary-head {
+    display: grid !important;
+    gap: 0.25rem !important;
+  }
+
+  .transaction-page .txn-section-title span,
+  .module-card-head span,
+  .dashboard-status-summary-head span {
+    white-space: normal !important;
+  }
+
+  .dashboard-commission-card,
+  .dashboard-status-card,
+  .dash-card {
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-topbar-nav {
+    max-width: calc(100vw - 112px) !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    max-width: 116px !important;
+    min-height: 36px !important;
+    padding: 0.35rem 0.45rem !important;
+  }
+
+  .dashboard-topbar-nav-item span {
+    white-space: nowrap !important;
+  }
+
+  .dashboard-topbar-profile-menu {
+    right: 0 !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  .modern-dashboard-main,
+  .transaction-page,
+  .transactions-page,
+  .data-page,
+  .admin-mail-page,
+  .admin-history-page,
+  .profile-app-page,
+  .packer-sales-page,
+  .payment-status-page,
+  .summary-report-page,
+  .qc-inspection-page,
+  .master-page {
+    padding: 0.5rem !important;
+  }
+
+  .transaction-page .txn-top > h5,
+  .transaction-page .txn-section-title {
+    padding: 0.65rem 0.7rem !important;
+  }
+
+  .transaction-page .txn-top .txn-grid,
+  .transaction-page .txn-panel,
+  .transaction-page .txn-double-grid .txn-panel,
+  .dashboard-status-grid,
+  .dashboard-cards,
+  .module-card ul {
+    padding: 0.65rem !important;
+  }
+
+  .transactions-table,
+  .users-table,
+  .txe-items-table,
+  .packer-sales-table,
+  .packer-sales-detail-table,
+  .report-table,
+  .summary-table,
+  .payment-status-table,
+  .data-table,
+  .admin-mail-results .users-table {
+    min-width: 680px !important;
+  }
+
+  .transactions-page .transactions-table {
+    min-width: 980px !important;
+  }
+}
+
+/* Dashboard mobile fix: keep the top actions scrollable and the page body readable. */
+.dashboard-page-content:has(.modern-dashboard-main) {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.dashboard-topbar {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.dashboard-topbar-left {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.dashboard-topbar-nav {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.dashboard-topbar-nav-item {
+  flex: 0 0 auto !important;
+  min-width: max-content !important;
+  max-width: 180px !important;
+}
+
+.dashboard-topbar-profile-menu-wrap {
+  flex: 0 0 auto !important;
+}
+
+@media (max-width: 720px) {
+  .dashboard-topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+  }
+
+  .dashboard-topbar-left {
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 0.45rem !important;
+    overflow: hidden !important;
+  }
+
+  .dashboard-menu-btn {
+    width: 42px !important;
+    min-width: 42px !important;
+  }
+
+  .dashboard-topbar-nav {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-bottom: 0.1rem !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    min-width: 104px !important;
+    max-width: 126px !important;
+  }
+
+  .dashboard-topbar-nav-item span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .dashboard-page-content:has(.modern-dashboard-main) {
+    height: calc(100dvh - 56px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 56px) !important;
+    overflow-y: auto !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-topbar {
+    padding-inline: 0.45rem !important;
+  }
+
+  .dashboard-topbar-left {
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+  }
+
+  .dashboard-menu-btn,
+  .dashboard-topbar-profile-icon {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+  }
+
+  .dashboard-topbar-nav-item {
+    min-width: 96px !important;
+    max-width: 112px !important;
+  }
+}
+
+/* Mobile menu and dense table corrections. */
+.table-truncate-cell {
+  display: inline-block;
+  max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.transactions-table td,
+.packer-sales-table td,
+.packer-sales-detail-table td,
+.payment-status-table td,
+.summary-table td,
+.data-table td,
+.users-table td {
+  overflow: hidden !important;
+}
+
+.report-code-button,
+.status-pill {
+  max-width: 100% !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.transactions-page .transactions-table-wrap,
+.packer-sales-page .packer-sales-table-wrap,
+.qc-inspection-page .packer-sales-table-wrap,
+.payment-status-page .packer-sales-table-wrap,
+.summary-report-page .summary-table-wrap,
+.packer-sales-detail-table-wrap {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-width: 100% !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.packer-sales-page .packer-sales-table,
+.payment-status-page .packer-sales-table,
+.transactions-page .transactions-table,
+.packer-sales-detail-table {
+  width: max-content !important;
+  min-width: 980px !important;
+  table-layout: fixed !important;
+}
+
+.packer-sales-page .packer-sales-table th,
+.packer-sales-page .packer-sales-table td,
+.payment-status-page .packer-sales-table th,
+.payment-status-page .packer-sales-table td,
+.transactions-page .transactions-table th,
+.transactions-page .transactions-table td,
+.packer-sales-detail-table th,
+.packer-sales-detail-table td {
+  width: 72px !important;
+  max-width: 72px !important;
+  white-space: nowrap !important;
+}
+
+.transactions-page .transactions-table th:last-child,
+.transactions-page .transactions-table td:last-child {
+  width: 64px !important;
+  max-width: 64px !important;
+}
+
+.transactions-page .transactions-table td:has(.icon-btn),
+.transactions-page .transactions-table th:has(.transactions-table-head-label) {
+  overflow: hidden !important;
+}
+
+@media (max-width: 980px) {
+  .table-truncate-cell {
+    max-width: 6ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .report-code-button,
+  .status-pill {
+    max-width: 6ch !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .dashboard-sidebar,
+  .dashboard-shell.sidebar-collapsed .dashboard-sidebar {
+    z-index: 1200 !important;
+  }
+
+  .dashboard-sidebar.mobile-open,
+  .dashboard-sidebar.mobile-open .dashboard-sidebar-nav {
+    width: min(320px, 100vw) !important;
+    max-width: 100vw !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashboard-sidebar-backdrop {
+    z-index: 1190 !important;
+    background: rgba(15, 23, 42, 0.55) !important;
+  }
+
+  .dashboard-sidebar.mobile-open ~ .dashboard-sidebar-backdrop {
+    display: block !important;
+  }
+
+  .dashboard-content-shell {
+    overflow: hidden !important;
+  }
+
+  .dashboard-page-content {
+    height: calc(100dvh - 56px) !important;
+    max-height: calc(100dvh - 56px) !important;
+    overflow-y: auto !important;
+  }
+
+  .transaction-page {
+    overflow-x: hidden !important;
+  }
+
+  .transaction-page .txn-combobox-menu {
+    z-index: 40 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-sidebar,
+  .dashboard-shell.sidebar-collapsed .dashboard-sidebar {
+    width: min(300px, 100vw) !important;
+  }
+
+  .packer-sales-page .packer-sales-table,
+  .payment-status-page .packer-sales-table,
+  .transactions-page .transactions-table,
+  .packer-sales-detail-table {
+    min-width: 1040px !important;
+  }
+}
+
+@media (min-width: 981px) {
+  .transactions-table-wrap,
+  .users-table-wrap,
+  .packer-sales-table-wrap,
+  .packer-sales-detail-table-wrap,
+  .summary-table-wrap,
+  .payment-status-table-wrap,
+  .data-table-wrap,
+  .txe-items-table-wrap,
+  .admin-mail-results,
+  .table-responsive {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+
+  .transactions-table,
+  .users-table,
+  .txe-items-table,
+  .packer-sales-table,
+  .packer-sales-detail-table,
+  .report-table,
+  .summary-table,
+  .payment-status-table,
+  .data-table,
+  .admin-mail-results .users-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .transactions-table th,
+  .transactions-table td,
+  .users-table th,
+  .users-table td,
+  .txe-items-table th,
+  .txe-items-table td,
+  .packer-sales-table th,
+  .packer-sales-table td,
+  .packer-sales-detail-table th,
+  .packer-sales-detail-table td,
+  .report-table th,
+  .report-table td,
+  .summary-table th,
+  .summary-table td,
+  .payment-status-table th,
+  .payment-status-table td,
+  .data-table th,
+  .data-table td,
+  .admin-mail-results .users-table th,
+  .admin-mail-results .users-table td {
+    width: auto !important;
+    max-width: none !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+  }
+
+  .table-truncate-cell,
+  .transactions-table-head-label,
+  .report-code-button,
+  .status-pill {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  .packer-sales-table .sticky-col,
+  .packer-sales-table th.sticky-col,
+  .packer-sales-table td.sticky-col {
+    position: static !important;
+    left: auto !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (min-width: 981px) {
+  .transactions-page .transactions-table-wrap,
+  .packer-sales-page .packer-sales-table-wrap,
+  .qc-inspection-page .packer-sales-table-wrap,
+  .payment-status-page .packer-sales-table-wrap,
+  .summary-report-page .transactions-table-wrap {
+    overflow-x: hidden !important;
+  }
+
+  .transactions-page .transactions-table,
+  .packer-sales-page .packer-sales-table,
+  .qc-inspection-page .packer-sales-table,
+  .payment-status-page .packer-sales-table,
+  .summary-report-page .transactions-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .transactions-page .transactions-table col,
+  .summary-report-page .transactions-table col {
+    max-width: 100%;
+  }
+
+  .transactions-page .transactions-table th,
+  .transactions-page .transactions-table td,
+  .summary-report-page .transactions-table th,
+  .summary-report-page .transactions-table td,
+  .packer-sales-page .packer-sales-table th,
+  .packer-sales-page .packer-sales-table td,
+  .qc-inspection-page .packer-sales-table th,
+  .qc-inspection-page .packer-sales-table td,
+  .payment-status-page .packer-sales-table th,
+  .payment-status-page .packer-sales-table td {
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .transactions-page .table-truncate-cell,
+  .summary-report-page .table-truncate-cell,
+  .packer-sales-page .table-truncate-cell,
+  .qc-inspection-page .table-truncate-cell,
+  .payment-status-page .table-truncate-cell,
+  .transactions-page .transactions-table-head-label,
+  .summary-report-page .transactions-table-head-label {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+  }
+
+  .packer-sales-table .packer-sales-col-qc {
+    width: 5%;
+  }
+
+  .packer-sales-table .packer-sales-col-code {
+    width: 7%;
+  }
+
+  .packer-sales-table .packer-sales-col-date {
+    width: 5.5%;
+  }
+
+  .packer-sales-table .packer-sales-col-packer,
+  .packer-sales-table .packer-sales-col-customer {
+    width: 8.5%;
+  }
+
+  .packer-sales-table .packer-sales-col-weight,
+  .packer-sales-table .packer-sales-col-money {
+    width: 6.5%;
+  }
+
+  .packer-sales-table .packer-sales-col-status {
+    width: 5%;
+  }
+}

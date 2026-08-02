@@ -26,21 +26,21 @@ const hiddenStatusDropdownValues = new Set(['SP', 'T'])
 const statusDropdownOptions = statusOptions.filter((option) => !hiddenStatusDropdownValues.has(option.value))
 
 const transactionTableColumns = [
-  { label: 'Txn ID', width: '7%' },
-  { label: 'Date', width: '6%' },
-  { label: 'LSD', width: '6%' },
-  { label: 'Packer', width: '9%' },
-  { label: 'Customer', width: '8%' },
-  { label: 'AME Inv. to Packer', width: '8%' },
-  { label: 'AME Inv. to Customer', width: '8%' },
-  { label: 'Packer Inv.', width: '7%' },
-  { label: 'PO/Contract', width: '8%' },
-  { label: 'By QC', width: '7%' },
-  { label: 'ETD', width: '6%' },
-  { label: 'ETA', width: '6%' },
-  { label: 'Status', width: '6%' },
-  { label: 'Destination', width: '9%' },
-  { label: 'Duplicate', width: '7%' },
+  { label: 'Txn ID', width: '6.5%' },
+  { label: 'Date', width: '5.5%' },
+  { label: 'LSD', width: '5.5%' },
+  { label: 'Packer', width: '8%' },
+  { label: 'Customer', width: '7.5%' },
+  { label: 'AME Inv. to Packer', width: '7%' },
+  { label: 'AME Inv. to Customer', width: '7%' },
+  { label: 'Packer Inv.', width: '6.5%' },
+  { label: 'PO/Contract', width: '7%' },
+  { label: 'By QC', width: '6%' },
+  { label: 'ETD', width: '5.5%' },
+  { label: 'ETA', width: '5.5%' },
+  { label: 'Status', width: '5.5%' },
+  { label: 'Destination', width: '7%' },
+  { label: 'Duplicate', width: '5%' },
 ]
 
 const csvColumns = [
@@ -469,21 +469,21 @@ function TransactionsPage({ overdueOnly = false }) {
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
-                  <td>{transaction.booking_no}</td>
-                  <td>{displayDate(transaction.issue_date)}</td>
-                  <td>{displayDate(getTransactionLsdDate(transaction))}</td>
-                  <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
-                  <td>{transaction.general_info_customer?.customer ?? '-'}</td>
-                  <td>{ameInvoiceToPacker(transaction)}</td>
-                  <td>{ameInvoiceToCustomer(transaction)}</td>
-                  <td>{transaction.logistics?.packer_inv ?? '-'}</td>
-                  <td>{transaction.general_info_customer?.buyer_number ?? '-'}</td>
-                  <td>{transaction.by_qc ?? '-'}</td>
-                  <td>{displayDate(transaction.logistics?.etd_date)}</td>
-                  <td>{displayDate(transaction.logistics?.eta_date)}</td>
-                  <td>{getStatusLabel(transaction.status ?? 'U')}</td>
+                  <td><TruncatedCell value={transaction.booking_no} /></td>
+                  <td><TruncatedCell value={displayDate(transaction.issue_date)} /></td>
+                  <td><TruncatedCell value={displayDate(getTransactionLsdDate(transaction))} /></td>
+                  <td><TruncatedCell value={transaction.general_info_packer?.vendor} /></td>
+                  <td><TruncatedCell value={transaction.general_info_customer?.customer} /></td>
+                  <td><TruncatedCell value={ameInvoiceToPacker(transaction)} /></td>
+                  <td><TruncatedCell value={ameInvoiceToCustomer(transaction)} /></td>
+                  <td><TruncatedCell value={transaction.logistics?.packer_inv} /></td>
+                  <td><TruncatedCell value={transaction.general_info_customer?.buyer_number} /></td>
+                  <td><TruncatedCell value={transaction.by_qc} /></td>
+                  <td><TruncatedCell value={displayDate(transaction.logistics?.etd_date)} /></td>
+                  <td><TruncatedCell value={displayDate(transaction.logistics?.eta_date)} /></td>
+                  <td><TruncatedCell value={getStatusLabel(transaction.status ?? 'U')} /></td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
-                  <td>{transaction.destination ?? '-'}</td>
+                  <td><TruncatedCell value={transaction.destination} /></td>
                   {/* <td>{displayDate(transaction.created_at)}</td> */}
                   <td>
                     <button
@@ -589,6 +589,11 @@ function buildTransactionParams(filters, targetPage, perPage, options = {}) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+function TruncatedCell({ value }) {
+  const text = String(value || '-')
+  return <span className="table-truncate-cell" title={text}>{text}</span>
 }
 
 const byQcDropdownField = {

@@ -439,25 +439,25 @@ function PackerSalesReportPage({
               ) : null}
               {!loading && rows.map((row) => (
                 <tr key={row.id}>
-                  {showQcInspectionColumn ? <td>{displayDate(row.qcInspectionDate)}</td> : null}
+                  {showQcInspectionColumn ? <td><TruncatedCell value={displayDate(row.qcInspectionDate)} /></td> : null}
                   <td className="sticky-col">
-                    <button type="button" className="report-code-button" onClick={() => setSelectedReportRow(row)}>
+                    <button type="button" className="report-code-button" title={row.bookingNo} onClick={() => setSelectedReportRow(row)}>
                       {row.bookingNo}
                     </button>
                   </td>
-                  <td>{displayDate(row.issueDate)}</td>
-                  <td>{row.packer || '-'}</td>
-                  <td>{row.customer || '-'}</td>
-                  <td>{row.byQc || '-'}</td>
-                  <td className="numeric">{formatNumber(row.totalWeight)}</td>
-                  <td className="numeric">{formatMoney(row.buyingTotal)}</td>
-                  <td className="numeric">{formatMoney(row.packerCommission)}</td>
-                  <td className="numeric">{formatMoney(row.buyerCommission)}</td>
-                  <td>{displayDate(row.etaDate)}</td>
-                  <td>{displayDate(row.etdDate)}</td>
-                  <td>{displayDate(row.lsdDate)}</td>
+                  <td><TruncatedCell value={displayDate(row.issueDate)} /></td>
+                  <td><TruncatedCell value={row.packer} /></td>
+                  <td><TruncatedCell value={row.customer} /></td>
+                  <td><TruncatedCell value={row.byQc} /></td>
+                  <td className="numeric"><TruncatedCell value={formatNumber(row.totalWeight)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(row.buyingTotal)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(row.packerCommission)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(row.buyerCommission)} /></td>
+                  <td><TruncatedCell value={displayDate(row.etaDate)} /></td>
+                  <td><TruncatedCell value={displayDate(row.etdDate)} /></td>
+                  <td><TruncatedCell value={displayDate(row.lsdDate)} /></td>
                   <td>
-                    <span className={`status-pill ${getStatusClass(row.status)}`}>
+                    <span className={`status-pill ${getStatusClass(row.status)}`} title={getStatusLabel(row.status)}>
                       {getStatusLabel(row.status)}
                     </span>
                   </td>
@@ -565,17 +565,17 @@ function PackerSalesDetailModal({ row, onClose }) {
                 <tr><td colSpan={11} className="table-message-cell">No product details found for this booking.</td></tr>
               ) : visibleItems.map((item, index) => (
                 <tr key={item.id}>
-                  <td>{((currentPage - 1) * pageSize) + index + 1}</td>
-                  <td>{item.product || '-'}</td>
-                  <td>{item.style || '-'}</td>
-                  <td>{item.packing || '-'}</td>
-                  <td>{item.brand || '-'}</td>
-                  <td>{item.size || '-'}</td>
-                  <td className="numeric">{formatQty(item.qty, item.qtyUnit)}</td>
-                  <td className="numeric">{formatNumber(item.totalWeight)}</td>
-                  <td className="numeric">{formatMoney(item.buyingTotal)}</td>
-                  <td className="numeric">{formatMoney(item.packerCommission)}</td>
-                  <td className="numeric">{formatMoney(item.buyerCommission)}</td>
+                  <td><TruncatedCell value={((currentPage - 1) * pageSize) + index + 1} /></td>
+                  <td><TruncatedCell value={item.product} /></td>
+                  <td><TruncatedCell value={item.style} /></td>
+                  <td><TruncatedCell value={item.packing} /></td>
+                  <td><TruncatedCell value={item.brand} /></td>
+                  <td><TruncatedCell value={item.size} /></td>
+                  <td className="numeric"><TruncatedCell value={formatQty(item.qty, item.qtyUnit)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatNumber(item.totalWeight)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(item.buyingTotal)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(item.packerCommission)} /></td>
+                  <td className="numeric"><TruncatedCell value={formatMoney(item.buyerCommission)} /></td>
                 </tr>
               ))}
             </tbody>
@@ -837,6 +837,11 @@ function formatQty(value, unit) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+function TruncatedCell({ value }) {
+  const text = String(value || '-')
+  return <span className="table-truncate-cell" title={text}>{text}</span>
 }
 
 const byQcDropdownField = {
