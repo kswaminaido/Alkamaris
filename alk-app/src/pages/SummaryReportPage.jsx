@@ -383,7 +383,7 @@ function SummaryReportPage() {
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
-                  <td>{transaction.booking_no}</td>
+                  <td><MobileTailCell value={transaction.booking_no} /></td>
                   <td>{displayDate(transaction.issue_date)}</td>
                   <td>{transaction.general_info_packer?.vendor ?? '-'}</td>
                   <td>{transaction.general_info_customer?.customer ?? '-'}</td>
@@ -462,6 +462,17 @@ function buildTransactionParams(filters, targetPage, perPage) {
 function formatCsvCell(value) {
   const text = String(value ?? '')
   return `"${text.replaceAll('"', '""')}"`
+}
+
+function MobileTailCell({ value }) {
+  const text = String(value || '-')
+  const mobileText = text === '-' ? text : text.slice(-5)
+  return (
+    <span className="table-truncate-cell mobile-tail-cell" title={text}>
+      <span className="mobile-tail-full">{text}</span>
+      <span className="mobile-tail-short">{mobileText}</span>
+    </span>
+  )
 }
 
 const byQcDropdownField = {

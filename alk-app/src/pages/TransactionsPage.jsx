@@ -469,7 +469,7 @@ function TransactionsPage({ overdueOnly = false }) {
               )}
               {!loading && visibleRows.map((transaction) => (
                 <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
-                  <td><TruncatedCell value={transaction.booking_no} /></td>
+                  <td><MobileTailCell value={transaction.booking_no} /></td>
                   <td><TruncatedCell value={displayDate(transaction.issue_date)} /></td>
                   <td><TruncatedCell value={displayDate(getTransactionLsdDate(transaction))} /></td>
                   <td><TruncatedCell value={transaction.general_info_packer?.vendor} /></td>
@@ -594,6 +594,17 @@ function formatCsvCell(value) {
 function TruncatedCell({ value }) {
   const text = String(value || '-')
   return <span className="table-truncate-cell" title={text}>{text}</span>
+}
+
+function MobileTailCell({ value }) {
+  const text = String(value || '-')
+  const mobileText = text === '-' ? text : text.slice(-5)
+  return (
+    <span className="table-truncate-cell mobile-tail-cell" title={text}>
+      <span className="mobile-tail-full">{text}</span>
+      <span className="mobile-tail-short">{mobileText}</span>
+    </span>
+  )
 }
 
 const byQcDropdownField = {

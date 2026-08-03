@@ -417,9 +417,9 @@ function PackerSalesReportPage({
                 <th>Customer</th>
                 <th>By QC</th>
                 <th className="numeric">Total Weight</th>
-                <th className="numeric">Buying Total</th>
-                <th className="numeric">Packer Commission</th>
-                <th className="numeric">Buyer Commission</th>
+                <th className="numeric money-heading">Buying Total</th>
+                <th className="numeric money-heading">Packer Commission</th>
+                <th className="numeric money-heading">Buyer Commission</th>
                 <th>ETA Date</th>
                 <th>ETD Date</th>
                 <th>LSD Date</th>
@@ -442,7 +442,7 @@ function PackerSalesReportPage({
                   {showQcInspectionColumn ? <td><TruncatedCell value={displayDate(row.qcInspectionDate)} /></td> : null}
                   <td className="sticky-col">
                     <button type="button" className="report-code-button" title={row.bookingNo} onClick={() => setSelectedReportRow(row)}>
-                      {row.bookingNo}
+                      <MobileTailText value={row.bookingNo} />
                     </button>
                   </td>
                   <td><TruncatedCell value={displayDate(row.issueDate)} /></td>
@@ -842,6 +842,17 @@ function formatCsvCell(value) {
 function TruncatedCell({ value }) {
   const text = String(value || '-')
   return <span className="table-truncate-cell" title={text}>{text}</span>
+}
+
+function MobileTailText({ value }) {
+  const text = String(value || '-')
+  const mobileText = text === '-' ? text : text.slice(-5)
+  return (
+    <>
+      <span className="mobile-tail-full">{text}</span>
+      <span className="mobile-tail-short">{mobileText}</span>
+    </>
+  )
 }
 
 const byQcDropdownField = {
