@@ -23,9 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             ->at('08:00')
             ->withoutOverlapping();
 
-        $schedule->job(new ProcessLcTermsJob)
-            ->daily()
-            ->withoutOverlapping();
+        // $schedule->job(new ProcessLcTermsJob)
+        //     ->daily()
+        //     ->withoutOverlapping();
 
         $schedule->job(new OverdueEmailJob)
             ->mondays()

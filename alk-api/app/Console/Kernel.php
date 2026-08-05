@@ -27,9 +27,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // Dispatch the LC terms processing job once daily
-        $schedule->call(function () {
-            ProcessLcTermsJob::dispatch();
-        })->daily();
+        // $schedule->call(function () {
+        //     ProcessLcTermsJob::dispatch();
+        // })->daily();
 
         // Dispatch the overdue email job on Monday and Thursday
         $schedule->call(function () {
