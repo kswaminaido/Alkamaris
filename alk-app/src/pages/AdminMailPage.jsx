@@ -355,7 +355,7 @@ function AdminMailPage() {
 
         <article className="admin-mail-results">
           <div className="admin-mail-results-head">
-            <h3>Customers List</h3>
+            <h3 style={{ color: "black" }}>Customers List</h3>
             <button type="button" className="primary-btn" onClick={openCompose} disabled={selectedEmails.length === 0 || !filters.defaultMail}>Default Mail ({selectedEmails.length})</button>
           </div>
           <PaginationBar

@@ -9444,7 +9444,7 @@ textarea:focus,
 .admin-mail-card-head h5,
 .admin-mail-results-head h1,
 .admin-mail-results-head h2,
-.admin-mail-results-head h3,
+/* .admin-mail-results-head h3, */
 .admin-mail-results-head h4,
 .admin-mail-results-head h5,
 .admin-history-header h1,
@@ -11908,5 +11908,154 @@ canvas {
     min-width: 104px !important;
     max-width: 104px !important;
     width: 104px !important;
+  }
+}
+
+/* Gmail-style floating compose window */
+.mail-compose-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+.admin-mail-compose {
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: min(560px, calc(100vw - 32px)) !important;
+  height: min(600px, calc(100dvh - 72px)) !important;
+  max-width: calc(100vw - 32px) !important;
+  max-height: calc(100dvh - 72px) !important;
+  display: grid !important;
+  grid-template-rows: 40px auto auto auto minmax(160px, 1fr) auto 52px !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  background: #fff !important;
+  border: 1px solid #dadce0 !important;
+  border-bottom: 0 !important;
+  border-radius: 8px 8px 0 0 !important;
+  box-shadow: 0 8px 24px rgba(60, 64, 67, 0.3) !important;
+}
+
+.admin-mail-compose-header {
+  min-height: 40px !important;
+  padding: 0 8px 0 16px !important;
+  background: #202124 !important;
+  color: #fff !important;
+}
+
+.admin-mail-compose-header h3 {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #fff !important;
+}
+
+.admin-mail-compose-close {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 2px !important;
+  color: #e8eaed !important;
+  font-size: 1rem !important;
+}
+
+.admin-mail-compose-close:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.admin-mail-compose-recipients {
+  min-height: 40px !important;
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  padding: 0 16px !important;
+  border-bottom: 1px solid #f1f3f4 !important;
+  font-size: 0.8125rem !important;
+}
+
+.admin-mail-compose-recipients span {
+  color: #5f6368 !important;
+}
+
+.admin-mail-compose-recipients textarea {
+  min-height: 32px !important;
+  max-height: 88px !important;
+  padding: 8px 0 !important;
+  color: #202124 !important;
+}
+
+.admin-mail-compose-subject,
+.admin-mail-compose-title {
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  border-bottom: 1px solid #f1f3f4 !important;
+  color: #202124 !important;
+  font-size: 0.875rem !important;
+}
+
+.admin-mail-compose-body {
+  min-height: 160px !important;
+  padding: 12px 16px !important;
+  border-bottom: 0 !important;
+  color: #202124 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.admin-mail-attachments {
+  padding: 8px 16px !important;
+  border-top: 1px solid #f1f3f4 !important;
+  border-bottom: 0 !important;
+}
+
+.admin-mail-compose-actions {
+  min-height: 52px !important;
+  padding: 8px 12px 8px 16px !important;
+  border-top: 1px solid #f1f3f4 !important;
+  background: #fff !important;
+}
+
+.admin-mail-send-btn {
+  min-width: 72px !important;
+  min-height: 32px !important;
+  border-radius: 18px !important;
+  background: #0b57d0 !important;
+  color: #fff !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+.admin-mail-send-btn:hover:not(:disabled) {
+  background: #1b61d1 !important;
+}
+
+.admin-mail-compose-toolbar {
+  gap: 2px !important;
+}
+
+.admin-mail-compose-toolbar button,
+.admin-mail-discard-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  border-radius: 4px !important;
+  color: #5f6368 !important;
+}
+
+.admin-mail-compose-toolbar button:hover,
+.admin-mail-discard-btn:hover:not(:disabled) {
+  background: #f1f3f4 !important;
+  color: #202124 !important;
+}
+
+@media (max-width: 640px) {
+  .admin-mail-compose {
+    right: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    height: min(600px, calc(100dvh - 16px)) !important;
+    max-height: calc(100dvh - 16px) !important;
   }
 }

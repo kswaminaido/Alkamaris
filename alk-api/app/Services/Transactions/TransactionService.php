@@ -95,6 +95,7 @@ final class TransactionService
             $newTransaction = Transaction::query()->create([
                 ...$this->duplicateAttributes($transaction),
                 'booking_no' => $this->generateDuplicateBookingNo((string) $transaction->booking_no),
+                'status' => TransactionStatus::Unshipped,
                 'created_by_user_id' => $actor->id,
             ]);
 
@@ -298,10 +299,10 @@ final class TransactionService
             RevenuePacker::class => $transaction->revenuePacker,
             CashFlowCustomer::class => $transaction->cashFlowCustomer,
             CashFlowPacker::class => $transaction->cashFlowPacker,
-            ShippingDetailsCustomer::class => $transaction->shippingDetailsCustomer,
-            ShippingDetailsPacker::class => $transaction->shippingDetailsPacker,
+            ShippingDetailsCustomer::class => null,
+            ShippingDetailsPacker::class => null,
             TransactionNote::class => $transaction->note,
-            TransactionLogistics::class => $transaction->logistics,
+            TransactionLogistics::class => null,
         ];
     }
 
