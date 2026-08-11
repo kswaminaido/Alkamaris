@@ -19,11 +19,11 @@ class ShippingDetailsCustomer extends Model
     ];
 
     protected $casts = [
-        'lsd_min' => 'date',
-        'lsd_max' => 'date',
+        'lsd_min' => 'date:Y-m-d',
+        'lsd_max' => 'date:Y-m-d',
         'presentation_days' => 'integer',
-        'lc_expiry' => 'date',
-        'req_eta' => 'date',
+        'lc_expiry' => 'date:Y-m-d',
+        'req_eta' => 'date:Y-m-d',
     ];
 
     public function transaction(): BelongsTo

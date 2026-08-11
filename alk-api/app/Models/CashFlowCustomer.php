@@ -20,10 +20,10 @@ class CashFlowCustomer extends Model
     ];
 
     protected $casts = [
-        'date_advance' => 'date',
+        'date_advance' => 'date:Y-m-d',
         'amount_advance' => 'decimal:2',
-        'invoice_date' => 'date',
-        'date_balance' => 'date',
+        'invoice_date' => 'date:Y-m-d',
+        'date_balance' => 'date:Y-m-d',
         'amount_balance' => 'decimal:2',
     ];
 
