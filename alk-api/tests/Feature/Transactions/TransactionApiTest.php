@@ -723,7 +723,7 @@ final class TransactionApiTest extends TestCase
             'status' => TransactionStatus::Unshipped->value,
             'created_by_user_id' => $admin->id,
         ]);
-        $customerOverdue->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-12']);
+        $customerOverdue->shippingDetailsCustomer()->create(['lsd_max' => '2026-06-12']);
 
         $packerOverdue = Transaction::query()->create([
             'booking_no' => 'TRX-PACKER-OVERDUE',
@@ -731,7 +731,7 @@ final class TransactionApiTest extends TestCase
             'status' => TransactionStatus::Unshipped->value,
             'created_by_user_id' => $admin->id,
         ]);
-        $packerOverdue->shippingDetailsPacker()->create(['lsd_min' => '2026-06-11']);
+        $packerOverdue->shippingDetailsPacker()->create(['lsd_max' => '2026-06-11']);
 
         $futureUnshipped = Transaction::query()->create([
             'booking_no' => 'TRX-FUTURE',
@@ -739,7 +739,7 @@ final class TransactionApiTest extends TestCase
             'status' => TransactionStatus::Unshipped->value,
             'created_by_user_id' => $admin->id,
         ]);
-        $futureUnshipped->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-14']);
+        $futureUnshipped->shippingDetailsCustomer()->create(['lsd_max' => '2026-06-14']);
 
         $invoiceOverdue = Transaction::query()->create([
             'booking_no' => 'TRX-INVOICE',
@@ -747,7 +747,15 @@ final class TransactionApiTest extends TestCase
             'status' => TransactionStatus::Invoice->value,
             'created_by_user_id' => $admin->id,
         ]);
-        $invoiceOverdue->shippingDetailsCustomer()->create(['lsd_min' => '2026-06-10']);
+        $invoiceOverdue->shippingDetailsCustomer()->create(['lsd_max' => '2026-06-10']);
+
+        $paidOverdue = Transaction::query()->create([
+            'booking_no' => 'TRX-PAID-OVERDUE',
+            'booking_mode' => 'trade_commission',
+            'status' => TransactionStatus::Paid->value,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $paidOverdue->shippingDetailsCustomer()->create(['lsd_max' => '2026-06-09']);
 
         $response = $this
             ->withHeader('Authorization', "Bearer {$token}")
@@ -755,12 +763,13 @@ final class TransactionApiTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('pagination.total', 2);
+            ->assertJsonPath('pagination.total', 3);
 
         $bookingNumbers = collect($response->json('data'))->pluck('booking_no')->all();
 
         $this->assertEqualsCanonicalizing([
             'TRX-CUSTOMER-OVERDUE',
+            'TRX-INVOICE',
             'TRX-PACKER-OVERDUE',
         ], $bookingNumbers);
 

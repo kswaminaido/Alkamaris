@@ -86,21 +86,23 @@ class TransactionController extends Controller
         if (request()->boolean('overdue_invoice')) {
             $today = CarbonImmutable::now()->toDateString();
 
-            $query->where(function ($query) use ($today) {
-                $query
-                    ->whereHas('shippingDetailsPacker', function ($query) use ($today) {
-                        $query->where('lsd_max', '<', $today);
-                    })
-                    ->orWhere(function ($query) use ($today) {
-                        $query
-                            ->whereDoesntHave('shippingDetailsPacker', function ($query) {
-                                $query->whereNotNull('lsd_max');
-                            })
-                            ->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
-                                $query->where('lsd_max', '<', $today);
-                            });
-                    });
-            });
+            $query
+                ->where('status', '!=', TransactionStatus::Paid->value)
+                ->where(function ($query) use ($today) {
+                    $query
+                        ->whereHas('shippingDetailsPacker', function ($query) use ($today) {
+                            $query->where('lsd_max', '<', $today);
+                        })
+                        ->orWhere(function ($query) use ($today) {
+                            $query
+                                ->whereDoesntHave('shippingDetailsPacker', function ($query) {
+                                    $query->whereNotNull('lsd_max');
+                                })
+                                ->whereHas('shippingDetailsCustomer', function ($query) use ($today) {
+                                    $query->where('lsd_max', '<', $today);
+                                });
+                        });
+                });
         } elseif ($status = request('status')) {
             $this->applyStatusFilter($query, (string) $status);
         }
