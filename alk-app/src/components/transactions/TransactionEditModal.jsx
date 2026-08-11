@@ -5,6 +5,7 @@ import { FALLBACK_COUNTRIES, fetchCountryOptions, mergeCountryOptions } from '..
 import { DROPDOWN_FIELD_GROUPS, buildConfigMap, getFieldOptions } from '../../utils/dropdownData'
 import { APP_ENV } from '../../config/api'
 import { fetchAllUsers, extractSalesPersonOptions } from '../../utils/userOptions'
+import { formatDateForDisplay, toDateInputValue } from '../../utils/dateFormat'
 
 const PAGE_SIZE = 50
 const IS_LOCAL_ENV = String(APP_ENV).toLowerCase() === 'local'
@@ -883,7 +884,7 @@ function ShipTab({ transaction, optionsFor, addOption }) {
   const logistics = transaction.logistics ?? {}
   const logisticsValue = (key, fallback = '') => logistics[key] ?? fallback
   const logisticsDate = (key, fallback = '') => toInputDate(logistics[key]) || toInputDate(fallback)
-  const destination = logisticsValue('destination', localFallback('MONTREAL, CANADA'))
+  const destination = logisticsValue('destination')
 
   return (
     <div className="txe-stack">
@@ -894,28 +895,28 @@ function ShipTab({ transaction, optionsFor, addOption }) {
             <Row label="Plan ETA"><DateInput name="logistics.plan_eta" value={logisticsDate('plan_eta')} /></Row>
             <Row label="Packaging Date"><div className="txe-inline txe-inline-3"><DateInput name="logistics.packaging_date_inner" value={logisticsDate('packaging_date_inner')} /><DateInput name="logistics.packaging_date_outer" value={logisticsDate('packaging_date_outer')} /><DateInput name="logistics.packaging_date_approved" value={logisticsDate('packaging_date_approved')} /></div></Row>
             <Row label="Feeder Vessel"><input name="logistics.feeder_vessel" defaultValue={logisticsValue('feeder_vessel')} /></Row>
-            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue={logisticsValue('mother_vessel', localFallback('VARADA V.081W'))} /></Row>
-            <Row label="Container #"><input name="logistics.container_no" defaultValue={logisticsValue('container_no', localFallback('MNBU9177027'))} /></Row>
-            <Row label="Seal #"><input name="logistics.seal_no" defaultValue={logisticsValue('seal_no', localFallback('ML-IN2683329'))} /></Row>
+            <Row label="Mother Vessel"><input name="logistics.mother_vessel" defaultValue={logisticsValue('mother_vessel')} /></Row>
+            <Row label="Container #"><input name="logistics.container_no" defaultValue={logisticsValue('container_no')} /></Row>
+            <Row label="Seal #"><input name="logistics.seal_no" defaultValue={logisticsValue('seal_no')} /></Row>
             <Row label="LC #"><input name="logistics.lc_no" defaultValue={logisticsValue('lc_no')} /></Row>
             <Row label="Temperature Recorder No"><input name="logistics.temperature_recorder_no" defaultValue={logisticsValue('temperature_recorder_no')} /></Row>
             <Row label="Temperature Recorder Location ROW NO"><input name="logistics.temperature_recorder_location_row_no" defaultValue={logisticsValue('temperature_recorder_location_row_no')} /></Row>
           </div>
           <div>
-            <Row label="ETD Date"><DateInput name="logistics.etd_date" value={logisticsDate('etd_date', localFallback('08/01/2026'))} /></Row>
-            <Row label="ETA Date"><DateInput name="logistics.eta_date" value={logisticsDate('eta_date', localFallback('26/02/2026'))} /></Row>
+            <Row label="ETD Date"><DateInput name="logistics.etd_date" value={logisticsDate('etd_date')} /></Row>
+            <Row label="ETA Date"><DateInput name="logistics.eta_date" value={logisticsDate('eta_date')} /></Row>
             <Row label="QC Inspection Date"><DateInput name="logistics.qc_inspection_date" value={logisticsDate('qc_inspection_date')} /></Row>
             {/* <Row label="Discharge"><input name="logistics.discharge" defaultValue={logisticsValue('discharge', logistics.discharge_at ?? '')} /></Row> */}
             {/* <Row label="At"><input name="logistics.at" defaultValue={logisticsValue('at')} /></Row> */}
             {/* <Row label="Service Type"><NamedSearchableSelect name="logistics.service_type" value={logisticsValue('service_type')} list={withCurrent(OPTIONS.serviceType, logistics.service_type)} /></Row> */}
             <Row label="B/L Date"><DateInput name="logistics.bl_date" value={logisticsDate('bl_date', '')} /></Row>
             <Row label="B/L No."><input name="logistics.bl_no" defaultValue={logisticsValue('bl_no', '')} /></Row>
-            <Row label="POL"><input name="logistics.port" defaultValue={logisticsValue('port', localFallback('VISAKHAPATNAM, IND'))} /></Row>
+            <Row label="POL"><input name="logistics.port" defaultValue={logisticsValue('port')} /></Row>
             <Row label="POD"><NamedSearchableSelect name="logistics.destination" value={destination} list={mergeCountryOptions(optionsFor('transaction.destination'), destination)} onAdd={(value) => addOption('transaction.destination', value)} /></Row>
-            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent', localFallback('MAERSK'))} /></Row>
+            <Row label="Shipping Line / Agent"><input name="logistics.shipping_line_agent" defaultValue={logisticsValue('shipping_line_agent')} /></Row>
             {/* <Row label="AME Inv. to Customer"><input name="logistics.sc_inv_to_customer" defaultValue={logisticsValue('sc_inv_to_customer')} /></Row> */}
-            <Row label="Packer Inv Date"><DateInput name="logistics.packer_inv_date" value={logisticsDate('packer_inv_date', localFallback('26/12/2025'))} /></Row>
-            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv', localFallback('MAA/286/2025-26'))} /></Row>
+            <Row label="Packer Inv Date"><DateInput name="logistics.packer_inv_date" value={logisticsDate('packer_inv_date')} /></Row>
+            <Row label="Packer Inv."><input name="logistics.packer_inv" defaultValue={logisticsValue('packer_inv')} /></Row>
           </div>
         </div>
       </SectionCard>
@@ -1601,29 +1602,11 @@ function displayValue(value) {
 }
 
 function formatDate(value) {
-  const inputDate = toInputDate(value)
-  if (!inputDate) return ''
-  const [yyyy, mm, dd] = inputDate.split('-')
-  return `${dd}/${mm}/${yyyy}`
+  return formatDateForDisplay(value, '')
 }
 
 function toInputDate(value) {
-  const text = normalizeText(value)
-  if (!text) return ''
-  const isoDate = text.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/)
-  if (isoDate) return isoDate[1]
-  const parts = text.split('/')
-  if (parts.length === 3) {
-    const [dd, mm, yyyy] = parts
-    if (yyyy?.length === 4) return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
-  }
-  const date = new Date(`${text}T00:00:00`)
-  if (Number.isNaN(date.getTime())) return ''
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-')
+  return toDateInputValue(value)
 }
 
 function normalizeText(value) {
@@ -1999,7 +1982,7 @@ function buildPayload(formElement, transaction) {
       qc_inspection_date: getDateValue(formData, 'logistics.qc_inspection_date', transaction.logistics?.qc_inspection_date),
       discharge: getFieldValue(formData, 'logistics.discharge', transaction.logistics?.discharge),
       at: getFieldValue(formData, 'logistics.at', transaction.logistics?.at),
-      discharge_at: getFieldValue(formData, 'logistics.discharge', transaction.logistics?.discharge_at),
+      discharge_at: getFieldValue(formData, 'logistics.discharge_at', transaction.logistics?.discharge_at),
       service_type: getFieldValue(formData, 'logistics.service_type', transaction.logistics?.service_type),
       bl_date: getDateValue(formData, 'logistics.bl_date', transaction.logistics?.bl_date),
       bl_no: getFieldValue(formData, 'logistics.bl_no', transaction.logistics?.bl_no),

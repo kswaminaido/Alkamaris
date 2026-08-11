@@ -6,6 +6,7 @@ import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 import { buildConfigMap, getFieldOptions } from '../utils/dropdownData'
+import { formatDateForDisplay } from '../utils/dateFormat'
 import { fetchSalesPersonOptions } from '../utils/userOptions'
 
 const PAGE_SIZE = 50
@@ -534,10 +535,7 @@ function TransactionsPage({ overdueOnly = false }) {
 }
 
 function displayDate(value) {
-  if (!value) return '-'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-GB')
+  return formatDateForDisplay(value)
 }
 
 function getTransactionLsdDate(transaction) {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PaginationBar from '../common/PaginationBar'
+import { formatDateForDisplay } from '../../utils/dateFormat'
 
 const CURRENCIES = ['USD', 'INR', 'SGD', 'EUR']
 const COUNT_UNITS = ['CTN(S)', 'PCS', 'BAG(S)', 'PALLET(S)']
@@ -866,9 +867,7 @@ function extractPackingMultiplier(value) {
 }
 
 function displayDate(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-GB')
+  return formatDateForDisplay(value, '')
 }
 
 function normalizeText(value) {

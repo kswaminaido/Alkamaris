@@ -6,6 +6,7 @@ import PaginationBar from '../components/common/PaginationBar'
 import TransactionEditModal from '../components/transactions/TransactionEditModal'
 import { useAuth } from '../context/AuthContext'
 import { buildConfigMap, getFieldOptions } from '../utils/dropdownData'
+import { formatDateForDisplay } from '../utils/dateFormat'
 
 const PAGE_SIZE = 50
 const EXPORT_PAGE_SIZE = 1000
@@ -439,10 +440,7 @@ function SummaryReportPage() {
 }
 
 function displayDate(value) {
-  if (!value) return '-'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-GB')
+  return formatDateForDisplay(value)
 }
 
 function buildTransactionParams(filters, targetPage, perPage) {
