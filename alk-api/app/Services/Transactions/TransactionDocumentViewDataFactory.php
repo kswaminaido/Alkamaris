@@ -12,7 +12,10 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
-    private const CHINA_ASIA_CUSTOMER_NAME = 'DAVID TSE MARINE PTE LTD';
+    private const CHINA_ASIA_CUSTOMER_NAME = [
+        'CHINA ASIA MARINE PRODUCTS CO., LIMITED.',
+        'DAVID TSE MARINE PTE LTD',
+    ];
     private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
     private const LUEN_TAI_HONG_TO_REFERENCE_NAME = 'LUEN TAI HONG MARINE PRODUCT (FATHER & SON) LTD.';
 
@@ -304,9 +307,20 @@ final class TransactionDocumentViewDataFactory
     {
         $name = $this->displayText($customerName);
 
-        return $this->samePartyName($name, self::CHINA_ASIA_CUSTOMER_NAME)
+        return $this->isChinaAsiaCustomerName($name)
             ? self::LUEN_TAI_HONG_CUSTOMER_NAME
             : $name;
+    }
+
+    private function isChinaAsiaCustomerName(string $name): bool
+    {
+        foreach (self::CHINA_ASIA_CUSTOMER_NAME as $customerName) {
+            if ($this->samePartyName($name, $customerName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function samePartyName(string $left, string $right): bool
@@ -380,7 +394,7 @@ final class TransactionDocumentViewDataFactory
 
     private function shippingAdviceToName(string $customerName): string
     {
-        return $this->samePartyName($customerName, self::CHINA_ASIA_CUSTOMER_NAME)
+        return $this->isChinaAsiaCustomerName($customerName)
             ? self::LUEN_TAI_HONG_TO_REFERENCE_NAME
             : $customerName;
     }
