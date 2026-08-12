@@ -12,14 +12,12 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
-    private const CHINA_ASIA_CUSTOMER_NAME = [
-        'CHINA ASIA MARINE PRODUCTS CO., LIMITED.',
-        'DAVID TSE MARINE PTE LTD',
-    ];
+    private const LUEN_TAI_HONG_REFERENCE_CUSTOMER_ID = 6;
     private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
     private const LUEN_TAI_HONG_TO_REFERENCE_NAME = 'LUEN TAI HONG MARINE PRODUCT (FATHER & SON) LTD.';
 
     private ?string $logoDataUri = null;
+    private ?string $luenTaiHongReferenceCustomerName = null;
 
     /**
      * @param  array<string, mixed>  $options
@@ -307,20 +305,29 @@ final class TransactionDocumentViewDataFactory
     {
         $name = $this->displayText($customerName);
 
-        return $this->isChinaAsiaCustomerName($name)
+        return $this->usesLuenTaiHongReferenceName($name)
             ? self::LUEN_TAI_HONG_CUSTOMER_NAME
             : $name;
     }
 
-    private function isChinaAsiaCustomerName(string $name): bool
+    private function usesLuenTaiHongReferenceName(string $name): bool
     {
-        foreach (self::CHINA_ASIA_CUSTOMER_NAME as $customerName) {
-            if ($this->samePartyName($name, $customerName)) {
-                return true;
-            }
+        $customerName = $this->luenTaiHongReferenceCustomerName();
+
+        return $customerName !== '' && $this->samePartyName($name, $customerName);
+    }
+
+    private function luenTaiHongReferenceCustomerName(): string
+    {
+        if ($this->luenTaiHongReferenceCustomerName !== null) {
+            return $this->luenTaiHongReferenceCustomerName;
         }
 
-        return false;
+        return $this->luenTaiHongReferenceCustomerName = $this->displayText(
+            User::query()
+                ->whereKey(self::LUEN_TAI_HONG_REFERENCE_CUSTOMER_ID)
+                ->value('name')
+        );
     }
 
     private function samePartyName(string $left, string $right): bool
@@ -394,7 +401,7 @@ final class TransactionDocumentViewDataFactory
 
     private function shippingAdviceToName(string $customerName): string
     {
-        return $this->isChinaAsiaCustomerName($customerName)
+        return $this->usesLuenTaiHongReferenceName($customerName)
             ? self::LUEN_TAI_HONG_TO_REFERENCE_NAME
             : $customerName;
     }
