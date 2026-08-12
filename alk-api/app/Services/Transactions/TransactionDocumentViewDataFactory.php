@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
-    private const CHINA_ASIA_CUSTOMER_NAME = 'CHINA ASIA MARINE PRODUCTS CO., LIMITED.';
+    private const CHINA_ASIA_CUSTOMER_NAME = 'DAVID TSE MARINE PTE LTD';
     private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
     private const LUEN_TAI_HONG_TO_REFERENCE_NAME = 'LUEN TAI HONG MARINE PRODUCT (FATHER & SON) LTD.';
 
