@@ -127,7 +127,17 @@ class TransactionController extends Controller
             && request('status') === TransactionStatus::Unshipped->value
             && request('sort_direction') === 'asc';
 
-        if ($sortUnshippedAscending) {
+        $sortShippedByBlDate = ! request()->boolean('overdue_invoice')
+            && request('status') === TransactionStatus::Shipped->value;
+
+        if ($sortShippedByBlDate) {
+            $query
+                ->leftJoin('transaction_logistics', 'transaction_logistics.transaction_id', '=', 'transactions.id')
+                ->select('transactions.*')
+                ->orderByRaw('transaction_logistics.bl_date IS NULL')
+                ->orderBy('transaction_logistics.bl_date')
+                ->orderBy('transactions.id');
+        } elseif ($sortUnshippedAscending) {
             $query->orderBy('created_at')->orderBy('id');
         } else {
             $query->orderByDesc('created_at')->orderByDesc('id');
@@ -152,12 +162,7 @@ class TransactionController extends Controller
         }
 
         if ($status === TransactionStatus::Shipped->value) {
-            $query->whereIn('status', [
-                TransactionStatus::Shipped->value,
-                TransactionStatus::Received->value,
-                TransactionStatus::Paid->value,
-                TransactionStatus::Invoice->value,
-            ]);
+            $query->where('status', TransactionStatus::Shipped->value);
 
             return;
         }
