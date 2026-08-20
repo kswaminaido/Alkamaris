@@ -12,12 +12,13 @@ use Illuminate\Support\Str;
 
 final class TransactionDocumentViewDataFactory
 {
-    private const LUEN_TAI_HONG_REFERENCE_CUSTOMER_ID = 6;
+    private const LUEN_TAI_HONG_REFERENCE_CUSTOMER_IDS = [6, 65];
     private const LUEN_TAI_HONG_CUSTOMER_NAME = 'LUEN TAI HONG MARINE PRODUCT(FATHER & SON) LTD.';
     private const LUEN_TAI_HONG_TO_REFERENCE_NAME = 'LUEN TAI HONG MARINE PRODUCT (FATHER & SON) LTD.';
 
     private ?string $logoDataUri = null;
-    private ?string $luenTaiHongReferenceCustomerName = null;
+    /** @var array<int, string>|null */
+    private ?array $luenTaiHongReferenceCustomerNames = null;
 
     /**
      * @param  array<string, mixed>  $options
@@ -312,22 +313,31 @@ final class TransactionDocumentViewDataFactory
 
     private function usesLuenTaiHongReferenceName(string $name): bool
     {
-        $customerName = $this->luenTaiHongReferenceCustomerName();
-
-        return $customerName !== '' && $this->samePartyName($name, $customerName);
-    }
-
-    private function luenTaiHongReferenceCustomerName(): string
-    {
-        if ($this->luenTaiHongReferenceCustomerName !== null) {
-            return $this->luenTaiHongReferenceCustomerName;
+        foreach ($this->luenTaiHongReferenceCustomerNames() as $customerName) {
+            if ($this->samePartyName($name, $customerName)) {
+                return true;
+            }
         }
 
-        return $this->luenTaiHongReferenceCustomerName = $this->displayText(
-            User::query()
-                ->whereKey(self::LUEN_TAI_HONG_REFERENCE_CUSTOMER_ID)
-                ->value('name')
-        );
+        return false;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function luenTaiHongReferenceCustomerNames(): array
+    {
+        if ($this->luenTaiHongReferenceCustomerNames !== null) {
+            return $this->luenTaiHongReferenceCustomerNames;
+        }
+
+        return $this->luenTaiHongReferenceCustomerNames = User::query()
+            ->whereKey(self::LUEN_TAI_HONG_REFERENCE_CUSTOMER_IDS)
+            ->pluck('name')
+            ->map(fn(mixed $name): string => $this->displayText($name))
+            ->filter(fn(string $name): bool => $name !== '')
+            ->values()
+            ->all();
     }
 
     private function samePartyName(string $left, string $right): bool
