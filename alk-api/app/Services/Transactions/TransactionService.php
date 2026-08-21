@@ -458,6 +458,14 @@ final class TransactionService
         $payload = $record->getAttributes();
         unset($payload['id'], $payload['transaction_id'], $payload['created_at'], $payload['updated_at']);
 
+        foreach ($record->getCasts() as $attribute => $cast) {
+            $castName = strtolower(strtok((string) $cast, ':') ?: '');
+
+            if (in_array($castName, ['date', 'datetime', 'immutable_date', 'immutable_datetime'], true)) {
+                $payload[$attribute] = null;
+            }
+        }
+
         return $payload;
     }
 
