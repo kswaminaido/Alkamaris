@@ -162,7 +162,10 @@ class TransactionController extends Controller
         }
 
         if ($status === TransactionStatus::Shipped->value) {
-            $query->where('status', TransactionStatus::Shipped->value);
+            $query->whereIn('status', [
+                TransactionStatus::Shipped->value,
+                TransactionStatus::Received->value,
+            ]);
 
             return;
         }
