@@ -2173,9 +2173,9 @@ select:focus {
 .date-filter-calendar {
   position: absolute;
   top: calc(100% + 0.25rem);
-  left: 0;
+  left: var(--date-filter-calendar-left, 0);
   z-index: 30;
-  width: 326px;
+  width: min(326px, calc(100vw - 1rem));
   padding: 0;
   overflow: hidden;
   border-color: #dde3ec !important;

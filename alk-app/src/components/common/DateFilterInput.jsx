@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 const WEEKDAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -8,8 +8,10 @@ const DEFAULT_COREUI_START_DATE = '2000/01/01'
 
 function DateFilterInput({ id, value, onChange, disabled = false }) {
   const rootRef = useRef(null)
+  const calendarRef = useRef(null)
   const selectedDate = parseDateInputValue(value)
   const [isOpen, setIsOpen] = useState(false)
+  const [calendarOffset, setCalendarOffset] = useState(0)
   const [viewMode, setViewMode] = useState('days')
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(selectedDate ?? new Date()))
 
@@ -26,10 +28,38 @@ function DateFilterInput({ id, value, onChange, disabled = false }) {
     return () => document.removeEventListener('mousedown', handleDocumentMouseDown)
   }, [isOpen])
 
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined
+
+    function updateCalendarPosition() {
+      const root = rootRef.current
+      const calendar = calendarRef.current
+      if (!root || !calendar) return
+
+      const viewportPadding = 8
+      const rootRect = root.getBoundingClientRect()
+      const calendarWidth = calendar.offsetWidth
+      const minLeftOffset = viewportPadding - rootRect.left
+      const maxLeftOffset = window.innerWidth - viewportPadding - rootRect.left - calendarWidth
+
+      setCalendarOffset(Math.min(0, Math.max(minLeftOffset, maxLeftOffset)))
+    }
+
+    updateCalendarPosition()
+    window.addEventListener('resize', updateCalendarPosition)
+    window.addEventListener('scroll', updateCalendarPosition, true)
+
+    return () => {
+      window.removeEventListener('resize', updateCalendarPosition)
+      window.removeEventListener('scroll', updateCalendarPosition, true)
+    }
+  }, [isOpen])
+
   function openCalendar() {
     if (disabled) return
     setVisibleMonth(startOfMonth(selectedDate ?? new Date()))
     setViewMode('days')
+    setCalendarOffset(0)
     setIsOpen(true)
   }
 
@@ -84,7 +114,9 @@ function DateFilterInput({ id, value, onChange, disabled = false }) {
       ) : null}
       {isOpen ? (
         <div
+          ref={calendarRef}
           className="date-filter-calendar border rounded"
+          style={{ '--date-filter-calendar-left': `${calendarOffset}px` }}
           data-coreui-locale={COREUI_LOCALE}
           data-coreui-start-date={selectedDate ? formatCoreUiDateValue(selectedDate) : DEFAULT_COREUI_START_DATE}
           data-coreui-toggle="calendar"
