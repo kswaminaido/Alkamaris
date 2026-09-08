@@ -1,4 +1,4 @@
+# Allow crawlers to read the noindex meta tags and response header.
+# Disallowing crawling can leave existing URLs in search results.
 User-agent: *
-Disallow: /
-
-Sitemap:
+Disallow:

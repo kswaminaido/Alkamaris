@@ -95,6 +95,7 @@ jobs:
           rsync -avz \
           -e "ssh -p ${{ secrets.HOSTINGER_PORT }}" \
           alk-app/dist/index.html \
+          alk-app/dist/robots.txt \
           ${{ secrets.HOSTINGER_USER }}@${{ secrets.HOSTINGER_HOST }}:/home/${{ secrets.HOSTINGER_USER }}/domains/erpalkamaris.com/public_html/
 
       # =========================
