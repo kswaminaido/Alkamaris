@@ -165,6 +165,7 @@ class TransactionController extends Controller
             $query->whereIn('status', [
                 TransactionStatus::Shipped->value,
                 TransactionStatus::Received->value,
+                TransactionStatus::Paid->value,
             ]);
 
             return;
@@ -288,17 +289,17 @@ class TransactionController extends Controller
             ->get();
 
         $updatedEvents = $events
-            ->filter(static fn (UsersEventLog $event): bool => in_array($event->data['action'] ?? null, [
+            ->filter(static fn(UsersEventLog $event): bool => in_array($event->data['action'] ?? null, [
                 'Transaction updated',
                 'Status updated',
             ], true))
-            ->unique(static fn (UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
-            ->keyBy(static fn (UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
+            ->unique(static fn(UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
+            ->keyBy(static fn(UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
 
         $createdEvents = $events
-            ->filter(static fn (UsersEventLog $event): bool => ($event->data['action'] ?? null) === 'Transaction created')
-            ->unique(static fn (UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
-            ->keyBy(static fn (UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
+            ->filter(static fn(UsersEventLog $event): bool => ($event->data['action'] ?? null) === 'Transaction created')
+            ->unique(static fn(UsersEventLog $event): int|string|null => $event->data['record_id'] ?? null)
+            ->keyBy(static fn(UsersEventLog $event): string => (string) ($event->data['record_id'] ?? ''));
 
         $transactions->each(function (Transaction $transaction) use ($updatedEvents, $createdEvents): void {
             $key = (string) $transaction->id;
@@ -350,7 +351,7 @@ class TransactionController extends Controller
                 'total_collected_commission' => round((float) ($summary?->total_collected_commission ?? 0), 5),
                 'total_pending_commission' => round((float) ($summary?->total_pending_commission ?? 0), 5),
                 'status_summary' => collect(TransactionStatus::cases())
-                    ->map(fn (TransactionStatus $status): array => [
+                    ->map(fn(TransactionStatus $status): array => [
                         'status' => $status->value,
                         'label' => $status->label(),
                         'transaction_count' => $statusCounts->get($status->value, 0),
