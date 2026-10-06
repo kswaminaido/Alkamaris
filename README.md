@@ -84,7 +84,7 @@ ai-code-reviewer/
 - Python 3.11+
 - GitHub repository
 - GitHub Actions enabled
-- OpenAI API key
+- Gemini API key
 
 ---
 
@@ -134,15 +134,15 @@ pip install -r requirements.txt
 
 ---
 
-# 4. Configure OpenAI
+# 4. Configure Gemini
 
-Create an OpenAI API key from the OpenAI API platform.
+Create a Gemini API key in Google AI Studio.
 
 Create a `.env` file:
 
 ```env
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-5
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Never commit `.env` to GitHub.
@@ -181,7 +181,7 @@ env:
 
 ---
 
-# 6. Add OpenAI secret to GitHub
+# 6. Add Gemini secret to GitHub
 
 Open your repository:
 
@@ -201,13 +201,13 @@ Create:
 
 ```text
 Name:
-OPENAI_API_KEY
+GEMINI_API_KEY
 ```
 
 Value:
 
 ```text
-your OpenAI API key
+your Gemini API key
 ```
 
 Do not create a `GITHUB_TOKEN` secret manually.
@@ -257,8 +257,8 @@ jobs:
 
       - name: Run AI Code Review
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: gpt-5
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.5-flash
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -474,7 +474,7 @@ The reviewer can also detect React problems such as:
 Never commit:
 
 ```text
-OPENAI_API_KEY
+GEMINI_API_KEY
 GitHub Personal Access Tokens
 Private keys
 Database passwords

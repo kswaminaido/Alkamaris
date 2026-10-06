@@ -1,7 +1,8 @@
 import json
 import os
 
-from openai import OpenAI
+from google import genai
+from google.genai import types
 
 from .models import Finding
 from .prompts import (
@@ -14,21 +15,21 @@ class AIReviewer:
 
     def __init__(self):
 
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
             raise RuntimeError(
-                "OPENAI_API_KEY environment variable is not set."
+                "GEMINI_API_KEY environment variable is not set."
             )
 
         model = os.getenv(
-            "OPENAI_MODEL",
-            "gpt-5"
+            "GEMINI_MODEL",
+            "gemini-2.5-flash"
         )
 
         self.model = model
 
-        self.client = OpenAI(
+        self.client = genai.Client(
             api_key=api_key
         )
 
@@ -45,13 +46,16 @@ class AIReviewer:
             project_context=project_context,
         )
 
-        response = self.client.responses.create(
+        response = self.client.models.generate_content(
             model=self.model,
-            instructions=SYSTEM_PROMPT,
-            input=prompt,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                response_mime_type="application/json",
+            ),
         )
 
-        content = response.output_text.strip()
+        content = (response.text or "").strip()
 
         if not content:
             return []
