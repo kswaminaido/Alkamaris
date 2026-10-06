@@ -1,0 +1,6 @@
+openai
+PyGithub
+pydantic
+requests
+python-dotenv
+pytest>=8.0.0
