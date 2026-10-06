@@ -1,7 +1,11 @@
 import json
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
+from google.genai.errors import ServerError
 
+from reviewer.analyzers import AIReviewer
 from reviewer.models import Finding
 from reviewer.diff import get_changed_lines
 
@@ -87,3 +91,18 @@ def test_invalid_severity():
             category="spelling",
             message="Test",
         )
+
+
+def test_reviewer_retries_temporary_gemini_outage(monkeypatch):
+    monkeypatch.setattr("reviewer.analyzers.time.sleep", lambda _: None)
+    reviewer = AIReviewer.__new__(AIReviewer)
+    reviewer.model = "gemini-3.8-flash"
+    generate = Mock(side_effect=[
+        ServerError(503, {"error": {"message": "high demand"}}),
+        SimpleNamespace(text="[]"),
+    ])
+    reviewer.client = SimpleNamespace(models=SimpleNamespace(generate_content=generate))
+
+    assert reviewer.review("app/User.php", "+new code") == []
+    assert generate.call_count == 2
+    assert generate.call_args.kwargs["config"].automatic_function_calling.disable
