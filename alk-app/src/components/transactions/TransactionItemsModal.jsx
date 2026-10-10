@@ -38,7 +38,11 @@ const STATUS_DROPDOWN_OPTIONS = STATUS_OPTIONS.filter((option) => !HIDDEN_STATUS
 let transactionItemOptionsCache = null
 let transactionItemOptionsPromise = null
 
-function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionChange }) {
+function TransactionItemsModal({ transaction: initialTransaction, authFetch, onClose, onTransactionChange }) {
+  const [loadedTransaction, setLoadedTransaction] = useState(null)
+  const authFetchRef = useRef(authFetch)
+  const detailVersion = useRef(0)
+  const transaction = loadedTransaction?.id === initialTransaction.id ? loadedTransaction : initialTransaction
   const [editingItem, setEditingItem] = useState(null)
   const [feedback, setFeedback] = useState({ message: '', error: '' })
   const [busyKey, setBusyKey] = useState('')
@@ -56,6 +60,37 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
     buying: items.reduce((sum, item) => sum + toNumber(item.buying_total), 0),
     weight: items.reduce((sum, item) => sum + toNumber(item.total_weight_value), 0),
   }), [items])
+
+  useEffect(() => {
+    authFetchRef.current = authFetch
+  }, [authFetch])
+
+  useEffect(() => {
+    let active = true
+    const version = ++detailVersion.current
+    setLoadedTransaction(null)
+
+    async function loadTransactionItems() {
+      try {
+        const response = await authFetchRef.current(`/transactions/${initialTransaction.id}`)
+        const body = await response.json()
+        if (active && version === detailVersion.current && response.ok && body?.data) {
+          setLoadedTransaction(body.data)
+        }
+      } catch {
+        // Keep the transaction already supplied by the list when detail loading fails.
+      }
+    }
+
+    loadTransactionItems()
+    return () => { active = false }
+  }, [initialTransaction.id])
+
+  function syncTransaction(updatedTransaction) {
+    detailVersion.current += 1
+    setLoadedTransaction(updatedTransaction)
+    onTransactionChange(updatedTransaction)
+  }
 
   useEffect(() => {
     setEditingItem(null)
@@ -82,7 +117,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
         return
       }
       if (body?.data) {
-        onTransactionChange(body.data)
+        syncTransaction(body.data)
       }
       setFeedback({ message: successMessage, error: '' })
     } catch {
@@ -117,7 +152,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
       }
 
       if (body?.data) {
-        onTransactionChange(body.data)
+        syncTransaction(body.data)
       }
       setFeedback({ message: 'Status updated.', error: '' })
     } catch {
@@ -252,7 +287,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
             item={editingItem.id ? editingItem : null}
             onClose={() => setEditingItem(null)}
             onSaved={(updatedTransaction, successMessage) => {
-              onTransactionChange(updatedTransaction)
+              syncTransaction(updatedTransaction)
               setEditingItem(null)
               setFeedback({ message: successMessage, error: '' })
             }}
@@ -718,7 +753,7 @@ function buildForm(transaction, item) {
     product: item?.product ?? transaction.category ?? '',
     style: item?.style ?? '',
     packing: item?.packing ?? '',
-    media: item?.media ?? '',
+    media: item ? mediaItemCode(item) : '',
     notes: item?.notes ?? '',
     brand: item?.brand ?? '',
     secondary_packaging: item?.secondary_packaging ?? '',
