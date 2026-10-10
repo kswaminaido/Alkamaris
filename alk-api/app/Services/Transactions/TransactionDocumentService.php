@@ -302,6 +302,25 @@ class TransactionDocumentService
 </style>
 HTML;
 
+        if (str_contains($html, '<title>Print BCV /Lqd</title>') || str_contains($html, '<title>Print BCB /Lqd</title>')) {
+            $wordStyles .= <<<'HTML'
+<style>
+  .section-head td, .items th, .comments-head td, .title-band {
+    background: #000 !important;
+    color: #fff !important;
+  }
+  .logo-cell, .logo {
+    width: 70px !important;
+    height: auto !important;
+    max-width: 70px !important;
+    max-height: 58px !important;
+  }
+  .items.has-media .desc { width: 34% !important; }
+  .items.has-media .media-code { width: 8% !important; }
+</style>
+HTML;
+        }
+
         if (str_contains($html, '</head>')) {
             return str_replace('</head>', $wordStyles."\n</head>", $html);
         }
@@ -311,11 +330,15 @@ HTML;
 
     private function withWordLogoMarkup(string $html): string
     {
+        $isLqd = str_contains($html, '<title>Print BCV /Lqd</title>') || str_contains($html, '<title>Print BCB /Lqd</title>');
+
         return preg_replace_callback(
             '/<img\b([^>]*\bclass="[^"]*\b(?:pv-logo|logo)\b[^"]*"[^>]*)>/i',
-            function (array $matches): string {
+            function (array $matches) use ($isLqd): string {
                 $attributes = preg_replace('/\s(?:width|height)="[^"]*"/i', '', $matches[1]) ?? $matches[1];
-                $logoStyle = 'width:90px;max-width:90px;height:90px;max-height:90px;';
+                $logoStyle = $isLqd
+                    ? 'width:70px;max-width:70px;height:auto;max-height:58px;'
+                    : 'width:90px;max-width:90px;height:90px;max-height:90px;';
 
                 if (preg_match('/\sstyle="([^"]*)"/i', $attributes, $styleMatch)) {
                     $existingStyle = trim($styleMatch[1]);
@@ -328,7 +351,9 @@ HTML;
                     $attributes .= ' style="' . $logoStyle . '"';
                 }
 
-                return '<img' . $attributes . ' width="90" height="90">';
+                return $isLqd
+                    ? '<img' . $attributes . ' width="70">'
+                    : '<img' . $attributes . ' width="90" height="90">';
             },
             $html,
         ) ?? $html;
@@ -337,13 +362,15 @@ HTML;
     private function withWordItemTableMarkup(string $html): string
     {
         return preg_replace_callback(
-            '/<table class="main items">(.*?)<\/table>/s',
+            '/<table class="(main items(?: has-media)?)">(.*?)<\/table>/s',
             function (array $matches): string {
-                $table = $matches[1];
-                $table = preg_replace('/<th([^>]*)>/', '<th$1 bgcolor="#061173" style="background-color:#061173;color:#ffffff;border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
+                $isLqd = str_contains($matches[0], '<th class="desc">DESCRIPTION</th>');
+                $headerColor = $isLqd ? '#000000' : '#061173';
+                $table = $matches[2];
+                $table = preg_replace('/<th([^>]*)>/', '<th$1 bgcolor="'.$headerColor.'" style="background-color:'.$headerColor.';color:#ffffff;border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
                 $table = preg_replace('/<td([^>]*)>/', '<td$1 style="border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
 
-                return '<table class="main items" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1pt solid #000;mso-border-alt:solid #000 0.75pt;">'.$table.'</table>';
+                return '<table class="'.$matches[1].'" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1pt solid #000;mso-border-alt:solid #000 0.75pt;">'.$table.'</table>';
             },
             $html,
         ) ?? $html;

@@ -47,6 +47,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
 
   const items = useMemo(() => transaction.items ?? [], [transaction.items])
+  const showMedia = items.some((item) => String(item.media ?? '').trim() !== '')
   const lastPage = Math.max(1, Math.ceil(items.length / pageSize))
   const currentPage = Math.min(page, lastPage)
   const visibleItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -178,10 +179,10 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                     <th>No.</th>
                     <th>Product</th>
                     <th>Style</th>
-                    <th>Media / Item Code</th>
                     <th>Packing</th>
                     <th>Brand</th>
                     <th>Size</th>
+                    {showMedia && <th>Media/Item Code</th>}
                     <th>Weight</th>
                     <th>Qty</th>
                     <th>Selling Price</th>
@@ -195,16 +196,16 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr><td colSpan={16} className="txe-items-empty">No items yet. Click Add to create the first item.</td></tr>
+                    <tr><td colSpan={showMedia ? 16 : 15} className="txe-items-empty">No items yet. Click Add to create the first item.</td></tr>
                   ) : visibleItems.map((item, index) => (
                     <tr key={item.id} className="txe-items-clickable-row" onClick={() => setEditingItem(item)}>
                       <td>{((currentPage - 1) * pageSize) + index + 1}</td>
                       <td>{item.product || '-'}</td>
                       <td>{item.style || '-'}</td>
-                      <td>{item.media || item.item_code || '-'}</td>
                       <td>{item.packing || '-'}</td>
                       <td>{item.brand || '-'}</td>
                       <td>{item.size || '-'}</td>
+                      {showMedia && <td>{item.media || '-'}</td>}
                       <td>{formatDecimal(item.total_weight_value)}</td>
                       <td>{formatQty(item.qty_booking ?? item.qty_value, item.qty_unit)}</td>
                       <td>{formatMoney(item.selling_unit_price)}</td>

@@ -181,9 +181,19 @@
       width: 42%;
     }
 
+    .items.has-media .desc {
+      width: 34%;
+    }
+
     .size {
       width: 8%;
       text-align: center;
+    }
+
+    .media-code {
+      width: 8%;
+      text-align: center;
+      overflow-wrap: anywhere;
     }
 
     .cartons {
@@ -504,10 +514,13 @@
         </tr>
       </table>
 
-      <table class="main items">
+      <table class="main items{{ $bcv['show_media'] ? ' has-media' : '' }}">
         <colgroup>
           <col class="desc">
           <col class="size">
+          @if ($bcv['show_media'])
+          <col class="media-code">
+          @endif
           <col class="cartons">
           <col class="weight">
           <col class="price">
@@ -517,6 +530,9 @@
           <tr>
             <th class="desc">DESCRIPTION</th>
             <th class="size">Size</th>
+            @if ($bcv['show_media'])
+            <th class="media-code">Media/Item Code</th>
+            @endif
             <th>Cartons</th>
             <th>{{ $bcv['weight_header'] ?? 'Weight in LB(s)' }}</th>
             <th>{{ $bcv['items'][0]['price_header'] ?? 'Price US$/kg' }}</th>
@@ -533,6 +549,9 @@
             </td>
             @endif
             <td class="size">{{ $item['size'] }}</td>
+            @if ($bcv['show_media'])
+            <td class="media-code">{{ $item['media'] }}</td>
+            @endif
             <td class="num">{{ $item['cartons'] }}</td>
             <td class="num">{{ $item['weight'] }}</td>
             <td class="num">{{ $item['price'] }}</td>
@@ -543,6 +562,9 @@
           <tr>
             <td class="desc">&nbsp;</td>
             <td class="size">&nbsp;</td>
+            @if ($bcv['show_media'])
+            <td>&nbsp;</td>
+            @endif
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
@@ -552,6 +574,9 @@
           <tr class="total-row">
             <td></td>
             <td style="text-align:center">Total</td>
+            @if ($bcv['show_media'])
+            <td></td>
+            @endif
             <td class="num">{{ $bcv['total_cartons'] }}</td>
             <td class="num">{{ $bcv['total_weight'] }}</td>
             <td></td>
