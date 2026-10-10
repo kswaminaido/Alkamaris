@@ -47,7 +47,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
 
   const items = useMemo(() => transaction.items ?? [], [transaction.items])
-  const showMedia = items.some((item) => String(item.media ?? '').trim() !== '')
+  const showMedia = items.some((item) => mediaItemCode(item) !== '')
   const lastPage = Math.max(1, Math.ceil(items.length / pageSize))
   const currentPage = Math.min(page, lastPage)
   const visibleItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -205,7 +205,7 @@ function TransactionItemsModal({ transaction, authFetch, onClose, onTransactionC
                       <td>{item.packing || '-'}</td>
                       <td>{item.brand || '-'}</td>
                       <td>{item.size || '-'}</td>
-                      {showMedia && <td>{item.media || '-'}</td>}
+                      {showMedia && <td>{mediaItemCode(item) || '-'}</td>}
                       <td>{formatDecimal(item.total_weight_value)}</td>
                       <td>{formatQty(item.qty_booking ?? item.qty_value, item.qty_unit)}</td>
                       <td>{formatMoney(item.selling_unit_price)}</td>
@@ -707,6 +707,10 @@ function CloseIcon() {
       <path d="M6 6l12 12M18 6 6 18" />
     </svg>
   )
+}
+
+function mediaItemCode(item) {
+  return String(item.media ?? '').trim() || String(item.item_code ?? '').trim()
 }
 
 function buildForm(transaction, item) {

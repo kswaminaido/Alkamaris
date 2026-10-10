@@ -510,7 +510,7 @@ final class TransactionDocumentViewDataFactory
             'brand' => $this->upperText($item?->brand),
             'notes' => $this->displayText($item?->notes),
             'size' => $this->displayText($item?->size),
-            'media' => $this->displayText($item?->media),
+            'media' => $this->firstFilled($item?->media, $item?->item_code),
             'cartons' => $this->quantityOrBlank($quantity),
             'cartons_value' => $quantity,
             'weight' => $this->weightOrBlank($this->numberOrNull($item?->total_weight_value) ?? $this->numberOrNull($item?->lqd_qty)),

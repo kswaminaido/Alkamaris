@@ -321,6 +321,31 @@ HTML;
 HTML;
         }
 
+        if (str_contains($html, '<title>Print S/A</title>')) {
+            $wordStyles .= <<<'HTML'
+<style>
+  .logo-cell { width: 92px !important; height: 48px !important; }
+  .logo { width: 70px !important; height: auto !important; max-width: 70px !important; max-height: 58px !important; }
+  .title-band, .product-head td, .size-wrap .items th {
+    background: #000 !important;
+    color: #fff !important;
+  }
+  .product td, .product-head td, .details td { border: 0 !important; }
+  .product td { padding: 0 !important; }
+  .size-wrap .items { border: 0 !important; }
+  .size-wrap .items td, .size-wrap .items th { border: 0.75pt solid #000 !important; }
+  .size-wrap .items .total-spacer {
+    border-top: 0.75pt solid #000 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    padding: 0 !important;
+  }
+  .details { border: 0 !important; }
+</style>
+HTML;
+        }
+
         if (str_contains($html, '</head>')) {
             return str_replace('</head>', $wordStyles."\n</head>", $html);
         }
@@ -330,13 +355,15 @@ HTML;
 
     private function withWordLogoMarkup(string $html): string
     {
-        $isLqd = str_contains($html, '<title>Print BCV /Lqd</title>') || str_contains($html, '<title>Print BCB /Lqd</title>');
+        $isCompactLogo = str_contains($html, '<title>Print BCV /Lqd</title>')
+            || str_contains($html, '<title>Print BCB /Lqd</title>')
+            || str_contains($html, '<title>Print S/A</title>');
 
         return preg_replace_callback(
             '/<img\b([^>]*\bclass="[^"]*\b(?:pv-logo|logo)\b[^"]*"[^>]*)>/i',
-            function (array $matches) use ($isLqd): string {
+            function (array $matches) use ($isCompactLogo): string {
                 $attributes = preg_replace('/\s(?:width|height)="[^"]*"/i', '', $matches[1]) ?? $matches[1];
-                $logoStyle = $isLqd
+                $logoStyle = $isCompactLogo
                     ? 'width:70px;max-width:70px;height:auto;max-height:58px;'
                     : 'width:90px;max-width:90px;height:90px;max-height:90px;';
 
@@ -351,7 +378,7 @@ HTML;
                     $attributes .= ' style="' . $logoStyle . '"';
                 }
 
-                return $isLqd
+                return $isCompactLogo
                     ? '<img' . $attributes . ' width="70">'
                     : '<img' . $attributes . ' width="90" height="90">';
             },
@@ -361,11 +388,13 @@ HTML;
 
     private function withWordItemTableMarkup(string $html): string
     {
+        $isShippingAdvice = str_contains($html, '<title>Print S/A</title>');
+
         return preg_replace_callback(
             '/<table class="(main items(?: has-media)?)">(.*?)<\/table>/s',
-            function (array $matches): string {
+            function (array $matches) use ($isShippingAdvice): string {
                 $isLqd = str_contains($matches[0], '<th class="desc">DESCRIPTION</th>');
-                $headerColor = $isLqd ? '#000000' : '#061173';
+                $headerColor = ($isLqd || $isShippingAdvice) ? '#000000' : '#061173';
                 $table = $matches[2];
                 $table = preg_replace('/<th([^>]*)>/', '<th$1 bgcolor="'.$headerColor.'" style="background-color:'.$headerColor.';color:#ffffff;border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
                 $table = preg_replace('/<td([^>]*)>/', '<td$1 style="border:0.75pt solid #000;mso-border-alt:solid #000 0.75pt;padding:2pt 3pt;font-size:7.5pt;line-height:9pt;">', $table) ?? $table;
