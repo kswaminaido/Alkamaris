@@ -514,9 +514,9 @@
             @foreach ($bcv['packer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
-            @if ($bcv['packer_block']['tax_identifier'] !== '')
+            {{-- @if ($bcv['packer_block']['tax_identifier'] !== '')
             <div>{{ $bcv['packer_block']['tax_identifier'] }}</div>
-            @endif
+            @endif --}}
             @if ($bcv['packed_by'] !== '')
             <div><strong>Packed By</strong></div>
             <div class="muted">{{ $bcv['packed_by'] }}</div>
@@ -527,9 +527,9 @@
             @foreach ($bcv['customer_block']['lines'] as $line)
             <div class="muted">{{ $line }}</div>
             @endforeach
-            @if ($bcv['customer_block']['tax_identifier'] !== '')
+            {{-- @if ($bcv['customer_block']['tax_identifier'] !== '')
             <div>{{ $bcv['customer_block']['tax_identifier'] }}</div>
-            @endif
+            @endif --}}
           </td>
         </tr>
       </table>
