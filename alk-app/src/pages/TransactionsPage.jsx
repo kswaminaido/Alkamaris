@@ -469,10 +469,17 @@ function TransactionsPage({ overdueOnly = false }) {
                 <tr><td colSpan={transactionTableColumns.length}>No transactions found.</td></tr>
               )}
               {!loading && visibleRows.map((transaction) => (
-                <tr key={transaction.id} className="transactions-row-clickable" onClick={() => setSelectedTransaction(transaction)}>
+                <tr key={transaction.id} className={`transactions-row-clickable${getLsdDaysRemaining(transaction) !== null ? ' transactions-row-lsd-alert' : ''}`} onClick={() => setSelectedTransaction(transaction)}>
                   <td><MobileTailCell value={transaction.booking_no} /></td>
                   <td><TruncatedCell value={displayDate(transaction.issue_date)} /></td>
-                  <td><TruncatedCell value={displayDate(getTransactionLsdDate(transaction))} /></td>
+                  <td>
+                    <TruncatedCell value={displayDate(getTransactionLsdDate(transaction))} />
+                    {getLsdDaysRemaining(transaction) !== null && (
+                      <span className="transactions-lsd-alert-label">
+                        {getLsdDaysRemaining(transaction) === 0 ? 'LSD due today' : `LSD due in ${getLsdDaysRemaining(transaction)} ${getLsdDaysRemaining(transaction) === 1 ? 'day' : 'days'}`}
+                      </span>
+                    )}
+                  </td>
                   <td><TruncatedCell value={transaction.general_info_packer?.vendor} /></td>
                   <td><TruncatedCell value={transaction.general_info_customer?.customer} /></td>
                   <td><TruncatedCell value={ameInvoiceToPacker(transaction)} /></td>
@@ -542,6 +549,20 @@ function getTransactionLsdDate(transaction) {
   return transaction.shipping_details_packer?.lsd_max
     ?? transaction.shipping_details_customer?.lsd_max
     ?? ''
+}
+
+function getLsdDaysRemaining(transaction) {
+  if (['S', 'R', 'D'].includes(transaction.status)) return null
+
+  const lsd = getTransactionLsdDate(transaction)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(lsd ?? '')) return null
+
+  const today = new Date()
+  const startOfToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+  const dueDate = Date.parse(`${lsd}T00:00:00Z`)
+  const daysUntilDue = (dueDate - startOfToday) / 86400000
+
+  return daysUntilDue >= 0 && daysUntilDue <= 7 ? daysUntilDue : null
 }
 
 function ameInvoiceToPacker(transaction) {

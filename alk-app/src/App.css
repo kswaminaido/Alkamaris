@@ -10243,6 +10243,21 @@ table th,
 }
 
 /* Requested final UI overrides */
+.transactions-table tbody tr.transactions-row-lsd-alert td,
+.transactions-table tbody tr.transactions-row-lsd-alert:nth-child(even) td,
+.transactions-table .transactions-row-lsd-alert:hover td {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+.transactions-lsd-alert-label {
+  display: block;
+  color: #b91c1c;
+  font-size: 0.5rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .module-card-head,
 .data-group-title,
 .dashboard-status-summary-head,
@@ -10433,8 +10448,12 @@ table th,
     position: relative !important;
   }
 
-  .dashboard-shell.sidebar-collapsed .sidebar-menu-item:hover .sidebar-submenu-panel,
-  .dashboard-shell.sidebar-collapsed .sidebar-menu-item:focus-within .sidebar-submenu-panel {
+  .dashboard-shell.sidebar-collapsed
+    .sidebar-menu-item:hover
+    .sidebar-submenu-panel,
+  .dashboard-shell.sidebar-collapsed
+    .sidebar-menu-item:focus-within
+    .sidebar-submenu-panel {
     display: block !important;
     right: auto !important;
     left: calc(88px + 0.5rem) !important;
@@ -10448,8 +10467,12 @@ table th,
 }
 
 @media (max-width: 980px) {
-  .dashboard-sidebar.mobile-open .sidebar-menu-item:hover .sidebar-submenu-panel,
-  .dashboard-sidebar.mobile-open .sidebar-menu-item:focus-within .sidebar-submenu-panel {
+  .dashboard-sidebar.mobile-open
+    .sidebar-menu-item:hover
+    .sidebar-submenu-panel,
+  .dashboard-sidebar.mobile-open
+    .sidebar-menu-item:focus-within
+    .sidebar-submenu-panel {
     position: static !important;
     width: auto !important;
     min-width: 0 !important;
