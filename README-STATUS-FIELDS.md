@@ -40,9 +40,9 @@ The frontend also has an `SP` (Sales Proceed) filter option. `SP` is not a store
 | Indicator | Trigger | Clears when |
 | --- | --- | --- |
 | Red LSD date cell | Packer `lsd_max`, otherwise customer `lsd_max`, is due within 7 days or overdue | Status becomes `I`, `S`, `R` or `D`, or LSD no longer qualifies |
-| Dark gold entire row | Status is `I` | Status changes from `I`, including to `D` |
+| Light red status box | Status is `I` | Status changes from `I`, including to `D` |
 
-The LSD label shows days until due, due today or days crossed. The gold row shows elapsed days in the Status cell. Its start date is `cash_flow_packer.invoice_date`, then `cash_flow_customer.invoice_date`, then the transaction's `updated_at` date when neither invoice date is available. The count is calculated for display and is not stored. `updated_at` may change for reasons other than invoicing, so that fallback is approximate.
+The LSD label shows days until due, due today or days crossed. The light red status box shows elapsed days in the Status cell. Its start date is `cash_flow_packer.invoice_date`, then `cash_flow_customer.invoice_date`, then the transaction's `updated_at` date when neither invoice date is available. The count is calculated for display and is not stored. `updated_at` may change for reasons other than invoicing, so that fallback is approximate.
 
 The `/transactions/overdue-invoice` API filter separately finds records whose selected `lsd_max` is before today and whose status is not Paid. It does not use the red cell's status exclusions.
 

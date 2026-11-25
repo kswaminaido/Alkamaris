@@ -469,7 +469,7 @@ function TransactionsPage({ overdueOnly = false }) {
                 <tr><td colSpan={transactionTableColumns.length}>No transactions found.</td></tr>
               )}
               {!loading && visibleRows.map((transaction) => (
-                <tr key={transaction.id} className={`transactions-row-clickable${getLsdDaysRemaining(transaction) !== null ? ' transactions-row-lsd-alert' : ''}${transaction.status === 'I' ? ' transactions-row-invoiced' : ''}`} onClick={() => setSelectedTransaction(transaction)}>
+                <tr key={transaction.id} className={`transactions-row-clickable${getLsdDaysRemaining(transaction) !== null ? ' transactions-row-lsd-alert' : ''}`} onClick={() => setSelectedTransaction(transaction)}>
                   <td><MobileTailCell value={transaction.booking_no} /></td>
                   <td><TruncatedCell value={displayDate(transaction.issue_date)} /></td>
                   <td>
@@ -494,12 +494,14 @@ function TransactionsPage({ overdueOnly = false }) {
                   <td><TruncatedCell value={displayDate(transaction.logistics?.etd_date)} /></td>
                   <td><TruncatedCell value={displayDate(transaction.logistics?.eta_date)} /></td>
                   <td>
-                    <TruncatedCell value={getStatusLabel(transaction.status ?? 'U')} />
-                    {transaction.status === 'I' && getInvoiceDaysElapsed(transaction) !== null && (
-                      <span className="transactions-invoice-days">
-                        {getInvoiceDaysElapsed(transaction)} {getInvoiceDaysElapsed(transaction) === 1 ? 'day' : 'days'} since invoice
-                      </span>
-                    )}
+                    <span className={transaction.status === 'I' ? 'transactions-invoice-status' : undefined}>
+                      <TruncatedCell value={getStatusLabel(transaction.status ?? 'U')} />
+                      {transaction.status === 'I' && getInvoiceDaysElapsed(transaction) !== null && (
+                        <span className="transactions-invoice-days">
+                          {getInvoiceDaysElapsed(transaction)} {getInvoiceDaysElapsed(transaction) === 1 ? 'day' : 'days'} since invoice
+                        </span>
+                      )}
+                    </span>
                   </td>
                   {/* <td>{displayDate(transaction.shipping_details_customer?.req_eta)}</td> */}
                   <td><TruncatedCell value={transaction.destination} /></td>

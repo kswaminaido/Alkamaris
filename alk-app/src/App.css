@@ -10281,16 +10281,13 @@ table th,
   white-space: nowrap;
 }
 
-.transactions-table tbody tr.transactions-row-invoiced td,
-.transactions-table tbody tr.transactions-row-invoiced:nth-child(even) td,
-.transactions-table .transactions-row-invoiced:hover td {
-  background: #b8860b !important;
-  color: #211a05 !important;
-}
-
-.transactions-table tbody tr.transactions-row-invoiced td *,
-.transactions-table .transactions-row-invoiced:hover td * {
-  color: #211a05 !important;
+.transactions-invoice-status {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .transactions-invoice-days {
