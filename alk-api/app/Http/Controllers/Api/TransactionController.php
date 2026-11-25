@@ -166,6 +166,7 @@ class TransactionController extends Controller
                 TransactionStatus::Shipped->value,
                 TransactionStatus::Received->value,
                 TransactionStatus::Paid->value,
+                TransactionStatus::Invoice->value,
             ]);
 
             return;
