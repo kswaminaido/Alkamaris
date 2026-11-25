@@ -573,7 +573,7 @@ function getLsdDaysRemaining(transaction) {
   const dueDate = Date.parse(`${lsd}T00:00:00Z`)
   const daysUntilDue = (dueDate - startOfToday) / 86400000
 
-  return daysUntilDue <= 7 ? daysUntilDue : null
+  return daysUntilDue <= 10 ? daysUntilDue : null
 }
 
 function getInvoiceDaysElapsed(transaction) {

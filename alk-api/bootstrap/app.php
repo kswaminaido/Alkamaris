@@ -6,6 +6,7 @@ use App\Jobs\OverdueEmailJob;
 use App\Jobs\ProcessLcTermsJob;
 use App\Jobs\SendHiMailJob;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('db:dump-sql')
+            ->dailyAt('02:00')
+            ->when(function (): bool {
+                if (! DB::getSchemaBuilder()->hasTable('database_sql_dumps')) {
+                    return false;
+                }
+
+                $last = DB::table('database_sql_dumps')
+                    ->where('status', 'completed')
+                    ->max('completed_at');
+
+                return $last === null || \Illuminate\Support\Carbon::parse($last)->lte(now()->subDays(2));
+            })
+            ->withoutOverlapping()
+            ->runInBackground();
+
         $schedule->command('database:backup-mail')
             ->mondays()
             ->at('08:00')

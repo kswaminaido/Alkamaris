@@ -39,3 +39,9 @@ Routes are in `routes/api.php`. Authentication is under `/api/auth`. Authenticat
 Transactions have related customer and packer general information, revenue, cash flow and shipping details, plus logistics, notes, items and expenses. `TransactionResource` assembles these records for the client.
 
 `.env.example` includes database, queue, mail, Mailchimp, country lookup and backup recipient settings. The configured schedule dispatches overdue email work on Mondays and Thursdays at 08:00. The LC terms job exists, but its schedule entry is commented out.
+
+## SQL dump history
+
+`php artisan db:dump-sql` creates a full MySQL dump in the `database_sql_dumps` table. Each row has a backup date, start and completion timestamps, status, table and row counts, and either the SQL or an error message. The dump includes the backup table's structure but omits its rows, so prior dumps are not copied into each new dump. Use `--output=path/to/dump.sql` when a local SQL file is also needed.
+
+The Laravel scheduler checks daily at 02:00 and starts the command in the background when the last successful dump is at least two days old. Run `php artisan schedule:run` every minute through the server's task scheduler (or use `php artisan schedule:work` while developing); without a running scheduler, automatic dumps will not start. MySQL InnoDB tables provide a consistent data snapshot; avoid schema changes during a dump.
