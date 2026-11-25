@@ -1,16 +1,40 @@
-# React + Vite
+# Alkamaris frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 and Vite 7 application for the Alkamaris transaction system. The Laravel API is in [`../alk-api`](../alk-api/README.md). Transaction status rules are in [`../README-STATUS-FIELDS.md`](../README-STATUS-FIELDS.md).
 
-Currently, two official plugins are available:
+## Local setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Install Node.js and npm compatible with Vite 7, then start the backend and run:
 
-## React Compiler
+```sh
+cd alk-app
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Open the URL printed by Vite. To use a local backend, create `alk-app/.env.local` containing `BACKEND_URL=http://127.0.0.1:8000`. The app adds `/api` itself. Without this setting, `src/config/api.js` uses `https://api.erpalkamaris.com/`. `APP_ENV` is optional and defaults to `Development`. `vite.config.js` exposes variables beginning with `VITE_`, `APP_ENV`, or `BACKEND_`.
 
-## Expanding the ESLint configuration
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | Production files in `dist/` |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Code map
+
+| Path | Responsibility |
+| --- | --- |
+| `src/App.jsx` | Routes and authentication gates |
+| `src/pages/` | Dashboard, transactions, reports, user and admin screens |
+| `src/pages/TransactionsPage.jsx` | Transaction list, filters, LSD and invoice indicators |
+| `src/pages/TransactionCreatePage.jsx` | New transaction form |
+| `src/components/transactions/` | Transaction edit and item modals |
+| `src/context/AuthContext.jsx` | Login, current user and bearer token |
+| `src/config/api.js` | API base URL |
+| `src/App.css` | App and table styling |
+| `src/utils/` | Date, dropdown, country and user helpers |
+
+Main routes include `/transactions`, `/transactions/new`, `/transactions/overdue-invoice`, `/reports/summary`, `/reports/packer-sales`, `/reports/payment-status`, `/transactions/qc-inspection`, `/master`, `/admin/history`, and `/admin/mail`. Some transaction routes use a placeholder page. The Sanctum bearer token is stored in browser local storage under `alkamaris_access_token`.
+
+The backend determines persisted transaction status. See the [status and fields guide](../README-STATUS-FIELDS.md) before changing status behavior or table indicators.
