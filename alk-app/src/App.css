@@ -6350,6 +6350,26 @@ textarea:focus,
   }
 }
 
+.transactions-page .transactions-table tbody td:nth-child(3) {
+  overflow: hidden;
+}
+
+.transactions-page
+  .transactions-table
+  tbody
+  td:nth-child(3)
+  .table-truncate-cell,
+.transactions-page
+  .transactions-table
+  tbody
+  td:nth-child(3)
+  .transactions-lsd-alert-label {
+  display: block;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
 /* App-wide responsive hardening */
 html,
 body,
@@ -10243,9 +10263,12 @@ table th,
 }
 
 /* Requested final UI overrides */
-.transactions-table tbody tr.transactions-row-lsd-alert td,
-.transactions-table tbody tr.transactions-row-lsd-alert:nth-child(even) td,
-.transactions-table .transactions-row-lsd-alert:hover td {
+.transactions-table tbody tr.transactions-row-lsd-alert td:nth-child(3),
+.transactions-table
+  tbody
+  tr.transactions-row-lsd-alert:nth-child(even)
+  td:nth-child(3),
+.transactions-table .transactions-row-lsd-alert:hover td:nth-child(3) {
   background: #fee2e2 !important;
   color: #991b1b !important;
 }
@@ -10256,6 +10279,27 @@ table th,
   font-size: 0.5rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.transactions-table tbody tr.transactions-row-invoiced td,
+.transactions-table tbody tr.transactions-row-invoiced:nth-child(even) td,
+.transactions-table .transactions-row-invoiced:hover td {
+  background: #b8860b !important;
+  color: #211a05 !important;
+}
+
+.transactions-table tbody tr.transactions-row-invoiced td *,
+.transactions-table .transactions-row-invoiced:hover td * {
+  color: #211a05 !important;
+}
+
+.transactions-invoice-days {
+  display: block;
+  max-width: 100%;
+  font-size: 0.5rem;
+  font-weight: 700;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
 }
 
 .module-card-head,
