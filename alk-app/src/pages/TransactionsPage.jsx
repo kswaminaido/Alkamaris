@@ -565,7 +565,7 @@ function getTransactionLsdDate(transaction) {
 }
 
 function getLsdDaysRemaining(transaction) {
-  if (['I', 'S', 'R', 'D'].includes(transaction.status)) return null
+  if (['I', 'S', 'R', 'D', 'C'].includes(transaction.status)) return null
 
   const lsd = getTransactionLsdDate(transaction)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(lsd ?? '')) return null
